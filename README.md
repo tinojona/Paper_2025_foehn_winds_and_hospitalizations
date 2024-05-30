@@ -1,7 +1,7 @@
-# Applied Geodata Science 2 by Tino Schneidewind
+# Master Thesis by Tino Schneidewind
 
 This repository was created using a github template from geco-bern and serves as a platform 
-to submit my reports on `Phenology Modelling` and `Spatial Upscaling` in the form of R-Markdown documents.
+to save my code in the form of R-Markdown and R-Script documents.
 
 ## Folders
 
@@ -35,4 +35,3 @@ markdown code!
 
 The `vignettes` folder contains dynamic notebooks, i.e. R markdown files. These
 might serve a dual use between analysis and manuscript. 
-My final reports will be stored here. 
