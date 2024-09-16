@@ -1,0 +1,17 @@
+---
+title: "Mesh regions selection"
+author: "Tino"
+date: "2024-09-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Selection of Meshdata areas for catchments of hospitalization data
+
+info:
+I have the following stations and need to get all Meshdat regions that at least partially overlap into a list and give that one to Sujung.
+Vaduz, Davos, Chur, Altdorf, Sion, Visp, Magadino, Lugano, Poschiavo
+
