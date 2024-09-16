@@ -11,7 +11,83 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Selection of Meshdata areas for catchments of hospitalization data
 
-info:
+
 I have the following stations and need to get all Meshdat regions that at least partially overlap into a list and give that one to Sujung.
+
 Vaduz, Davos, Chur, Altdorf, Sion, Visp, Magadino, Lugano, Poschiavo
+
+```{r load data}
+# packages 
+library(sf)
+library(ggplot2)
+        
+# load data
+mesh <- st_read("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/MedStat/MEDSTAT_AREAS_2019.shp")
+
+# transform meshdat geometry¨
+mesh$geometry <- st_transform(mesh$geometry, crs= 2056)
+
+# create data frame with Station coordinates
+df_station_coor <- data.frame(station = c("Davos", "Chur", "Altdorf", "Sion", "Visp", "Magadino", "Lugano", "Poschiavo"),
+                                    x = c("2783519", "2759489", "2690181", "2591633", "2631151", "2715480", "2717874", "2801994"),
+                                    y = c("1187459", "1193182", "1193564", "1118584", "1128024", "1113161", "1095883", "1136249"),
+                                   ID = c("GR06200", "GR06001", "UR03002", "VS09901", "VS09605", "TI08001", "TI08204", "GR06804"))
+
+
+```
+
+```{r buffer_calc}
+# empty regions
+regions = data.frame(mesh$MDST04,
+                     Index = rep(FALSE, length(mesh$MDSTID)))
+
+# calculate the buffer
+for (i in 1:8) {
+  
+ # change format of coordinates into sf as a point 
+ point_sf <- st_as_sf(df_station_coor[i,2:3], coords = c("x", "y"), crs = st_crs(mesh$geometry))
+
+ # Create a 30 km buffer
+ buffer <- st_buffer(point_sf, dist = 30000)
+
+
+ # Find regions that intersect with the buffer
+ intersects_with_buffer <- st_intersects(mesh$geometry, buffer, sparse = FALSE)
+
+ # Add selected regions to regions list 
+ regions$Index <- regions$Index +  intersects_with_buffer 
+  
+}
+
+
+# Extract all regions (unique)
+ID_list = c()
+
+for(i in 1:length(regions$mesh.MDST04)){
+  if(regions$Index[i] > 0){
+    area_of_interest <- regions$mesh.MDST04[i]
+    ID_list <- c(ID_list, area_of_interest)
+  }
+}
+
+write.csv(ID_list, file = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/ID_selected_MetRegions.csv")
+```
+
+
+
+
+```{r, plot}
+# plot the selected regions
+index_stations = match(df_station_coor$ID, mesh$MDSTID)
+index_regions = match(ID_list, mesh$MDST04)
+
+
+ggplot() +
+  geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
+  geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.5) +   # Adjust color and transparency
+  geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
+  theme_minimal()
+
+```
+
 
