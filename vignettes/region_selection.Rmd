@@ -16,7 +16,7 @@ I have the following stations and need to get all Meshdat regions that at least 
 
 Vaduz, Davos, Chur, Altdorf, Sion, Visp, Magadino, Lugano, Poschiavo
 
-```{r load data}
+```{r load data, error=FALSE, warning=FALSE, message=FALSE}
 # packages 
 library(sf)
 library(ggplot2)
@@ -29,9 +29,9 @@ mesh$geometry <- st_transform(mesh$geometry, crs= 2056)
 
 # create data frame with Station coordinates
 df_station_coor <- data.frame(station = c("Davos", "Chur", "Altdorf", "Sion", "Visp", "Magadino", "Lugano", "Poschiavo"),
-                                    x = c("2783519", "2759489", "2690181", "2591633", "2631151", "2715480", "2717874", "2801994"),
-                                    y = c("1187459", "1193182", "1193564", "1118584", "1128024", "1113161", "1095883", "1136249"),
-                                   ID = c("GR06200", "GR06001", "UR03002", "VS09901", "VS09605", "TI08001", "TI08204", "GR06804"))
+                              x = c("2783519", "2759489", "2690181", "2591633", "2631151", "2715480", "2717874", "2801994"),
+                              y = c("1187459", "1193182", "1193564", "1118584", "1128024", "1113161", "1095883", "1136249"),
+                              ID = c("GR06200", "GR06001", "UR03002", "VS09901", "VS09605", "TI08001", "TI08204", "GR06804"))
 
 
 ```
