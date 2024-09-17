@@ -98,7 +98,7 @@ for(i in 1:length(df_regions$MDST04)){
 
 # create a list for Sujung
 list_regions <- na.omit(df_regions$ID)
-write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MDSTID_MetRegions_", buffer_size, ".csv"))
+write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MetStatRegions/MDSTID_MetRegions_", buffer_size, ".csv"))
 ```
 
 
@@ -153,7 +153,7 @@ for(i in 1:length(df_regions$MDST04)){
 
 # create a list for Sujung
 list_regions <- na.omit(df_regions$ID)
-# write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MDSTID_MetRegions_", buffer_size, ".csv"))
+write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MetStatRegions/MDSTID_MetRegions_", buffer_size, ".csv"))
 
 
 
