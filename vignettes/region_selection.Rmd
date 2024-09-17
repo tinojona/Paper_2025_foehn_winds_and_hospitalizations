@@ -1,18 +1,21 @@
 ---
 title: "MedStat Region Selection"
 author: "Tino Schneidewind"
-date: "2024-09-16"
+date: "`r Sys.Date()`"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# notes for creating html document, paste this into Console
+# rmarkdown::render("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/vignettes/region_selection.Rmd", output_format = "html_document")
 ```
 
 ### determination of catchments of foehn for hospitalization data
 
 
-Selected stations: Davos, Chur, Altdorf, Montana, Visp, Magadino, Lugano, Poschiavo
+Selected stations: Davos, Chur, Altdorf, Montana, Visp, Magadino, Lugano, Poschiavo.
 Basis of the selection process of the stations: more than 400 h foehn annually. Around these stations there is a buffer. Every MedStat region that intersects with the Buffer of a station is part of the catchment area for this station.
 
 In my opinion, **the buffer should be as small as possible, because foehn can appear very localized. With a buffer that is too large, our signal from foehn (if there is one) is diluted from areas that are not affected by foehn. If our area is too small, it is possible that we do not have enough hospitalization data to observe a significant trend. **
