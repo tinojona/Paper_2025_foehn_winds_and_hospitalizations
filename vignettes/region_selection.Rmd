@@ -9,68 +9,94 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Selection of Meshdata areas for catchments of hospitalization data
+### Selection of Meshdata areas for catchments of hospitalization data
 
 
-I have the following stations and need to get all Meshdat regions that at least partially overlap into a list and give that one to Sujung.
+selected stations: Vaduz, Davos, Chur, Altdorf, Montana, Visp, Magadino, Lugano, Poschiavo
 
-Vaduz, Davos, Chur, Altdorf, Sion, Visp, Magadino, Lugano, Poschiavo
+Basis of the selection process of the stations: more than 400 h foehn annually.
 
-```{r load data, error=FALSE, warning=FALSE, message=FALSE}
+Around these stations I need a Buffer.
+
+Every Meshdat region that intersects with the Buffer of a station is part of the catchment area for this station.
+
+**In my opinion, the buffer should be as small as possible, because foehn can appear very localized. With a too large buffer, our signal from foehn (if there is one) is diluted from areas that are not affected by foehn. If our area is too small, it is possible that we do not have enough data (hospitalizations) so observe a significant trend. **
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 # packages 
 library(sf)
 library(ggplot2)
-        
-# load data
-mesh <- st_read("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/MedStat/MEDSTAT_AREAS_2019.shp")
+library(knitr)
 
-# transform meshdat geometry¨
-mesh$geometry <- st_transform(mesh$geometry, crs= 2056)
 
-# create data frame with Station coordinates
-df_station_coor <- data.frame(station = c("Davos", "Chur", "Altdorf", "Sion", "Visp", "Magadino", "Lugano", "Poschiavo"),
-                              x = c("2783519", "2759489", "2690181", "2591633", "2631151", "2715480", "2717874", "2801994"),
-                              y = c("1187459", "1193182", "1193564", "1118584", "1128024", "1113161", "1095883", "1136249"),
-                              ID = c("GR06200", "GR06001", "UR03002", "VS09901", "VS09605", "TI08001", "TI08204", "GR06804"))
+knitr::include_graphics("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/Foehnstunden.png")
 
 
 ```
 
+```{r load data, error=FALSE, warning=FALSE, message=FALSE}
+# load data
+mesh <- st_read("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/MedStat/MEDSTAT_AREAS_2019.shp")
+
+# transform meshdat geometry to MeteoSchweiz geometry
+mesh$geometry <- st_transform(mesh$geometry, crs= 2056)
+
+# create data frame with Station coordinates (from MeteoSchweiz website)
+df_stations <- data.frame(station = c("Davos", "Chur", "Altdorf", "Montana", "Visp", "Magadino", "Lugano", "Poschiavo"),
+                              x = c("2783519", "2759489", "2690181", "2601709", "2631151", "2715480", "2717874", "2801994"),
+                              y = c("1187459", "1193182", "1193564", "1127489", "1128024", "1113161", "1095883", "1136249"),
+                              MDSTID = c("GR06200", "GR06001", "UR03002", "VS09802", "VS09605", "TI08001", "TI08204", "GR06804")) # manually searched for in mesh dataset 
+
+
+```
+
+
+
 ```{r buffer_calc}
-# empty regions
-regions = data.frame(mesh$MDST04,
-                     Index = rep(FALSE, length(mesh$MDSTID)))
+# buffer size 30k
+buffer_size = 30000
 
-# calculate the buffer
-for (i in 1:8) {
+# list of Meshdat regions that are set to FALSE -> TRUE when they intersect with a buffer 
+df_regions <- data.frame(MDST04= mesh$MDST04, Index = rep(0, length(mesh$MDSTID)))
+
+# calculate the buffer around the 8 stations
+for (i in 1:8) {                    
   
- # change format of coordinates into sf as a point 
- point_sf <- st_as_sf(df_station_coor[i,2:3], coords = c("x", "y"), crs = st_crs(mesh$geometry))
+ # change format of station coordinates into sf as a point 
+ point_sf <- st_as_sf(df_stations[i,2:3], coords = c("x", "y"), crs = 2056)
 
- # Create a 30 km buffer
- buffer <- st_buffer(point_sf, dist = 30000)
+ # Create the buffer
+ buffer <- st_buffer(point_sf, dist = buffer_size)
 
 
  # Find regions that intersect with the buffer
  intersects_with_buffer <- st_intersects(mesh$geometry, buffer, sparse = FALSE)
 
  # Add selected regions to regions list 
- regions$Index <- regions$Index +  intersects_with_buffer 
+ df_regions$Index <- df_regions$Index +  intersects_with_buffer 
   
 }
 
 
-# Extract all regions (unique)
-ID_list = c()
 
-for(i in 1:length(regions$mesh.MDST04)){
-  if(regions$Index[i] > 0){
-    area_of_interest <- regions$mesh.MDST04[i]
-    ID_list <- c(ID_list, area_of_interest)
+
+
+# Extract all regions that intersect in a list
+df_regions$ID <- rep(NA, nrow(mesh))
+
+# for every area that at least intersects once
+for(i in 1:length(df_regions$MDST04)){
+  if(df_regions$Index[i] > 0){
+    
+    # save the area code once again, all others NA
+    df_regions$ID[i] <- df_regions$MDST04[i]
+
   }
 }
 
-write.csv(ID_list, file = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/ID_selected_MetRegions.csv")
+
+# create a list for Sujung
+list_regions <- na.omit(df_regions$ID)
+write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MDSTID_MetRegions_", buffer_size, ".csv"))
 ```
 
 
@@ -78,16 +104,143 @@ write.csv(ID_list, file = "C:/Users/tinos/Documents/Master - Climate Science/3 -
 
 ```{r, plot}
 # plot the selected regions
-index_stations = match(df_station_coor$ID, mesh$MDSTID)
-index_regions = match(ID_list, mesh$MDST04)
+index_stations = match(df_stations$MDSTID, mesh$MDSTID)
+index_regions = match(list_regions, mesh$MDST04)
 
 
 ggplot() +
   geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
   geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.5) +   # Adjust color and transparency
   geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
-  theme_minimal()
+  theme_minimal() +
+  labs(title = paste0("selected regions with buffer: ", buffer_size))
 
 ```
 
 
+
+```{r medium_buffer, echo=FALSE}
+# buffer size 10k
+buffer_size = 10000
+
+# list of Meshdat regions that are set to FALSE -> TRUE when they intersect with a buffer 
+df_regions <- data.frame(MDST04= mesh$MDST04, Index = rep(0, length(mesh$MDSTID)))
+
+# calculate the buffer around the 8 stations
+for (i in 1:8) {                    
+  
+ # change format of station coordinates into sf as a point 
+ point_sf <- st_as_sf(df_stations[i,2:3], coords = c("x", "y"), crs = 2056)
+
+ # Create the buffer
+ buffer <- st_buffer(point_sf, dist = buffer_size)
+
+
+ # Find regions that intersect with the buffer
+ intersects_with_buffer <- st_intersects(mesh$geometry, buffer, sparse = FALSE)
+
+ # Add selected regions to regions list 
+ df_regions$Index <- df_regions$Index +  intersects_with_buffer 
+  
+}
+
+
+
+
+
+# Extract all regions that intersect in a list
+df_regions$ID <- rep(NA, nrow(mesh))
+
+# for every area that at least intersects once
+for(i in 1:length(df_regions$MDST04)){
+  if(df_regions$Index[i] > 0){
+    
+    # save the area code once again, all others NA
+    df_regions$ID[i] <- df_regions$MDST04[i]
+
+  }
+}
+
+
+# create a list for Sujung
+list_regions <- na.omit(df_regions$ID)
+write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MDSTID_MetRegions_", buffer_size, ".csv"))
+
+
+
+# plot the selected regions
+index_stations = match(df_stations$MDSTID, mesh$MDSTID)
+index_regions = match(list_regions, mesh$MDST04)
+
+
+ggplot() +
+  geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
+  geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.5) +   # Adjust color and transparency
+  geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
+  theme_minimal() +
+  labs(title = paste0("selected regions with buffer: ", buffer_size))
+```
+
+
+
+```{r small_buffer, echo=FALSE}
+# buffer size 5k
+buffer_size = 5000
+
+# list of Meshdat regions that are set to FALSE -> TRUE when they intersect with a buffer 
+df_regions <- data.frame(MDST04= mesh$MDST04, Index = rep(0, length(mesh$MDSTID)))
+
+# calculate the buffer around the 8 stations
+for (i in 1:8) {                    
+  
+ # change format of station coordinates into sf as a point 
+ point_sf <- st_as_sf(df_stations[i,2:3], coords = c("x", "y"), crs = 2056)
+
+ # Create the buffer
+ buffer <- st_buffer(point_sf, dist = buffer_size)
+
+
+ # Find regions that intersect with the buffer
+ intersects_with_buffer <- st_intersects(mesh$geometry, buffer, sparse = FALSE)
+
+ # Add selected regions to regions list 
+ df_regions$Index <- df_regions$Index +  intersects_with_buffer 
+  
+}
+
+
+
+
+
+# Extract all regions that intersect in a list
+df_regions$ID <- rep(NA, nrow(mesh))
+
+# for every area that at least intersects once
+for(i in 1:length(df_regions$MDST04)){
+  if(df_regions$Index[i] > 0){
+    
+    # save the area code once again, all others NA
+    df_regions$ID[i] <- df_regions$MDST04[i]
+
+  }
+}
+
+
+# create a list for Sujung
+list_regions <- na.omit(df_regions$ID)
+write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MDSTID_MetRegions_", buffer_size, ".csv"))
+
+
+
+# plot the selected regions
+index_stations = match(df_stations$MDSTID, mesh$MDSTID)
+index_regions = match(list_regions, mesh$MDST04)
+
+
+ggplot() +
+  geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
+  geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.5) +   # Adjust color and transparency
+  geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
+  theme_minimal() +
+  labs(title = paste0("selected regions with buffer: ", buffer_size))
+```
