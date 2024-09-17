@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ### determination of catchments of foehn for hospitalization data
 
 
-Selected stations: Vaduz, Davos, Chur, Altdorf, Montana, Visp, Magadino, Lugano, Poschiavo
+Selected stations: Davos, Chur, Altdorf, Montana, Visp, Magadino, Lugano, Poschiavo
 Basis of the selection process of the stations: more than 400 h foehn annually. Around these stations there is a buffer. Every MedStat region that intersects with the Buffer of a station is part of the catchment area for this station.
 
 In my opinion, **the buffer should be as small as possible, because foehn can appear very localized. With a buffer that is too large, our signal from foehn (if there is one) is diluted from areas that are not affected by foehn. If our area is too small, it is possible that we do not have enough hospitalization data to observe a significant trend. **
@@ -150,7 +150,7 @@ for(i in 1:length(df_regions$MDST04)){
 
 # create a list for Sujung
 list_regions <- na.omit(df_regions$ID)
-write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MDSTID_MetRegions_", buffer_size, ".csv"))
+# write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MDSTID_MetRegions_", buffer_size, ".csv"))
 
 
 
@@ -177,4 +177,90 @@ map_plot <- ggplot() +
 print(map_plot)
 }
 ```
+
+```{r tester, echo=FALSE}
+buffer_size_list = c(10000)
+buffer_list = list()
+
+for(i in buffer_size_list){
+# buffer size 10k
+buffer_size <- i
+
+# list of Meshdat regions that are set to FALSE -> TRUE when they intersect with a buffer 
+df_regions <- data.frame(MDST04= mesh$MDST04, Index = rep(0, length(mesh$MDSTID)))
+
+# calculate the buffer around the 8 stations
+for (i in 1:8) {                    
+  
+ # change format of station coordinates into sf as a point 
+ point_sf <- st_as_sf(df_stations[i,2:3], coords = c("x", "y"), crs = 2056)
+
+ # Create the buffer
+ buffer <- st_buffer(point_sf, dist = buffer_size)
+ # save buffer
+buffer_list[[i]] = buffer
+
+ # Find regions that intersect with the buffer
+ intersects_with_buffer <- st_intersects(mesh$geometry, buffer, sparse = FALSE)
+
+ # Add selected regions to regions list 
+ df_regions$Index <- df_regions$Index +  intersects_with_buffer 
+  
+}
+
+
+
+
+
+# Extract all regions that intersect in a list
+df_regions$ID <- rep(NA, nrow(mesh))
+
+# for every area that at least intersects once
+for(i in 1:length(df_regions$MDST04)){
+  if(df_regions$Index[i] > 0){
+    
+    # save the area code once again, all others NA
+    df_regions$ID[i] <- df_regions$MDST04[i]
+
+  }
+}
+
+
+# create a list for Sujung
+list_regions <- na.omit(df_regions$ID)
+
+
+# plot the selected regions
+index_stations = match(df_stations$MDSTID, mesh$MDSTID)
+index_regions = match(list_regions, mesh$MDST04)
+
+
+map_plot <- ggplot() +
+  geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
+  geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.7) +  
+  geom_sf(data = mesh$geometry[mesh$MDST04 == "VS20"], fill = "red", alpha = 0.7) +
+  geom_sf(data = mesh$geometry[mesh$MDST04 == "BE86" ], fill = "red", alpha = 0.7) +
+  geom_sf(data = mesh$geometry[mesh$MDST04 == "GR22" ], fill = "red", alpha = 0.7) +
+  geom_sf(data = mesh$geometry[mesh$MDST04 == "GR10" ], fill = "green2", alpha = 0.7) +
+  geom_sf(data = mesh$geometry[mesh$MDST04 == "GR13" ], fill = "red", alpha = 0.7) +
+  geom_sf(data = mesh$geometry[mesh$MDST04 == "GR07" ], fill = "red", alpha = 0.7) +
+  geom_sf(data = mesh$geometry[mesh$MDST04 == "VS05" ], fill = "red", alpha = 0.7) +
+  geom_sf(data = mesh$geometry[mesh$MDST04 == "TI01" ], fill = "red", alpha = 0.7) +
+    geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
+  geom_sf(data = buffer_list[[3]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[4]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[5]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[6]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[7]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[8]], fill = "brown1", alpha = 0.4) +
+  theme_minimal() +
+  labs(title = paste0("selected regions with buffer: ", buffer_size))
+
+print(map_plot)
+}
+
+```
+
+
 
