@@ -1,6 +1,6 @@
 ---
-title: "Mesh regions selection"
-author: "Tino"
+title: "MedStat Region Selection"
+author: "Tino Schneidewind"
 date: "2024-09-16"
 output: html_document
 ---
@@ -9,18 +9,17 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Selection of Meshdata areas for catchments of hospitalization data
+### determination of catchments of foehn for hospitalization data
 
 
-selected stations: Vaduz, Davos, Chur, Altdorf, Montana, Visp, Magadino, Lugano, Poschiavo
+Selected stations: Vaduz, Davos, Chur, Altdorf, Montana, Visp, Magadino, Lugano, Poschiavo
+Basis of the selection process of the stations: more than 400 h foehn annually. Around these stations there is a buffer. Every MedStat region that intersects with the Buffer of a station is part of the catchment area for this station.
 
-Basis of the selection process of the stations: more than 400 h foehn annually.
+In my opinion, **the buffer should be as small as possible, because foehn can appear very localized. With a buffer that is too large, our signal from foehn (if there is one) is diluted from areas that are not affected by foehn. If our area is too small, it is possible that we do not have enough hospitalization data to observe a significant trend. **
 
-Around these stations I need a Buffer.
+This is visible in the figure below, as eg **Sion (151 h) and Sierre (542 h) experience very different foehn hours even though they are very close** and part of the same valley.
 
-Every Meshdat region that intersects with the Buffer of a station is part of the catchment area for this station.
-
-**In my opinion, the buffer should be as small as possible, because foehn can appear very localized. With a too large buffer, our signal from foehn (if there is one) is diluted from areas that are not affected by foehn. If our area is too small, it is possible that we do not have enough data (hospitalizations) so observe a significant trend. **
+**I would rather detect mere non signifincant tendencies than the absence of a trend due to the inclusion of to much non relevant data.**
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 # packages 
 library(sf)
@@ -35,7 +34,7 @@ knitr::include_graphics("C:/Users/tinos/Documents/Master - Climate Science/3 - M
 
 ```{r load data, error=FALSE, warning=FALSE, message=FALSE}
 # load data
-mesh <- st_read("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/MedStat/MEDSTAT_AREAS_2019.shp")
+mesh <- st_read("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/MedStat/MEDSTAT_AREAS_2019.shp", quiet = TRUE)
 
 # transform meshdat geometry to MeteoSchweiz geometry
 mesh$geometry <- st_transform(mesh$geometry, crs= 2056)
@@ -58,6 +57,9 @@ buffer_size = 30000
 # list of Meshdat regions that are set to FALSE -> TRUE when they intersect with a buffer 
 df_regions <- data.frame(MDST04= mesh$MDST04, Index = rep(0, length(mesh$MDSTID)))
 
+# empty list to save buffers in
+buffer_list = list()
+
 # calculate the buffer around the 8 stations
 for (i in 1:8) {                    
   
@@ -66,17 +68,15 @@ for (i in 1:8) {
 
  # Create the buffer
  buffer <- st_buffer(point_sf, dist = buffer_size)
-
+ # save buffer
+buffer_list[[i]] = buffer
 
  # Find regions that intersect with the buffer
  intersects_with_buffer <- st_intersects(mesh$geometry, buffer, sparse = FALSE)
 
  # Add selected regions to regions list 
  df_regions$Index <- df_regions$Index +  intersects_with_buffer 
-  
 }
-
-
 
 
 
@@ -89,7 +89,6 @@ for(i in 1:length(df_regions$MDST04)){
     
     # save the area code once again, all others NA
     df_regions$ID[i] <- df_regions$MDST04[i]
-
   }
 }
 
@@ -100,28 +99,14 @@ write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate
 ```
 
 
+```{r different_buffers, echo=FALSE}
 
+buffer_size_list = c(30000, 20000, 10000, 5000, 2500, 1000)
+buffer_list = list()
 
-```{r, plot}
-# plot the selected regions
-index_stations = match(df_stations$MDSTID, mesh$MDSTID)
-index_regions = match(list_regions, mesh$MDST04)
-
-
-ggplot() +
-  geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
-  geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.5) +   # Adjust color and transparency
-  geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
-  theme_minimal() +
-  labs(title = paste0("selected regions with buffer: ", buffer_size))
-
-```
-
-
-
-```{r medium_buffer, echo=FALSE}
+for(i in buffer_size_list){
 # buffer size 10k
-buffer_size = 10000
+buffer_size <- i
 
 # list of Meshdat regions that are set to FALSE -> TRUE when they intersect with a buffer 
 df_regions <- data.frame(MDST04= mesh$MDST04, Index = rep(0, length(mesh$MDSTID)))
@@ -134,7 +119,8 @@ for (i in 1:8) {
 
  # Create the buffer
  buffer <- st_buffer(point_sf, dist = buffer_size)
-
+ # save buffer
+buffer_list[[i]] = buffer
 
  # Find regions that intersect with the buffer
  intersects_with_buffer <- st_intersects(mesh$geometry, buffer, sparse = FALSE)
@@ -173,74 +159,22 @@ index_stations = match(df_stations$MDSTID, mesh$MDSTID)
 index_regions = match(list_regions, mesh$MDST04)
 
 
-ggplot() +
+map_plot <- ggplot() +
   geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
-  geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.5) +   # Adjust color and transparency
-  geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
+  geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.7) +   # Adjust color and transparency
+  #geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
+  geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
+  geom_sf(data = buffer_list[[3]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[4]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[5]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[6]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[7]], fill = "brown1", alpha = 0.4) + 
+  geom_sf(data = buffer_list[[8]], fill = "brown1", alpha = 0.4) + 
   theme_minimal() +
   labs(title = paste0("selected regions with buffer: ", buffer_size))
+
+print(map_plot)
+}
 ```
 
-
-
-```{r small_buffer, echo=FALSE}
-# buffer size 5k
-buffer_size = 5000
-
-# list of Meshdat regions that are set to FALSE -> TRUE when they intersect with a buffer 
-df_regions <- data.frame(MDST04= mesh$MDST04, Index = rep(0, length(mesh$MDSTID)))
-
-# calculate the buffer around the 8 stations
-for (i in 1:8) {                    
-  
- # change format of station coordinates into sf as a point 
- point_sf <- st_as_sf(df_stations[i,2:3], coords = c("x", "y"), crs = 2056)
-
- # Create the buffer
- buffer <- st_buffer(point_sf, dist = buffer_size)
-
-
- # Find regions that intersect with the buffer
- intersects_with_buffer <- st_intersects(mesh$geometry, buffer, sparse = FALSE)
-
- # Add selected regions to regions list 
- df_regions$Index <- df_regions$Index +  intersects_with_buffer 
-  
-}
-
-
-
-
-
-# Extract all regions that intersect in a list
-df_regions$ID <- rep(NA, nrow(mesh))
-
-# for every area that at least intersects once
-for(i in 1:length(df_regions$MDST04)){
-  if(df_regions$Index[i] > 0){
-    
-    # save the area code once again, all others NA
-    df_regions$ID[i] <- df_regions$MDST04[i]
-
-  }
-}
-
-
-# create a list for Sujung
-list_regions <- na.omit(df_regions$ID)
-write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MDSTID_MetRegions_", buffer_size, ".csv"))
-
-
-
-# plot the selected regions
-index_stations = match(df_stations$MDSTID, mesh$MDSTID)
-index_regions = match(list_regions, mesh$MDST04)
-
-
-ggplot() +
-  geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
-  geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.5) +   # Adjust color and transparency
-  geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
-  theme_minimal() +
-  labs(title = paste0("selected regions with buffer: ", buffer_size))
-```
