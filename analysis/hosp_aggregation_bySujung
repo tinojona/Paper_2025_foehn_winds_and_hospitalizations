@@ -1,0 +1,185 @@
+---
+title: "Aggregate HA data for Tiono"
+author: "Sujung Lee"
+date: "2024-09-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+# LOAD LIBRARIES
+rm(list = ls())
+
+library(dplyr); library(ggplot2) ; library(lubridate); library(patchwork)
+library(tidyr) ; library(tidyverse); library(sf); library(plotly)
+```
+
+R code to explore the hospital admission data in Switzerland between 1998 and 2021. We received it from BFS in November 2023.
+
+```{r}
+dta <- read.delim("/Users/sl23j659/OneDrive - Universitaet Bern/Hospitalization_CH/Data/BFS_MS_DATEN_DSV230287.DAT", sep="|")
+
+medstat <- read.csv("/Users/sl23j659/OneDrive - Universitaet Bern/Hospitalization_CH/Data/medstat/medstat.csv", header = TRUE)
+
+```
+
+In the original dataset, there are 10107981 records, with `r nrow(dta)/22` per year
+
+# 1. Inital description of the variables
+```{r}
+dta$DT_EINTRITTSDAT <- as.Date(dta$DT_EINTRITTSDAT, format="%d/%m/%Y")
+dta$hosp <- 1
+
+head(dta)
+summary(dta)
+
+```
+
+# 2. Initial exploration of the data (main variables)
+There are 10107981 records in the original dataset.
+```{r}
+# NUMBER OF CASES PER YEAR
+dta_year <- dta %>% group_by(ID_JAHR) %>% summarise(nhosp=sum(hosp))
+ggplot(data=dta_year,aes(x=ID_JAHR, y=nhosp)) +
+  geom_bar(stat="identity")+
+  ggtitle("N hosp per year")+
+  theme_minimal()
+
+# NUMBER OF CASES PER DAY
+dta_day <- dta %>% group_by(DT_EINTRITTSDAT) %>% summarise(nhosp=sum(hosp))
+# there are some records with date before 1998 (exclude)
+dta_day <- subset(dta_day, DT_EINTRITTSDAT> "1997-12-31 01:00:00")
+
+ggplot(data=dta_day,aes(x=DT_EINTRITTSDAT, y=nhosp)) +
+  geom_line()+
+  ggtitle("N hosp per day")+
+  theme_minimal()
+  
+# NUMBER OF CASES PER DAY & MONTH
+dta$monthyear <- floor_date(dta$DT_EINTRITTSDAT, "1 month") 
+dta_my <- dta %>% group_by(monthyear) %>% summarise(nhosp=sum(hosp))
+dta_my <- subset(dta_my, monthyear> "1997-12-31 01:00:00")
+
+ggplot(data=dta_my,aes(x=monthyear, y=nhosp)) +
+  geom_line()+
+  ggtitle("N hosp per m-y")+
+  theme_minimal()
+
+# NUMBER OF CASES PER SEX
+dta_sex <- dta %>% group_by(ID_GESCHLECHT) %>% summarise(nhosp=sum(hosp))
+
+ggplot(data=dta_sex,aes(x=ID_GESCHLECHT, y=nhosp)) +
+  geom_bar(stat="identity")+
+  ggtitle("N hosp per sex")+
+  theme_minimal()
+
+# NUMBER OF CASES PER AGE
+dta_age <- dta %>% group_by(ALTERSKLASSE) %>% summarise(nhosp=sum(hosp))
+
+ggplot(data=dta_age,aes(x=ALTERSKLASSE, y=nhosp)) +
+  geom_bar(stat="identity")+
+  ggtitle("N hosp per age group")+
+  theme_minimal()
+
+# NUMBER OF CASES PER ICD-10
+dta_diag <- dta %>% group_by(HAUPTDIA) %>% summarise(nhosp=sum(hosp))
+
+ggplot(data=dta_diag,aes(x=HAUPTDIA, y=nhosp)) +
+  geom_bar(stat="identity")+
+  ggtitle("N hosp per diagnosis")+
+  theme_minimal()
+
+# REGION
+dta_reg <- dta %>% group_by(ID_WOHNREGION) %>% summarise(nhosp=sum(hosp))
+missperc <- (dta_reg[dta_reg$ID_WOHNREGION=="9999",2] / sum(dta_reg[,2]))*100
+missperc
+
+dta_reg_miss <- dta %>% filter(ID_WOHNREGION=="9999") %>% group_by(ID_JAHR) %>% summarise(nhosp=sum(hosp))
+
+ggplot(data=dta_reg_miss,aes(x=ID_JAHR, y=nhosp)) +
+  geom_bar(stat="identity")+
+  ggtitle("N hosp with region miss per year")+
+  theme_minimal()
+
+
+nrow(dta_reg) # number of medtstat
+# Problem: there are actually 706 medstats according to the latest revision. 
+# After 2008 the classification changed.
+
+# Check the unmatched medstats
+dta_reg_match <- filter(dta_reg, !ID_WOHNREGION %in% medstat[,1])
+missmedstat <- dta_reg_match[,1]
+nrow(missmedstat) -1 # exclude 9999
+# There are 79 medstats unmatched
+```
+
+# 3. Aggregate data per medstat
+Create dataset per day and medstat, but create total, per diagnose, diagnose/sex/age
+```{r}
+# Subset data from 1998
+dta <- subset(dta, monthyear> "1997-12-31 01:00:00")
+
+# Subset data for necessary ICD codes
+icd <- c("A00-A99","B00-B99", "F00-F09", "F10-F99", "I00-I09", "I10-I15", 
+         "I20-I25", "I26-I28", "I30-I52", "I60-I69", "I70-I79", "I80-I89", "I95-I99",
+         "J00-J06", "J09-J18", "J20-J22", "J30-J39", "J40-J47", "J60-J99",
+         "N00-N19", "N20-N23", "N25-N39", "N40-N99")
+
+dta <- subset(dta, HAUPTDIA %in% icd)
+
+# Aggregate
+dta_mdstatday <- dta %>% group_by(DT_EINTRITTSDAT,ID_WOHNREGION, ALTERSKLASSE,ID_GESCHLECHT,HAUPTDIA) %>% summarise(nhosp=sum(hosp))
+
+# Aggregate by city
+# Take csv with the medstats that Tino has selected 
+medstat_sel <- read.csv("/Users/sl23j659/Library/CloudStorage/OneDrive-UniversitaetBern/Master_supervision/Tino/ID_selected_MetRegions.csv")
+medstat_sel <- as.data.frame(medstat_sel[,-1])
+colnames(medstat_sel) <- c("MDST04")
+
+# Select medstats included in Tino's list
+dta_mdstatday_sel <- dta_mdstatday %>% filter(ID_WOHNREGION %in% medstat_sel$MDST04)
+
+# Check NAs
+rows_with_na <- which(!complete.cases(dta_mdstatday_sel))
+#rows_with_na_data <- dta_mdstatday_sel[rows_with_na, ]
+```
+
+```{r}
+# Reshape
+dta_mdstatday_unite <- dta_mdstatday_sel %>% unite(cat, ALTERSKLASSE, ID_GESCHLECHT, HAUPTDIA, sep = "_")
+dta_mdstatday_wide <- dta_mdstatday_unite %>% spread(cat, nhosp)
+
+# Mutate all NA into 0
+#dta_mdstatday_wide <- dta_mdstatday_wide %>% mutate_at(c(3:362), ~ replace_na(., 0))
+dta_mdstatday_wide <- dta_mdstatday_wide %>% mutate_all(~replace(., is.na(.), 0))
+
+# Create aggregated variables
+dta_mdstatday_wide$all <- rowSums(dta_mdstatday_wide[,-c(1,2)])
+
+dta_mdstatday_wide$a014y <- rowSums(dta_mdstatday_wide[,grep('0-14', names(dta_mdstatday_wide))])
+dta_mdstatday_wide$a1564y <- rowSums(dta_mdstatday_wide[,grep('15-64', names(dta_mdstatday_wide))])
+dta_mdstatday_wide$a6574y <- rowSums(dta_mdstatday_wide[,grep('65-74', names(dta_mdstatday_wide))])
+dta_mdstatday_wide$a7584y <- rowSums(dta_mdstatday_wide[,grep('75-84', names(dta_mdstatday_wide))])
+dta_mdstatday_wide$a85plusy <- rowSums(dta_mdstatday_wide[,grep('85+', names(dta_mdstatday_wide))])
+
+dta_mdstatday_wide$mal <- rowSums(dta_mdstatday_wide[,grep('_1_', names(dta_mdstatday_wide))])
+dta_mdstatday_wide$fem <- rowSums(dta_mdstatday_wide[,grep('_2_', names(dta_mdstatday_wide))])
+
+dta_mdstatday_wide$inf <- rowSums(dta_mdstatday_wide[,grep('A00-A99|B00-B99', names(dta_mdstatday_wide))])
+dta_mdstatday_wide$ment <- rowSums(dta_mdstatday_wide[,grep('F00-F09|F10-F99', names(dta_mdstatday_wide))])
+dta_mdstatday_wide$cvd <- rowSums(dta_mdstatday_wide[,grep('I00-I09|I10-I15|I20-I25|I26-I28|I30-I52|I60-I69|I70-I79|I80-I89|I95-I99', names(dta_mdstatday_wide))])
+dta_mdstatday_wide$resp <- rowSums(dta_mdstatday_wide[,grep('J00-J06|J09-J18|J20-J22|J30-J39|J40-J47|J60-J99', names(dta_mdstatday_wide))])
+dta_mdstatday_wide$uri <- rowSums(dta_mdstatday_wide[,grep('N00-N19|N20-N23|N25-N39|N40-N99', names(dta_mdstatday_wide))])
+
+
+# SELECT MAIN DATA
+dta_mdstatday <- dta_mdstatday_wide[,c(1,2,233:245)]
+dta_mdstatday <- dta_mdstatday[order(dta_mdstatday$ID_WOHNREGION,dta_mdstatday$DT_EINTRITTSDAT),]
+dta_mdstatday <- na.omit(dta_mdstatday) # Remove rows that has NA for DT_EINTRITTSDAT 
+
+dta_mdstatday %>% group_by(ID_WOHNREGION) %>% summarise(n_sum = sum(all))
+#write.csv(dta_mdstatday,"/Users/sl23j659/OneDrive - Universitaet Bern/Hospitalization_CH/Data/MEDSTAT/dta_ha_tino.csv")
+```
