@@ -5,7 +5,7 @@
 folder_path <- "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/foehn/data"
 
 # List all files in the folder
-file_names <- list.files(path = folder_path)[5:8]
+file_names <- list.files(path = folder_path)
 
 for(i in file_names){
 
