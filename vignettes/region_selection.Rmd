@@ -123,7 +123,7 @@ for (i in 1:8) {
  # Create the buffer
  buffer <- st_buffer(point_sf, dist = buffer_size)
  # save buffer
-buffer_list[[i]] = buffer
+ buffer_list[[i]] = buffer
 
  # Find regions that intersect with the buffer
  intersects_with_buffer <- st_intersects(mesh$geometry, buffer, sparse = FALSE)
