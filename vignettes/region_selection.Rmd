@@ -181,6 +181,8 @@ print(map_plot)
 }
 ```
 
+In the following map, I used the buffer radius 10 km. In my opinion this is too much, because multiple MedStat regions will be included in the analysis that are not relevant as they will rarely experience foehn when there is foehn at the station. Therefore I will start my analysis with 5 km radius buffer. 
+The green marked region was sorted to Chur although it also intersects with the Davos buffer, because the habitable area of this region is better connected to Chur by bigger roads and Chur has more inhabitants, leading to a higher probability of a better healthcare system than Davos.
 ```{r tester, echo=FALSE}
 buffer_size_list = c(10000)
 buffer_list = list()
