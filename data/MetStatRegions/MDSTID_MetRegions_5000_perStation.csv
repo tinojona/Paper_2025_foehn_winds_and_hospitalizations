@@ -1,12 +1,12 @@
-﻿Davos,Chur,Altdorf,Montana,Visp,Magadino,Lugano,Poschiavo,,,,
-GR09,GR01,UR01,VS12,VS06,TI06,TI21,GR25,,,,
-GR08,GR04,UR02,VS15,VS09,TI16,TI20,,,22,,
-,GR02,UR03,VS16,VS04,TI17,TI18,,,,,
-,GR03,UR04,VS19,VS08,TI07,TI19,,,,,
-,GR10,,VS13,,TI14,TI22,,,,,
-,,,,,TI15,TI25,,,,,in both chur and davos but there is a big highway to chur and only a small one to davos
-,,,,,,TI27,,,,,davos is 4 times smaller than chur.
-,,,,,,TI23,,,,,
-,,,,,,TI26,,,,,
-,,,,,,TI28,,,,,
-,,,,,,TI29,,,,,
+﻿Davos,Chur,Altdorf,Montana,Visp,Magadino,Lugano,Poschiavo
+GR09,GR01,UR01,VS12,VS06,TI06,TI21,GR25
+GR08,GR04,UR02,VS15,VS09,TI16,TI20,
+,GR02,UR03,VS16,VS04,TI17,TI18,
+,GR03,UR04,VS19,VS08,TI07,TI19,
+,GR10,,VS13,,TI14,TI22,
+,,,,,TI15,TI25,
+,,,,,,TI27,
+,,,,,,TI23,
+,,,,,,TI26,
+,,,,,,TI28,
+,,,,,,TI29,
