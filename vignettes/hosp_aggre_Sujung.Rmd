@@ -1,5 +1,5 @@
 ---
-title: "Aggregate HA data for Tiono"
+title: "Aggregate HA data for Tino"
 author: "Sujung Lee"
 date: "2024-09-18"
 output: html_document
