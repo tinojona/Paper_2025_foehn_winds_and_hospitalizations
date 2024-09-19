@@ -84,11 +84,14 @@ for(i in 1:4){
       summarise(across(all:uri, sum),         # across al variables we sum
                 station = station_current)    # but we keep the station name
 
-    print(nrow(aggregated_by_station)) #delete later
-
     # rename date column so that it matches with foehn and temp later
     aggregated_by_station <- aggregated_by_station %>%
       rename("date" = DT_EINTRITTSDAT)
+
+    # insert dates that got excluded by the aggregation process
+
+
+
 
     # cbind the foehn data to the appropriate station
     foehn_data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/foehn_processed/", files_foehn[j]))
@@ -105,8 +108,6 @@ for(i in 1:4){
 
     aggregated_by_station <- aggregated_by_station %>%
       left_join(temp_data[,3:4], by = "date")
-
-    print(nrow(aggregated_by_station)) #delete later
 
 
     # save the data per station and buffer
