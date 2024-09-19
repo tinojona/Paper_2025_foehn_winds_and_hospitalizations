@@ -1,4 +1,7 @@
-
+################################################################################
+### In this file I:
+### - extracted the temp data from meteoschweiz (deleted the first three empty rows)
+### - saved the daily mean temperature an the date in an extra file
 
 
 # Specify the folder path

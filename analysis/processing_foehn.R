@@ -1,4 +1,9 @@
-
+################################################################################
+### In this file I:
+### - extracted the foehn data from meteoschweiz (deleted the first three empty rows)
+### - aggregated the 10 minute foehn index to daily counts
+###                                       - alternative, take threshold of eg 6 hours and then assign foehn or no foehn
+### - saved this data in a folder below the data folder of this project
 
 
 # Specify the folder path

@@ -1,9 +1,15 @@
+################################################################################
+### In this file I:
+### - aggregated the hospitalization data of the regions (depending on the buffer)
+###   to their corresponding meteorological station
+### - as some days were missing, I added the dates and inserted 0 hospitalizations!
+###   and added a column with the day of the week
+### - to this data, I saved the corresponding foehn and temp data, maybe inducing some NAs
+###   for dates that no temp / foehn data was apparent
+### - I saved both the data per station, and per buffer size combined of all stations
 
 
 
-# aggregate by station
-# while sorting areas to stations
-# for different buffers
 
 # packages
 library(dplyr)
@@ -52,7 +58,8 @@ for(i in 1:4){
                                     cvd = numeric(),
                                     resp = numeric(),
                                     uri = numeric(),
-                                    station = character())
+                                    station = character(),
+                                    dow = character())
 
   # start loop for different station names
   for (j in 1:8) {
@@ -68,7 +75,7 @@ for(i in 1:4){
     region_names = regions[regions[,j] != "",j ]
     # print(region_names) # for code checking
 
-    # assign the station name to data$station when one of the region names is present
+    ## assign the station name to data$station when one of the region names is present
     # first create index
     index <- sapply(data$ID_WOHNREGION, function(row_text) {
       any(sapply( region_names,function(word) grepl(word, row_text, ignore.case = TRUE)))
@@ -88,8 +95,32 @@ for(i in 1:4){
     aggregated_by_station <- aggregated_by_station %>%
       rename("date" = DT_EINTRITTSDAT)
 
-    # insert dates that got excluded by the aggregation process
+    ## insert dates that got excluded by the aggregation process
+    start_date = min(aggregated_by_station$date)
+    end_date = max(aggregated_by_station$date)
+    end_date_alter = "2019-12-31"
 
+    if(end_date > end_date_alter){
+      end_date <- end_date_alter
+    }
+
+    # create empty df with continous dates
+    df_with_dates = data.frame(date = as.character(seq.Date(from = as.Date(start_date), to = as.Date(end_date), by = "day")))
+
+    # merge df with hosp data
+    df_full <- df_with_dates %>%
+      left_join(aggregated_by_station, by = "date")
+
+    # fill NA in station with station name
+    df_full$station = station_current
+
+    # fill NA in values with 0
+    df_full[is.na(df_full)] <- 0
+
+    # reasign proper df name
+    aggregated_by_station <- df_full
+
+    print(nrow(aggregated_by_station)) # TODO delete later
 
 
 
@@ -108,6 +139,13 @@ for(i in 1:4){
 
     aggregated_by_station <- aggregated_by_station %>%
       left_join(temp_data[,3:4], by = "date")
+
+    print(nrow(aggregated_by_station)) # TODO delete later
+
+
+    # create day of the week column
+    aggregated_by_station$date <- as.Date(aggregated_by_station$date)
+    aggregated_by_station$dow <- weekdays(aggregated_by_station$date)
 
 
     # save the data per station and buffer
