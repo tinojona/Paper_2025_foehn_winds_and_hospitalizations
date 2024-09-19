@@ -1,0 +1,50 @@
+---
+title: "Exploring the HopFoehnTemp Data"
+author: "Tino Schneidewind"
+date: '`r Sys.Date()`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr); library(ggplot2) ; library(lubridate); library(patchwork)
+library(tidyr) ; library(tidyverse);  library(plotly)
+
+# notes for creating html document, paste this into Console
+# rmarkdown::render("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/vignettes/region_selection.Rmd", output_format = "html_document")
+```
+
+Lets explore the data, and some descriptive statistics, its distribution, the time series etc. I will start of with **only the station Altdorf** as a placeholder for all individual stations. Afterwards, I will look into the **buffer aggregated** data.
+
+```{r, data}
+# read Altdorf data with 5k buffer radius
+altdorf = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/by_station/Altdorf_buffer_5000.csv")
+
+# convert date to date format
+altdorf$date <- as.Date(altdorf$date)
+
+head(altdorf)
+summary(altdorf)
+
+```
+
+```{r density, echo=FALSE}
+# investigate the distribution of all variables using histograms 
+
+# total number of all variables in barplot
+
+```
+```{r time}
+# time series of monthly hospitalizations
+
+```
+
+```{r corr}
+# correlation matrix
+
+```
+```{r bubble}
+# bubble plot of temperature and foehn index
+```
+
+
