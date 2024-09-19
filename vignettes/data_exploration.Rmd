@@ -7,8 +7,10 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list= ls())
 library(dplyr); library(ggplot2) ; library(lubridate); library(patchwork)
-library(tidyr) ; library(tidyverse);  library(plotly)
+library(tidyr) ; library(tidyverse);  library(plotly); library(hrbrthemes)
+library(viridis); library(forcats)
 
 # notes for creating html document, paste this into Console
 # rmarkdown::render("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/vignettes/region_selection.Rmd", output_format = "html_document")
@@ -23,17 +25,39 @@ altdorf = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master
 # convert date to date format
 altdorf$date <- as.Date(altdorf$date)
 
-head(altdorf)
+str(altdorf)
 summary(altdorf)
 
 ```
 
 ```{r density, echo=FALSE}
 # investigate the distribution of all variables using histograms 
+altdorf_long <- altdorf[4:15] %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
 
-# total number of all variables in barplot
+ggplot(altdorf_long, aes(x = value)) +
+  geom_histogram(bins = 20, fill = "blue", color = "black") +
+  facet_wrap(~ variable, scales = "free_x") +  # Create separate histogram for each variable
+  theme_minimal() +
+  labs(title = "Histograms of All Variables", x = "Values", y = "Frequency")
+
+altdorf_monthly <- altdorf %>%
+  mutate(year_month = floor_date(date, "month")) %>%
+  group_by(year_month) %>%
+  summarise(across(c(all : uri), sum))
+
+altdorf_monthly_long <- altdorf_monthly[2:14] %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+  
+ggplot(altdorf_monthly_long, aes(x = value)) +
+  geom_histogram(bins = 20, fill = "blue", color = "black") +
+  facet_wrap(~ variable, scales = "free_x") +  # Create separate histogram for each variable
+  theme_minimal() +
+  labs(title = "Histograms of Monthly Sums of Variables", x = "Values", y = "Frequency")
 
 ```
+
+
 ```{r time}
 # time series of monthly hospitalizations
 
@@ -41,10 +65,22 @@ summary(altdorf)
 
 ```{r corr}
 # correlation matrix
+data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
 
+ggplot(altdorf, aes(x = as.factor(all))) +
+  geom_bar(fill = "lightgreen", color = "black") +
+  theme_minimal() +
+  labs(x = "Integer Values", y = "Frequency")
 ```
+
 ```{r bubble}
 # bubble plot of temperature and foehn index
 ```
 
+```{r}
+# heatmap
+library(corrplot)
+corr_matrix <- cor(altdorf[sapply(altdorf, is.numeric)], use = "complete.obs")
+corrplot(corr_matrix, method = "color")
+```
 
