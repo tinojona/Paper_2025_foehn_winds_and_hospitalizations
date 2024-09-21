@@ -8,79 +8,124 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list= ls())
-library(dplyr); library(ggplot2) ; library(lubridate); library(patchwork)
-library(tidyr) ; library(tidyverse);  library(plotly); library(hrbrthemes)
-library(viridis); library(forcats)
+library(dplyr); library(tidyr); library(ggplot2) ; library(lubridate); library(plotly); library(viridis); library(gridExtra)
+   
 
 # notes for creating html document, paste this into Console
 # rmarkdown::render("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/vignettes/region_selection.Rmd", output_format = "html_document")
 ```
 
-Lets explore the data, and some descriptive statistics, its distribution, the time series etc. I will start of with **only the station Altdorf** as a placeholder for all individual stations. Afterwards, I will look into the **buffer aggregated** data.
 
-```{r, data}
+```{r data, echo=FALSE, warning=FALSE, fig.width=12}
 # read Altdorf data with 5k buffer radius
 altdorf = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/by_station/Altdorf_buffer_5000.csv")
 
 # convert date to date format
 altdorf$date <- as.Date(altdorf$date)
 
-str(altdorf)
-summary(altdorf)
 
+# aggregate by year
+altdorf_yearly_sum = altdorf %>%
+  mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
+  group_by(year) %>%
+  summarize(across(c(all:uri, f_id, temp), sum, na.rm = TRUE))
+
+
+altdorf_yearly_mean = altdorf %>%
+  mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%
+  group_by(year) %>%
+  summarize(across(c(all:uri, f_id, temp), mean, na.rm = TRUE))
+
+
+# aggregate by month
+altdorf_monthly_sum = altdorf %>%
+  mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%
+  group_by(year) %>%
+  summarize(across(c(all:uri, f_id, temp), sum, na.rm = TRUE))
+
+altdorf_monthly_mean = altdorf %>%
+  mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%
+  group_by(year) %>%
+  summarize(across(c(all:uri, f_id, temp), mean, na.rm = TRUE))
 ```
 
-```{r density, echo=FALSE}
-# investigate the distribution of all variables using histograms 
-altdorf_long <- altdorf[4:15] %>%
-  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+```{r header, echo=FALSE}
+# str(altdorf)
+# summary(altdorf)
+# head(altdorf)
+```
 
-ggplot(altdorf_long, aes(x = value)) +
-  geom_histogram(bins = 20, fill = "blue", color = "black") +
-  facet_wrap(~ variable, scales = "free_x") +  # Create separate histogram for each variable
-  theme_minimal() +
-  labs(title = "Histograms of All Variables", x = "Values", y = "Frequency")
+Lets explore the data, and some descriptive statistics, its distribution, the time series etc. I will start of with **only the station Altdorf** as a placeholder for all individual stations. 
 
-altdorf_monthly <- altdorf %>%
-  mutate(year_month = floor_date(date, "month")) %>%
-  group_by(year_month) %>%
-  summarise(across(c(all : uri), sum))
+**How do yearly hospitalization develop over time?** Hospitalizations are increasing. There are rapid increases in 2008 and 2018. Men show higher hospitalization rates. Although the trend overall and in men could be due to demographics.
 
-altdorf_monthly_long <- altdorf_monthly[2:14] %>%
-  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
-  
-ggplot(altdorf_monthly_long, aes(x = value)) +
-  geom_histogram(bins = 20, fill = "blue", color = "black") +
-  facet_wrap(~ variable, scales = "free_x") +  # Create separate histogram for each variable
-  theme_minimal() +
-  labs(title = "Histograms of Monthly Sums of Variables", x = "Values", y = "Frequency")
+**What are the hospitalizations per age and disease?** Here again, we see the rising trend which is strongest in the age group 15-64. 0-14 year olds even have a slight decreasing trend while all other age group slightly increase in hospitalizations over time. Divided by disease groups, cardiovascular diseases show the steepest increase with its curve resembling the overall hospitalization trend quite well. All other disease show a small trend but are hard to distinguish from another. Again, the interpretation of the observed trends is limited by the unknown demographic development.
 
+
+```{r hosp, echo=FALSE}
+# hospitalizations monthly
 ```
 
 
-```{r time}
-# time series of monthly hospitalizations
+```{r hosp_2, echo=FALSE}
+# hospitalizations total and per sex 
+altdorf_yearly_sum_sex_long =  altdorf_yearly_sum[,c(1,2,8,9)] %>%
+  pivot_longer(cols = c(all,mal,fem),
+               names_to = "variable",         
+               values_to = "value")  
 
+p1 = ggplot(altdorf_yearly_sum_sex_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "per sex",
+       x = "Year",
+       y = "Hospitalizations",
+       color = "Variable")+
+  theme(legend.position="bottom",  legend.margin=margin())
+
+# hospitalizations per disease and age category per year
+altdorf_yearly_sum_age_long =  altdorf_yearly_sum[,c(1,3:7)] %>%
+  pivot_longer(cols = c(a014y:a85plusy),
+               names_to = "variable",         
+               values_to = "value")  
+
+p2 = ggplot(altdorf_yearly_sum_age_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "per age group",
+       x = "Year",
+       y = "",
+       color = "Variable")+
+  theme(legend.position="right", legend.margin=margin())
+
+
+altdorf_yearly_sum_disease_long =  altdorf_yearly_sum[,c(1,10:14)] %>%
+  pivot_longer(cols = c(inf : uri),
+               names_to = "variable",         
+               values_to = "value")  
+
+p3 = ggplot(altdorf_yearly_sum_disease_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+ scale_color_viridis(discrete = TRUE) +
+  labs(title = "per disease group",
+       x = "Year",
+       y = "",
+       color = "Variable") +
+  theme(legend.position="bottom", legend.margin=margin())
+
+grid.arrange(p1,p2,p3,ncol = 3)
 ```
 
-```{r corr}
-# correlation matrix
-data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
 
-ggplot(altdorf, aes(x = as.factor(all))) +
-  geom_bar(fill = "lightgreen", color = "black") +
-  theme_minimal() +
-  labs(x = "Integer Values", y = "Frequency")
-```
+Whats the annual path of temperature in Altdorf?
+Do we see an increasing trend of temperature?
 
-```{r bubble}
-# bubble plot of temperature and foehn index
-```
 
-```{r}
-# heatmap
-library(corrplot)
-corr_matrix <- cor(altdorf[sapply(altdorf, is.numeric)], use = "complete.obs")
-corrplot(corr_matrix, method = "color")
-```
 
+The buffer datasets will be used to determine the trend within foehn.
+Is there a trend for annual foehn counts?
+Is there seasonality to foehn?
+Does foehn correlate with temperature?
