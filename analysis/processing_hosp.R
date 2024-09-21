@@ -120,7 +120,7 @@ for(i in 1:4){
     # reasign proper df name
     aggregated_by_station <- df_full
 
-    print(nrow(aggregated_by_station)) # TODO delete later
+    # print(nrow(aggregated_by_station)) # TODO delete later
 
 
 
@@ -140,7 +140,7 @@ for(i in 1:4){
     aggregated_by_station <- aggregated_by_station %>%
       left_join(temp_data[,3:4], by = "date")
 
-    print(nrow(aggregated_by_station)) # TODO delete later
+    # print(nrow(aggregated_by_station)) # TODO delete later
 
 
     # create day of the week column

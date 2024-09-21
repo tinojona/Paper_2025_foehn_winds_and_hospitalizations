@@ -1,10 +1,13 @@
 ################################################################################
 ### In this file I:
 ### - extracted the foehn data from meteoschweiz (deleted the first three empty rows)
+### - converted UTC to CET
 ### - aggregated the 10 minute foehn index to daily counts
 ###                                       - alternative, take threshold of eg 6 hours and then assign foehn or no foehn
 ### - saved this data in a folder below the data folder of this project
 
+library(lubridate) # for UTC to CET
+rm(list = ls())
 
 # Specify the folder path
 folder_path <- "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/foehn/data"
@@ -21,7 +24,11 @@ for(i in file_names){
   data = read.table(file, header = TRUE)
 
   # Convert to date-time object using strptime
-  data$time_conv <- as.Date(strptime(data$time, format = "%Y%m%d%H%M"), format = "%Y%m%d%H%M")
+  data$time_conv <- as.POSIXct(strptime(data$time, format = "%Y%m%d%H%M"), tz = "UTC")
+
+  # convert time_conv from UTC to CET
+  data$time_conv = as.Date(with_tz(data$time_conv, tzone = Sys.timezone()), format = "%Y-%m-%d %H:%M:%s")
+
 
   # convert foehn data to numeric
   data$f_id <- as.numeric(data$wcc006s0)
