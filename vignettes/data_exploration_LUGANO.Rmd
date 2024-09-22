@@ -1,0 +1,314 @@
+---
+title: "Exploring the HopFoehnTemp Data"
+author: "Tino Schneidewind"
+date: '`r Sys.Date()`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list= ls())
+library(dplyr); library(tidyr); library(ggplot2) ; library(lubridate); library(plotly); library(viridis); library(gridExtra); library(corrplot)
+   
+
+# notes for creating html document, paste this into Console
+# rmarkdown::render("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/vignettes/data_exploration.Rmd", output_format = "html_document")
+```
+
+
+```{r data, echo=FALSE, warning=FALSE, fig.width=12}
+# read Altdorf data with 5k buffer radius
+altdorf = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/by_station/Lugano_buffer_5000.csv")
+
+# convert date to date format
+altdorf$date <- as.Date(altdorf$date)
+
+
+# aggregate by year
+altdorf_yearly_sum = altdorf %>%
+  mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
+  group_by(year) %>%
+  summarize(across(c(all:uri, f_id, temp), sum, na.rm = TRUE))
+
+
+altdorf_yearly_mean = altdorf %>%
+  mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%
+  group_by(year) %>%
+  summarize(across(c(all:uri, f_id, temp), mean, na.rm = TRUE))
+
+
+# aggregate by month
+altdorf_monthly_sum = altdorf %>%
+  mutate(year = as.Date(paste0("01-",format(date, "%m"), "-01"))) %>%
+  group_by(year) %>%
+  summarize(across(c(all:uri, f_id, temp), sum, na.rm = TRUE))
+altdorf_monthly_sum$year = as.numeric(substring(as.character(altdorf_monthly_sum$year), 3,4))
+
+altdorf_monthly_mean = altdorf %>%
+  mutate(year = as.Date(paste0("01-",format(date, "%m"), "-01"))) %>%
+  group_by(year) %>%
+  summarize(across(c(all:uri, f_id, temp), mean, na.rm = TRUE))
+altdorf_monthly_mean$year = as.numeric(substring(as.character(altdorf_monthly_mean$year), 3,4))
+```
+
+```{r header, echo=FALSE}
+# str(altdorf)
+# summary(altdorf)
+# head(altdorf)
+```
+## Lugano
+
+Lets explore the data, and some descriptive statistics, its distribution, the time series etc. This is **only the station Chur** as a placeholder for all individual stations. 
+
+### HOSPITALIZATIONS
+
+
+
+
+```{r hosp, echo=FALSE}
+# hospitalizations monthly
+altdorf_monthly_mean_sex_long =  altdorf_monthly_mean[,c(1,2,8,9)] %>%
+  pivot_longer(cols = c(all,mal,fem),
+               names_to = "variable",         
+               values_to = "value")  
+
+p1 = ggplot(altdorf_monthly_mean_sex_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "average daily hosp per sex and month",
+       x = "Month",
+       y = "Hospitalization rate",
+       color = "Variable")+
+  scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
+  theme(legend.position="right",  legend.margin=margin())
+
+
+
+# hospitalizations monthly
+altdorf_monthly_mean_sex_long =  altdorf_monthly_mean[,c(1,2,8,9)] %>%
+  pivot_longer(cols = c(all,mal,fem),
+               names_to = "variable",         
+               values_to = "value")  
+
+p1 = ggplot(altdorf_monthly_mean_sex_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "monthly daily hosp per sex",
+       x = "",
+       y = "Hospitalization rate",
+       color = "")+
+  scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
+  theme(legend.position="right",  legend.margin=margin())
+
+
+# monthly hosp per age category
+altdorf_monthly_mean_age_long =  altdorf_monthly_mean[,c(1,3:7)] %>%
+  pivot_longer(cols = c(a014y:a85plusy),
+               names_to = "variable",         
+               values_to = "value")  
+
+p2 = ggplot(altdorf_monthly_mean_age_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "monthly daily hosp per age",
+       x = "",
+       y = "",
+       color = "")+
+  scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
+  theme(legend.position="right",  legend.margin=margin())
+
+
+# monthly hos per disease group
+# monthly hosp per age category
+altdorf_monthly_mean_disease_long =  altdorf_monthly_mean[,c(1,10:14)] %>%
+  pivot_longer(cols = c(inf:uri),
+               names_to = "variable",         
+               values_to = "value")  
+
+p3 = ggplot(altdorf_monthly_mean_disease_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "monthly daily hosp per disease",
+       x = "Month",
+       y = "",
+       color = "")+
+  scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
+  theme(legend.position="right",  legend.margin=margin())
+
+```
+
+
+```{r hosp_2, echo=FALSE}
+# hospitalizations total and per sex 
+altdorf_yearly_sum_sex_long =  altdorf_yearly_sum[,c(1,2,8,9)] %>%
+  pivot_longer(cols = c(all,mal,fem),
+               names_to = "variable",         
+               values_to = "value")  
+
+o1 = ggplot(altdorf_yearly_sum_sex_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "yearly per sex",
+       x = "Year",
+       y = "Hospitalizations",
+       color = "")+
+  theme(legend.position="none",  legend.margin=margin())
+
+# hospitalizations per disease and age category per year
+altdorf_yearly_sum_age_long =  altdorf_yearly_sum[,c(1,3:7)] %>%
+  pivot_longer(cols = c(a014y:a85plusy),
+               names_to = "variable",         
+               values_to = "value")  
+
+o2 = ggplot(altdorf_yearly_sum_age_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "yearly per age group",
+       x = "",
+       y = "",
+       color = "")+
+  theme(legend.position="none", legend.margin=margin())
+
+
+altdorf_yearly_sum_disease_long =  altdorf_yearly_sum[,c(1,10:14)] %>%
+  pivot_longer(cols = c(inf : uri),
+               names_to = "variable",         
+               values_to = "value")  
+
+o3 = ggplot(altdorf_yearly_sum_disease_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+ scale_color_viridis(discrete = TRUE) +
+  labs(title = "yearly per disease group",
+       x = "Year",
+       y = "",
+       color = "") +
+  theme(legend.position="none", legend.margin=margin())
+
+grid.arrange(p1,o1,p2,o2,p3,o3,ncol = 2)
+```
+
+### FOEHN
+
+
+```{r foehn, echo=FALSE, warning=FALSE, fig.height=3.5}
+# yearly foehn score
+altdorf_yearly_sum_foehn_long =  altdorf_yearly_sum[,c(1,15)] %>%
+  pivot_longer(cols = c(f_id),
+               names_to = "variable",         
+               values_to = "value")  
+
+o2 = ggplot(altdorf_yearly_sum_foehn_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "yearly foehn score",
+       x = "",
+       y = "",
+       color = "")+
+  theme(legend.position="none", legend.margin=margin())
+
+# average daily foehn per month
+altdorf_monthly_mean_foehn_long =  altdorf_monthly_mean[,c(1,15)] %>%
+  pivot_longer(cols = c(f_id),
+               names_to = "variable",         
+               values_to = "value")  
+
+o1 = ggplot(altdorf_monthly_mean_foehn_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "mean daily foehn score",
+       x = "",
+       y = "",
+       color = "")+
+    scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
+  theme(legend.position="none", legend.margin=margin())
+
+o3 =ggplot(altdorf, aes(x = f_id))+
+  geom_histogram(color = "black", fill = "skyblue2", binwidth = 20, alpha = 0.7 )+
+  theme_classic()+
+  labs(title= "daily foehn score distribution", x = "daily foehn score")
+
+
+
+o4 = ggplot(altdorf[which(altdorf$f_id != 0),], aes(x = f_id))+
+  geom_histogram(color = "black", fill = "skyblue2", binwidth = 10, alpha = 0.7 )+
+  theme_classic()+
+  labs(title= "without no foehn events", x = "daily foehn score")
+
+
+grid.arrange(o1,o2, o3, o4 ,ncol=2)
+```
+
+### TEMPERATURE
+
+
+
+
+
+```{r temp, echo=FALSE, fig.height=3.5}
+# temperature monthly mean
+altdorf_monthly_mean_temp =  altdorf_monthly_mean[,c(1,16)] %>%
+  pivot_longer(cols = c(temp),
+               names_to = "variable",         
+               values_to = "value")  
+
+o1 = ggplot(altdorf_monthly_mean_temp, aes(x = year, y = value)) +
+  geom_line(color = "brown2") +
+  theme_classic() +
+  labs(title = "Monthly Temperature",
+       x = "Month",
+       y = "Temperature degrC") +
+  scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
+  theme(legend.position = "none", legend.margin = margin())
+
+
+# temperature annual trend
+altdorf_yearly_mean_temp =  altdorf_yearly_mean[,c(1,16)] %>%
+  pivot_longer(cols = c(temp),
+               names_to = "variable",         
+               values_to = "value")  
+
+o2 = ggplot(altdorf_yearly_mean_temp, aes(x = year, y = value)) +
+  geom_line(color = "brown2") +
+  theme_classic() +
+  labs(title = "Yearly Temperature",
+       x = "Year",
+       y = "") +
+  theme(legend.position = "none", legend.margin = margin())
+
+
+
+o3 =ggplot(altdorf, aes(x = temp))+
+  geom_histogram(color = "black", fill = "brown2", binwidth = 1, alpha = 0.7 )+
+  theme_classic()+
+  labs(title= "daily temperature distribution", x = "temperature in degrC")
+
+o4 = ggplot(altdorf, aes(x= as.factor(station), y=temp ))+
+  geom_boxplot( color = "black", fill = "brown2", alpha = 0.7)+
+  theme_classic()+
+  labs(title= "", x = "", y="temperature")
+
+grid.arrange(o1,o2, o3, o4 ,ncol=2)
+```
+
+### CORRELATIONS
+
+
+```{r correlation, echo=FALSE}
+alt_cor <- cor(altdorf[,c(3:15,17,18)], use = "complete.obs")
+
+corrplot(alt_cor, method = c("number"), type="lower")
+
+```
+
+
+
+
