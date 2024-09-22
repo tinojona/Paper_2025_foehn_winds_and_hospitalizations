@@ -39,14 +39,16 @@ altdorf_yearly_mean = altdorf %>%
 
 # aggregate by month
 altdorf_monthly_sum = altdorf %>%
-  mutate(year = as.Date(paste0(format(date, "%m"), "-01-01"))) %>%
+  mutate(year = as.Date(paste0("01-",format(date, "%m"), "-01"))) %>%
   group_by(year) %>%
   summarize(across(c(all:uri, f_id, temp), sum, na.rm = TRUE))
+altdorf_monthly_sum$year = as.numeric(substring(as.character(altdorf_monthly_sum$year), 3,4))
 
 altdorf_monthly_mean = altdorf %>%
-  mutate(year = as.Date(paste0(format(date, "%m"), "-01-01"))) %>%
+  mutate(year = as.Date(paste0("01-",format(date, "%m"), "-01"))) %>%
   group_by(year) %>%
   summarize(across(c(all:uri, f_id, temp), mean, na.rm = TRUE))
+altdorf_monthly_mean$year = as.numeric(substring(as.character(altdorf_monthly_mean$year), 3,4))
 ```
 
 ```{r header, echo=FALSE}
@@ -79,6 +81,7 @@ p1 = ggplot(altdorf_monthly_mean_sex_long, aes(x = year, y = value, color = vari
        x = "Month",
        y = "Hospitalization rate",
        color = "Variable")+
+  scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
   theme(legend.position="right",  legend.margin=margin())
 
 
@@ -97,6 +100,7 @@ p1 = ggplot(altdorf_monthly_mean_sex_long, aes(x = year, y = value, color = vari
        x = "",
        y = "Hospitalization rate",
        color = "")+
+  scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
   theme(legend.position="right",  legend.margin=margin())
 
 
@@ -114,6 +118,7 @@ p2 = ggplot(altdorf_monthly_mean_age_long, aes(x = year, y = value, color = vari
        x = "",
        y = "",
        color = "")+
+  scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
   theme(legend.position="right",  legend.margin=margin())
 
 
@@ -132,6 +137,7 @@ p3 = ggplot(altdorf_monthly_mean_disease_long, aes(x = year, y = value, color = 
        x = "Month",
        y = "",
        color = "")+
+  scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
   theme(legend.position="right",  legend.margin=margin())
 
 ```
@@ -188,15 +194,70 @@ o3 = ggplot(altdorf_yearly_sum_disease_long, aes(x = year, y = value, color = va
 
 grid.arrange(p1,o1,p2,o2,p3,o3,ncol = 2)
 ```
-The buffer datasets will be used to determine the trend within foehn.
-Is there a trend for annual foehn counts?
-Is there seasonality to foehn?
+
+
+**Is there a trend in annual foehn or seasonality?** We have a clear seasonal trend in foehn with a its peak in spring and intermediate levels in late autumn and winter. In summer there is only litte foehn on average per day. Over the observation period, foehn seems to decrease in its total occurence time per year. From the distribution (bottom left) it can be concluded, that on theoverarching majority of the days we have no foehn. Foehn frequency is antiproporional to its intensity, with a slight peak at 288 foehn score as this is the highest achievable for a day. 
+
+
+```{r foehn, echo=FALSE, warning=FALSE, fig.height=3.5}
+# yearly foehn score
+altdorf_yearly_sum_foehn_long =  altdorf_yearly_sum[,c(1,15)] %>%
+  pivot_longer(cols = c(f_id),
+               names_to = "variable",         
+               values_to = "value")  
+
+o2 = ggplot(altdorf_yearly_sum_foehn_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "mean daily foehn score",
+       x = "",
+       y = "",
+       color = "")+
+  theme(legend.position="none", legend.margin=margin())
+
+# average daily foehn per month
+altdorf_monthly_mean_foehn_long =  altdorf_monthly_mean[,c(1,15)] %>%
+  pivot_longer(cols = c(f_id),
+               names_to = "variable",         
+               values_to = "value")  
+
+o1 = ggplot(altdorf_monthly_mean_foehn_long, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_viridis(discrete = TRUE) +
+  labs(title = "yearly foehn score",
+       x = "",
+       y = "",
+       color = "")+
+    scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
+  theme(legend.position="none", legend.margin=margin())
+
+o3 =ggplot(altdorf, aes(x = f_id))+
+  geom_histogram(color = "black", fill = "skyblue2", binwidth = 20, alpha = 0.7 )+
+  theme_classic()+
+  labs(title= "daily foehn score distribution", x = "daily foehn score")
+
+
+
+o4 = ggplot(altdorf[which(altdorf$f_id != 0),], aes(x = f_id))+
+  geom_histogram(color = "black", fill = "skyblue2", binwidth = 10, alpha = 0.7 )+
+  theme_classic()+
+  labs(title= "without no foehn events", x = "daily foehn score")
+
+
+grid.arrange(o1,o2, o3, o4 ,ncol=2)
+```
+
+
 
 **Whats the annual path of temperature in Altdorf? Do we see an increasing trend of temperature?** As expected, it is warmest in summer with the highest monthly average in July just below 20 degrees C and coldest in winter just above 0 degrees. The yearly temperature trend has an increasing tendency. We see the hot years of 2003 and 2018 very clearly in Altdorf.
 
 **How is temperature distributed?** Temperature has values between -10 and 30 degrees C average daily temperature. Temperature has no gaussian distribution but has in the median between the extremes a decrease in counts. 75% of all mean daily temperature values are between 5 and 15 degrees C.
 
-```{r temp, echo=FALSE, fig.height=4}
+
+
+```{r temp, echo=FALSE, fig.height=3.5}
 # temperature monthly mean
 altdorf_monthly_mean_temp =  altdorf_monthly_mean[,c(1,16)] %>%
   pivot_longer(cols = c(temp),
@@ -209,6 +270,7 @@ o1 = ggplot(altdorf_monthly_mean_temp, aes(x = year, y = value)) +
   labs(title = "Monthly Temperature",
        x = "Month",
        y = "Temperature degrC") +
+  scale_x_continuous(breaks = unique(altdorf_monthly_mean_sex_long$year)) +
   theme(legend.position = "none", legend.margin = margin())
 
 
