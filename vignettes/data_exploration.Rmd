@@ -1,5 +1,5 @@
 ---
-title: "Exploring the HopFoehnTemp Data"
+title: "Exploring the HopFoehnTemp Data (Altdorf)"
 author: "Tino Schneidewind"
 date: '`r Sys.Date()`'
 output: html_document
@@ -8,11 +8,11 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list= ls())
-library(dplyr); library(tidyr); library(ggplot2) ; library(lubridate); library(plotly); library(viridis); library(gridExtra)
+library(dplyr); library(tidyr); library(ggplot2) ; library(lubridate); library(plotly); library(viridis); library(gridExtra); library(corrplot)
    
 
 # notes for creating html document, paste this into Console
-# rmarkdown::render("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/vignettes/region_selection.Rmd", output_format = "html_document")
+# rmarkdown::render("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/vignettes/data_exploration.Rmd", output_format = "html_document")
 ```
 
 
@@ -56,8 +56,11 @@ altdorf_monthly_mean$year = as.numeric(substring(as.character(altdorf_monthly_me
 # summary(altdorf)
 # head(altdorf)
 ```
+## Altdorf
 
 Lets explore the data, and some descriptive statistics, its distribution, the time series etc. I will start of with **only the station Altdorf** as a placeholder for all individual stations. 
+
+### HOSPITALIZATIONS
 
 **How are hospitalizations distributed over the year?** Hospitalisations rates are highest in winter and lowest in summer. This is the case for men, women and all age groups. However, divided by diseases, this pattern seems to be driven by cardiovascular and respiratory diseases.
 
@@ -195,7 +198,7 @@ o3 = ggplot(altdorf_yearly_sum_disease_long, aes(x = year, y = value, color = va
 grid.arrange(p1,o1,p2,o2,p3,o3,ncol = 2)
 ```
 
-
+### FOEHN
 **Is there a trend in annual foehn or seasonality?** We have a clear seasonal trend in foehn with a its peak in spring and intermediate levels in late autumn and winter. In summer there is only litte foehn on average per day. Over the observation period, foehn seems to decrease in its total occurence time per year. From the distribution (bottom left) it can be concluded, that on theoverarching majority of the days we have no foehn. Foehn frequency is antiproporional to its intensity, with a slight peak at 288 foehn score as this is the highest achievable for a day. 
 
 
@@ -249,7 +252,7 @@ o4 = ggplot(altdorf[which(altdorf$f_id != 0),], aes(x = f_id))+
 grid.arrange(o1,o2, o3, o4 ,ncol=2)
 ```
 
-
+### TEMPERATURE
 
 **Whats the annual path of temperature in Altdorf? Do we see an increasing trend of temperature?** As expected, it is warmest in summer with the highest monthly average in July just below 20 degrees C and coldest in winter just above 0 degrees. The yearly temperature trend has an increasing tendency. We see the hot years of 2003 and 2018 very clearly in Altdorf.
 
@@ -303,6 +306,16 @@ o4 = ggplot(altdorf, aes(x= as.factor(station), y=temp ))+
 grid.arrange(o1,o2, o3, o4 ,ncol=2)
 ```
 
+### CORRELATIONS
+
+**Do we have obvious correltaions in the dataset?** As already determined from the plots above, we have the greatest corelation with all hospitalizations from 15-64 year-olds and from cardiovascular diseases. In this a age group, there are more men than women, however, more men are also hospitalized than women. From all disease groups, the largest correlation was found with hospitalizations due to mental illnesses. 65-74 year-olds correlate most with cardiovascular admission and equally with men and women. Above 85 year-olds also correlate more with cvd but this time also with women (could be due to longer lifespan of women and harvesting in below 65 year-olds). Interestingly, below 15 year-olds and temperature and foehn all show no correlations with any other subgroup.
+```{r correlation, echo=FALSE}
+alt_cor <- cor(altdorf[,c(3:15,17,18)], use = "complete.obs")
+
+corrplot(alt_cor, method = c("number"), type="lower")
+
+```
 
 
-Do we have obvious correltaions in the dataset?
+
+
