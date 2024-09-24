@@ -215,5 +215,121 @@ ggplot(foehn_y_long, aes(x = year, y = value, color = variable)) +
 
 ```
 
+```{r pca, echo=FALSE}
+
+
+#### PCA
+# - all stations (alt, lug, mag, dav) have one dominating PC and then afterwards only homogeneous PCs
+# - Biplots do not really show us anything but that the data is primarily of integer type
+# - same for loading, looks to be  just the proportional weight of the observations and not a pattern.
+
+
+# rm(list= ls())
+# data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
+# # for four stations
+# alt <- data[data$station == "Altdorf",]
+# lug <- data[data$station == "Lugano",]
+# mag <- data[data$station == "Magadino",]
+# dav <- data[data$station == "Davos",]
+# 
+# # pca
+# alt_pca = prcomp(na.omit(alt[,c(3:15,17,18)]), center = TRUE, scale = TRUE)
+# lug_pca = prcomp(na.omit(lug[,c(3:15,17,18)]), center = TRUE, scale = TRUE)
+# mag_pca = prcomp(na.omit(mag[,c(3:15,17,18)]), center = TRUE, scale = TRUE)
+# dav_pca = prcomp(na.omit(dav[,c(3:15,17,18)]), center = TRUE, scale = TRUE)
+# 
+# # screeplots
+# par(mfrow=c(2,2))  
+# plot(alt_pca, 
+#      main = "Altdorf Screeplot", 
+#      xlab = "Principal Component",
+#      ylim = c(0,6))
+# plot(lug_pca, 
+#      main = "Lugano Screeplot", 
+#      xlab = "Principal Component",
+#      ylim = c(0,6))
+# plot(mag_pca, 
+#      main = "Magadino Screeplot", 
+#      xlab = "Principal Component",
+#      ylim = c(0,6))
+# plot(dav_pca, 
+#      main = "Davos Screeplot", 
+#      xlab = "Principal Component",
+#      ylim = c(0,6))
+# 
+# par(mfrow=c(1,2))
+# 
+# barplot(alt_pca$rotation[,1], las=2, main="Altdorf Loadings PC1") 
+# # barplot(alt_pca$rotation[,2], las=2, main="Altdorf Loadings PC2")
+# # barplot(alt_pca$rotation[,3], las=2, main="Altdorf Loadings PC3")
+# # barplot(alt_pca$rotation[,4], las=2, main="Altdorf Loadings PC4")
+# 
+# 
+# # biplot
+# plot(alt_pca$x[,1], alt_pca$x[,2], type = "n", xlab = "Principal Component 1", ylab = "Principal Component 2", main = "Altdorf")
+# # Add arrows
+# arrows(0, 0, alt_pca$rotation[,1]*6, alt_pca$rotation[,2]*6, 
+#        length = 0.1, angle = 15, col = "red")
+# # Add dots
+# text(alt_pca$x[,1], alt_pca$x[,2], labels = ".", col = "darkgray", cex = 3)
+# # Add variable names
+# text(alt_pca$rotation[,1]*6.5, alt_pca$rotation[,2]*6.5, 
+#      labels = rownames(alt_pca$rotation), pos = 3, col = "black")
+
+# loadings
+
+
+```
+
+
+
+```{r cluster, echo=FALSE}
+# rm(list= ls())
+# data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
+# 
+# X = data[1:200,c(3:15, 17,18)]
+# #creating a dataset for each station
+# stations = unique(data$station)
+# 
+# station_datasets <- list()
+# 
+# # Loop through each station
+# for (i in stations) {
+#   # Filter data for the current station
+#   station_data <- filter(data, station == i)
+#   
+#   # Add the station data to the list
+#   station_datasets[[i]] <- station_data[(nrow(station_data)-3999):nrow(station_data),c(3:15,17,18)]
+# }
+# 
+# 
+# station_datasets_scaled <- lapply(station_datasets, scale)
+# 
+# n= nrow(X)
+# D_0 = matrix(Inf, nrow = n, ncol = n) 
+# for (i in 1:(n-1)) {
+#  for (j in (i+1):n) {
+#  D_0[i,j] <- sqrt(sum((X[i,] - X[j,])^2)) # Euclidean distance
+#  }
+# }
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
