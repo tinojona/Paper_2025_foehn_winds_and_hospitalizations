@@ -1,23 +1,43 @@
-rm(list=ls())
+################################################################################
+# Package DLNM exploration
+# - load the data and correct NAs (how?)
+# - perform crossbasis function for  foehn and temp
+# - calculate model
+# - predict using the model
+# - plot the prediction in all possible ways
 
-# packages
+
+
+
+# packages ####
 library(dlnm)
 library(splines)
+library(ggplot2)
+library(viridis)
+#####
 
-# load data (for one station to begin with)
+
+# load data (for one station to begin with) ####
+rm(list=ls())
 data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
 
 # HANDLE NAs HERE SET TO 0
 data$f_id[is.na(data$f_id)] <- 0
 data_short = data[1:5114,]
+#####
 
 
 
-# crossbasis functions for foehn and temp
-cb2.foehn <- crossbasis(data_short$f_id, lag=5, argvar=list(fun="lin"),
-                        arglag=list(fun="poly",degree=4))
-cb2.temp <- crossbasis(data_short$temp, lag=3, argvar=list(df=5),
-                       arglag=list(fun="strata",breaks=1))
+# crossbasis functions for foehn and temp ####
+cb.foehn <- crossbasis(data_short$f_id,                       # input variable
+                        lag=5,                                 # maximum lag to be considered
+                        argvar=list(fun="poly", degree = 2),       # defines how you want to model the nonlinear association between the exposure variable and the outcome.
+                        arglag=list(fun="poly",degree = 2))    # This list defines how the effect of the exposure changes over time (the lag structure)
+
+cb.temp <- crossbasis(data_short$temp,                       # input variable
+                        lag=5,                                 # maximum lag to be considered
+                        argvar=list(fun="poly", degree = 2),       # defines how you want to model the nonlinear association between the exposure variable and the outcome.
+                        arglag=list(fun="poly",degree = 2))
 
 # for multiple stations the group function cuts so that there is no continuous lag from
 # one station to the other; the same for temp
@@ -25,55 +45,127 @@ cb2.temp <- crossbasis(data_short$temp, lag=3, argvar=list(df=5),
 #                      argvar=list(fun="lin"), arglag=list(fun="integer"),
 #                      group= data$station)
 
+#####
 
-# model for impact on all hospitalisations
-model2 <- glm(all ~ cb2.foehn + cb1.temp + ns(X, 7*14) + dow,
+
+# model for impact on all hospitalisations   ####
+model <- glm(all ~ cb.foehn + cb.temp + ns(X, 7*14) + dow,
               family=quasipoisson(), data_short)
 
-# predict the impact of foehn on hosp
-pred1.pm <- crosspred(cb2.foehn, model2, at=0:288, bylag=0.2, cumul=FALSE)
 
-par(mfrow=c(2,2))
-# Different plots for visualization
-plot(pred1.pm, "overall", main = "Overall cumulative exposure-response")         # Overall cumulative exposure-response
-plot(pred1.pm, "slices", var = 30, main = "Lag-response for specific exposure") # Lag-response for specific exposure
-plot(pred1.pm, "3d", main ="3D Plot")              # 3D plot
-plot(pred1.pm, "contour", main = "contour plot")         # Contour plot
-
-dev.off()
+#####
 
 
-
+# predict the impact of foehn on hosp ####
+pred <- crosspred(cb.foehn,                    # basis
+                  model,                       # model based on crossbasis functions
+                  at=0:288,                    # values of the exposure at which to make predictions
+                  bylag=0.2,                   # This specifies whether to make predictions by each individual lag or across cumulative lags. can also be T or F
+                  cumul=FALSE,                 # cumulative effect of the exposure across all lags, instead of separating the effects by each lag.
+                  cen = 0)                     # the value that the effect will be compared to
+#####
 
 
 
+# Different plots for visualization ####
+
+plot(pred,                 ## Overall cumulative exposure-response
+     "overall",
+     col = 2,
+     xlab = "Exposure",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     ylim = c(0.75,2),
+     main = "Overall cumulative exposure-response")
+# grid()
+
+
+
+plot(pred,              ## exposure at specific exposure increase
+     "slices",                       # Show exposure-response curves for specific lags
+     var = 50,                       # For a specific exposure level
+     #ci = "lines",                   # Use lines for confidence intervals
+     col = 2,                        # Curve color
+     ci.arg = list(col = rgb(0.5,0.5,0.5,0.3)),    # Uncomment if you want to customize CI color
+     xlab = "Exposure (Foehn)",      # Custom x-axis label
+     ylab = "Relative Risk (RR)",    # Custom y-axis label
+     main = "Exposure-Response at Exposure Increase of 50",  # Custom title
+     lwd = 2,                        # Line width for the curve
+     ylim = c(0.9, 1.1)              # Control y-axis limits to focus on RR range
+)
+
+
+plot(pred,              ## exposure at specific lag
+     "slices",                       # Show exposure-response curves for specific lags
+     lag  = 0,                       # For a specific lg level
+     ci = "area",                   # Use lines for confidence intervals
+     col = 2,                        # Curve color
+     ci.arg = list(col = rgb(0.5,0.5,0.5,0.3)),    # Uncomment if you want to customize CI color
+     xlab = "Exposure (Foehn)",      # Custom x-axis label
+     ylab = "Relative Risk (RR)",    # Custom y-axis label
+     main = "Exposure-Response at Lag of 0",  # Custom title
+     lwd = 3,                        # Line width for the curve
+     ylim = c(0.85, 1.15)            # Control y-axis limits to focus on RR range
+)
+
+
+
+plot(pred,            ## 3D Plot
+     "3d",
+     main ="3-D Plot",
+     xlab = "Exposure (Foehn)",
+     ylab = "Lag (Days)",
+     zlab = "Relative Risk",
+     theta = 25,                    # The azimuthal angle (horizontal rotation)
+     phi = 30,                      # The colatitude (vertical rotation).
+     col = "skyblue2",              # color of the 3d surface
+     border = rgb(0.5,0.5,0.5,0.5), # color of the borders
+     #ticktype = "simple",           # type of grid on surface, alt.: "detailed"
+     #nticks = 10                    # number of ticks
+     r = 1.5
+     )
 
 
 
 
-# plot the association, var defines the 1 day delta of foehn
-par(mfrow=c(1,2))
-plot(pred1.pm, "slices", var=50, col=3, ylab="RR", ci.arg=list(density=15,lwd=2),
-     main="Association with a 50-unit increase in foehn")
-plot(pred1.pm, "slices", var=50, col=2, cumul=FALSE, ylab="Cumulative RR",
-     main="Cumulative association with a 50-unit increase in foehn")
+
+
+## I AM NOT HAPPY WITH MY CONTOUR PLOTS
+plot(pred, "contour",               ## contour plot
+     main = "Exposure-Lag-Response Contour Plot",  # Title
+     xlab = "Exposure (Foehn)",                   # Custom x-axis label
+     ylab = "Lag (Days)",                         # Custom y-axis label
+     label = TRUE
+     )
 
 
 
-# cumulative plot
-plot(pred1.pm,"overall",xlab="foehn",ci="l", col=3, ylim=c(0.7,1.3), lwd=2,
-     ci.arg=list(col=1,lty=3), main="Overall cumulative association for 5 lags")
+# Extract the matrix of predicted values for the contour plot
+response_surface <- pred$matfit # Predicted matrix (response)
 
-# 3D plot
-plot(pred1.pm, xlab="foehn", zlab="RR", theta=200, phi=40, lphi=30,
-     main="3D graph of foehn effect")
+# Define the axes for exposure (x) and lag (y)
+exposure <- pred$predvar
+lag <- 0:25
+
+# Generate the contour plot with labels
+contour(exposure, lag, response_surface,
+        main = "Exposure-Lag-Response Contour Plot",  # Title
+        xlab = "Exposure (Foehn)",                   # Custom x-axis label
+        ylab = "Lag (Days)",                         # Custom y-axis label
+        nlevels = 10,                                # Number of contour levels
+        col = heat.colors(10),                       # Color of the contour lines
+        lwd = 2,                                     # Line width
+        labcex = 0.8)
 
 
-par(mfrow=c(1,1))
-plot(pred1.pm,"contour",xlab="foehn",main="Overall cumulative association for 5 lags")
 
 
+     #labels = TRUE)
 
+     #col = heat.colors(10))
+
+# dev.off()
+#####
 
 
 
