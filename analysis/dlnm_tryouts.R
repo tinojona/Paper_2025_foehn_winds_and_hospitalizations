@@ -6,7 +6,11 @@
 # - predict using the model
 # - plot the prediction in all possible ways
 
-
+# Notes for plots that could be nice:
+# - Overall effect of foehn: foehn vs RR with all lags included
+# - effect of foehn on lag day 1-3
+# - convert RR to percentages (easier to read)
+#
 
 
 # packages ####
@@ -17,7 +21,7 @@ library(viridis)
 #####
 
 
-# load data (for one station to begin with) ####
+# load data (and shorten it for tryouts) ####
 rm(list=ls())
 data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
 
@@ -30,20 +34,27 @@ data_short = data[1:5114,]
 
 # crossbasis functions for foehn and temp ####
 cb.foehn <- crossbasis(data_short$f_id,                       # input variable
-                        lag=5,                                 # maximum lag to be considered
-                        argvar=list(fun="poly", degree = 2),       # defines how you want to model the nonlinear association between the exposure variable and the outcome.
-                        arglag=list(fun="poly",degree = 2))    # This list defines how the effect of the exposure changes over time (the lag structure)
+                        lag=5,                                # maximum lag to be considered
+                        argvar=list(fun="poly", degree = 2),  # defines how you want to model the nonlinear association between the exposure variable and the outcome.
+                        arglag=list(fun="poly",degree = 2))   # This list defines how the effect of the exposure changes over time (the lag structure)
 
 cb.temp <- crossbasis(data_short$temp,                       # input variable
-                        lag=5,                                 # maximum lag to be considered
-                        argvar=list(fun="poly", degree = 2),       # defines how you want to model the nonlinear association between the exposure variable and the outcome.
+                        lag=5,                               # maximum lag to be considered
+                        argvar=list(fun="poly", degree = 2), # defines how you want to model the nonlinear association between the exposure variable and the outcome.
                         arglag=list(fun="poly",degree = 2))
 
 # for multiple stations the group function cuts so that there is no continuous lag from
 # one station to the other; the same for temp
-# cb2.foehn <- crossbasis(data$foehn, lag=5,
-#                      argvar=list(fun="lin"), arglag=list(fun="integer"),
-#                      group= data$station)
+# cb.foehn_all <- crossbasis(data$f_id,
+#                            lag=5,
+#                            argvar=list(fun="poly", degree = 2),
+#                            arglag=list(fun="poly",degree = 2),
+#                            group = data$station)
+# cb.temp_all <- crossbasis(data$temp,
+#                            lag=5,
+#                            argvar=list(fun="poly", degree = 2),
+#                            arglag=list(fun="poly",degree = 2),
+#                            group = data$station)
 
 #####
 
@@ -52,6 +63,9 @@ cb.temp <- crossbasis(data_short$temp,                       # input variable
 model <- glm(all ~ cb.foehn + cb.temp + ns(X, 7*14) + dow,
               family=quasipoisson(), data_short)
 
+# with all data
+# model_all <- glm(all ~ cb.foehn_all + cb.temp_all + ns(X, 7*14) + dow,
+#              family=quasipoisson(), data)
 
 #####
 
@@ -63,6 +77,13 @@ pred <- crosspred(cb.foehn,                    # basis
                   bylag=0.2,                   # This specifies whether to make predictions by each individual lag or across cumulative lags. can also be T or F
                   cumul=FALSE,                 # cumulative effect of the exposure across all lags, instead of separating the effects by each lag.
                   cen = 0)                     # the value that the effect will be compared to
+# all data
+# pred <- crosspred(cb.foehn_all,
+#                   model_all,
+#                   at=0:288,
+#                   bylag=0.2,
+#                   cumul=FALSE,
+#                   cen = 0)
 #####
 
 
