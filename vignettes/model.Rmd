@@ -21,22 +21,76 @@ data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Th
 # we add an Month and Year Index to the data
 data$date = as.Date(data$date)
 data$Year = as.numeric(format(data$date, "%Y")); data$month = as.numeric(format(data$date, "%m"))
+
+# exclude rows with NA
+data <- na.exclude(data)
 ```
 
-To reduce processing speed, the data will be shortened. I want to keep all 8 stations and 4 years of the time series of each station in the analysis. 
+To reduce processing speed, the data will be shortened. I want to keep all 8 stations and 2 years of the time series of each station in the analysis. 
 
 ```{r data shortening}
 # save the first station in the shortened data set for later
-data_short <- data[1:1461,]
+data_short <- data[1:730,]
 # extract all station names but the first
-station_names <- unique(data$station)[-1]
+station_names <- unique(data$station)
 
 # extract 4 years of every station and save it in data_shot
-for(i in station_names){
+for(i in station_names[-1]){
   x <- data[data$station == i,]
-  data_short <- rbind(data_short, x[1:1461,])
+  # print(length(unique(x$Year[1:1461])))
+  data_short <- rbind(data_short, x[1:730,])
 }
+```
+```{r plot basic timeseries of hospitalizations, echo=FALSE}
+par(mfrow=c(2,2))
+for (i in c(1,2,5,8)) {
+plot(data_short$date[data_short$station == station_names[i]], 
+     data_short$all[data_short$station == station_names[i]], 
+     col = 1, 
+     xlab = "Date", 
+     ylab = "Daily hospitalisations", 
+     cex = 1, pch = "°", ylim = c(0,18),
+     main = station_names[i])
+}
+
 ```
 
 
+```{r plot basic timeseries of foehn, echo=FALSE}
+par(mfrow=c(2,2))
+for (i in c(1,2,5,8)) {
+plot(data_short$date[data_short$station == station_names[i]], 
+     data_short$f_id[data_short$station == station_names[i]], 
+     col = 3, 
+     xlab = "Date", 
+     ylab = "Daily foehn score", 
+     cex = 1, pch = "°", ylim = c(0,288),
+     main = station_names[i])
+}
+```
+
+```{r plot basic timeseries of temperature, echo=FALSE}
+par(mfrow=c(2,2))
+for (i in c(1,2,5,8)) {
+plot(data_short$date[data_short$station == station_names[i]], 
+     data_short$temp[data_short$station == station_names[i]], 
+     col = 2, 
+     xlab = "Date", 
+     ylab = "Daily mean temperature", 
+     cex = 1, pch = "°", ylim = c(-20,30),
+     main = station_names[i])
+}
+
+```
+
+```{r temperature plot, echo=FALSE}
+plot(data_short$temp,
+     col = 2,
+     ylab = "Daily mean temperature",
+     xlab = "Index across all dates",
+     cex = 1, pch = "°", ylim = c(-20,30),
+     main = "Temperature Series"
+     )
+
+```
 
