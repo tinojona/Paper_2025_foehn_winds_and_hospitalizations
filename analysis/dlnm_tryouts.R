@@ -147,9 +147,20 @@ plot(pred,            ## 3D Plot
      )
 
 
-
-
-
+# tryouts for hashed background
+plot(pred,              ## exposure at specific exposure increase
+     "slices",                       # Show exposure-response curves for specific lags
+     var = 50,                       # For a specific exposure level
+     #ci = "lines",                   # Use lines for confidence intervals
+     col = 2,                        # Curve color
+     ci.arg = list(density = 20, col = 4 ,angle = -45),    # Uncomment if you want to customize CI color
+     xlab = "Exposure (Foehn)",      # Custom x-axis label
+     ylab = "Relative Risk (RR)",    # Custom y-axis label
+     main = "Exposure-Response at Exposure Increase of 50",  # Custom title
+     lwd = 2,                        # Line width for the curve
+     ylim = c(0.9, 1.1)              # Control y-axis limits to focus on RR range
+)
+lines(pred, ci = "area", var = 20, ci.arg = list(density = 20, col = 1), lwd = 2)
 
 ## I AM NOT HAPPY WITH MY CONTOUR PLOTS
 plot(pred, "contour",               ## contour plot
