@@ -1,5 +1,5 @@
 ---
-title: "Modeling foehn"
+title: "Modeling Hospitalizations"
 author: "Tino Schneidewind"
 date: "`r Sys.Date()`"
 output: html_document
@@ -9,12 +9,14 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 ```
 
-#### This documents serves to determine adequat modeling paramteters for my Distributed Lagged (Non-Linear) Model DLNM for FOEHN
+### This documents serves to determine adequat modeling paramteters for my Distributed Lagged (Non-Linear) Model DLNM for foehn and hospitalzations
+#### We start of with generalized linear models with non linear parameters before we continue with distributed lagged models
 
+### General Linear Models glm
 ```{r packages, message=FALSE, warning=FALSE}
-library(viridisLite); library(dlnm); library(splines); library(ggplot2); library(viridis); library(Epi)
+library(viridisLite); library(dlnm); library(splines); library(ggplot2); library(viridis); library(Epi); library(tsModel); library(mgcv); library(lubridate)
 ```
-```{r data, message=FALSE, warning=FALSE}
+```{r data, message=FALSE, warning=FALSE, echo=FALSE}
 # data
 data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
 
@@ -26,9 +28,9 @@ data$Year = as.numeric(format(data$date, "%Y")); data$month = as.numeric(format(
 data <- na.exclude(data)
 ```
 
-To reduce processing speed, the data will be shortened to two years of Altdorf. 
+To reduce processing speed, the data will be shortened to two years of Chur, and from hereon called "data_short". Rows with NAs wil be excluded.
 
-```{r data shortening}
+```{r data shortening, echo=FALSE}
 # save the first station in the shortened data set for later
 data_short <- data[data$station == "Chur",]
 
@@ -36,42 +38,26 @@ data_short <- data_short[data_short$Year == 1998 | data_short$Year == 1999,]
 # extract all station names but the first
 # station_names <- unique(data$station)
 
-# # extract 4 years of every station and save it in data_shot
-# for(i in station_names[-1]){
-#   x <- data[data$station == i,]
-#   # print(length(unique(x$Year[1:1461])))
-#   data_short <- rbind(data_short, x[1:730,])
-# }
-```
-
-
-```{r plot basic timeseries of temperature, echo=FALSE}
-# par(mfrow=c(2,2))
-# for (i in c(1,2,5,8)) {
-# plot(data_short$date[data_short$station == station_names[i]], 
-#      data_short$temp[data_short$station == station_names[i]], 
-#      col = 2, 
-#      xlab = "Date", 
-#      ylab = "Daily mean temperature", 
-#      cex = 1, pch = "°", ylim = c(-20,30),
-#      main = station_names[i])
-# }
 
 ```
 
-```{r temperature plot, echo=FALSE}
-plot(data_short$f_id,
+```{r temperature plot, echo=FALSE, fig.height=5.5}
+
+par(mfrow=c(2,1))
+plot(data_short$date,
+     data_short$f_id,
      col = 2,
      ylab = "Daily foehn score",
      xlab = "Index across all dates",
-     cex = 1, pch = "°", ylim = c(0,300),
+     cex = 1, pch = "°", ylim = c(0,280),
      main = "Foehn Series"
      )
-plot(data_short$all,
+plot(data_short$date,
+     data_short$all,
      col = 1,
      ylab = "Daily hospitalzations",
      xlab = "Index across all dates",
-     cex = 1, pch = "°", ylim = c(0,30),
+     cex = 1, pch = "°", ylim = c(0,20),
      main = "Hospitalizations Series"
      )
 
@@ -81,43 +67,28 @@ Now lets try to fit a model to the whole foehn series to predict hospitalization
 ```{r model temp}
 # lets start with a model that believes foehn to be the sole contributor
 mnone <- glm(all ~ f_id, data_short, family=poisson)
-# summary(mnone)
-mnone$aic
 ci.exp(mnone, subset = "f_id")
-
 ```
-A very simple model shows a very small attenuation of hospitalization through foehn. As a next step, the model will predict hospitalizations based on the date (linear trend) and based on the month (seasonality). And finally, both affects combined.
+A very simple model shows a very small association of hospitalization through foehn. As a next step, the model will predict hospitalizations based on the date (linear trend) and based on the month (seasonality). And finally, both affects combined.
 
 ```{r linear model}
 # linear trend
 mlin <- glm(all ~ date, data_short, family=poisson)
-# summary(mlin)
-mlin$aic
 ci.exp(mlin, subset = "date")
 
 # seasonality
 mmonth <- glm(all ~factor(month), data_short, family = poisson)
-# summary(mmonth)
-mmonth$aic
-# ci.exp(mmonth)
 
 # yearly trend + seasonality
 mmonthinyear <- glm(all ~ factor(month)*factor(Year), data_short, family=poisson)
-# summary(mmonthinyear)
-mmonthinyear$aic
-# ci.exp(mmonthinyear)
 ```
 
 The risk from foehn may not be equal in all months. This can be implemented by using non-linear functions such as spline.
 
 ```{r nonlinear model}
-# apply a spline to the date and insert it into 
-# 5 degrees of freedom for 16 years of data
+# 5 degrees of freedom for 2 years of data
 spltime <- bs(data_short$date, df=5*2)
 mspline <- glm(all ~ spltime, data_short, family=poisson)
-
-mspline$aic
-# ci.exp(mspline)
 ```
 
 Lest plot the different models and see how they are able to predict the hospitalizations.
@@ -157,21 +128,17 @@ ci.exp(mspline, subset = "f_id")
 AIC(mnone, mlin, mmonth, mmonthinyear, mspline)
 
 ```
-Here, the spline model has the highest flexibility and the best AIC score, despite having 14 less degrees of freedom than month-in-year regression. 
+Here, the spline model has the highest flexibility and the best AIC score, despite having 14 less degrees of freedom than month-in-year regression. Regarding its CI, the slpine model shows a positive association of foehn with hospitalizations. 
 
 
-But not only foehn and time (trend, seasonality) can influence mortality. A typical confounder is temperature, which can lead to short term variation of mortality. Lets plot temperature against hospitalizations to see the association and fit a polynomial regression to it.  
+But not only foehn and time (trend, seasonality) can influence hospitalizations. A typical confounder is temperature, which can lead to short term variation of hospitalizations. Lets plot temperature against hospitalizations to see the association and fit a polynomial regression to it.  
 
 ```{r temp and foehn plots, echo=FALSE}
-par(mfrow=c(1,2))
-
 plot(data_short$temp, data_short$all, ylab="Hospitalizations", xlab="Mean Temperature", cex=0.6,
 col=grey(0.8), main="temperature-hospitalization scatter plot")
 lw <- loess(all ~ temp, data_short)
 pred <- predict(lw, data.frame(temp=-10:25))
 lines(-10:25, pred, col=2)
-
-
 ```
 
 Now lets add temperature to our model using a slpine function. 
@@ -179,9 +146,6 @@ Now lets add temperature to our model using a slpine function.
 ```{r add temp}
 spltmean <- ns(data_short$temp, df=3)
 mtmean <- glm(all ~ f_id + spltime + dow + spltmean, data_short, family=poisson)
-
-# lets check the confidence intervals
-ci.exp(mtmean, subset="f_id")
 ```
 
 For the first time, foehn is modeled to be attenuating to hospitalizations.
@@ -195,7 +159,6 @@ Through adding temperature to out model, the AIC drastically improved.
 Lets investigate the individual components of our model.
 ```{r test LRT}
 drop1(mtmean, test = "LRT")
-
 ```
 
 I do not really know how to interpret these results. I guess that the lower the LRT test, the better, as by pure logic, dow should be the worst predictor of hospitalizations. This indicates that foehn is a very good predictor of hospitalizations, even compared to temperature.
@@ -209,19 +172,69 @@ summary(overdisp)$dispersion
 ci.exp(mtmean, subset="f_id")
 
 ci.exp(overdisp, subset="f_id")
-
 ```
 
-The confidence interval has increased as a result!
+The confidence interval has increased as a result! The CI of the for overdispersion adjusted model can be interpreted as follows: A 1 unit increase in the foehn score is associated with a decrease in the relative risk of 0.01369 %. And consequently, a 100 unit increase leads to a 1.369 % decrease in the relative risk of hospitalisation. A shift from a no foehn day to full foehn day (288 difference) decreases relative risk by 3.945 %.
 
 Lets investigate the autocorrelation of the data.
 
-```{r autocorr}
+```{r autocorr, echo=FALSE}
+par(mfrow=c(1,2))
 pacf(data_short$all, ylim=c(-0.1,1), main="Original response variable")
 pacf(residuals(mtmean), ylim=c(-0.1,1), na.action=na.pass,
-main="Residuals from the regression model")
+main="Residuals from the regression mod")
 
 ```
+
 In our adjusted model, there is no autocorrelation anymore.
+
+### Distributed lagged models
+#### We begin to fit a distributed lag model DLM to our data to account for the time shifted effect of heat (foehn and temperature) on hospitalizations. Here we still assume linearity
+
+Lagged effects can be implemented in the model using the crossbasis() function. First we assume the variable to have a linear effect on the response variable, but the structure of the lag is modified to be unconstrained and a spline. 
+
+```{r crossbasis}
+cb_f_int <- crossbasis(data_short$f_id, 
+                       lag = 5, 
+                       argvar = list(fun = "lin"),
+                       arglag = list(fun = "integer"))
+
+cb_f_spl <- crossbasis(data_short$f_id, 
+                       lag = 5, 
+                       argvar = list(fun = "lin"),
+                       arglag = list(fun = "ns", knots = c(1,3)))
+```
+
+These two crossbasis functions can now be updated into the previous model that accounted for overdispersion. By doing so, the exposure now is potentially complex while the estimation is still a standard regression.
+
+```{r add b}
+mod_cb_f_int <- update(overdisp,  .~.-f_id+cb_f_int)
+summary(mod_cb_f_int)[1]
+
+mod_cb_f_spl <- update(overdisp,  .~.-f_id+cb_f_spl)
+summary(mod_cb_f_spl)[1]
+```
+
+Investigating the CI of these models is hard, as there is a CI for every lag. Therefore we utilize the crosspred() function. We reduce the lag distance to 0.2 so that we are able to visualize a smoother curve further down the line (for integer this is not possible). As a reference for the prediction, in linear models, cen=0 by default. 
+
+```{r crosspred}
+cp_f_int <- crosspred(cb_f_int, mod_cb_f_int, at = 0:288)
+
+cp_f_spl <- crosspred(cb_f_spl, mod_cb_f_spl, at = 0:288, bylag = 0.2)
+```
+
+For these predictions, a foehn and lag-specific increase can be defined and extracted. Here increase of 100 foehn score and lag of 1. Additionally, the overall cumulative risk along the lag period at a specific exposure can be extracted. 
+
+```{r CI pred}
+# exposure and lag
+cp_f_int$matfit["100", "lag1"] 
+# cumulative risk at specific exposure
+cp_f_spl$allRRfit["288"]
+```
+
+
+
+
+
 
 
