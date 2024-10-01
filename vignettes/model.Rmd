@@ -208,10 +208,10 @@ cb_f_spl <- crossbasis(data_short$f_id,
 These two crossbasis functions can now be updated into the previous model that accounted for overdispersion. By doing so, the exposure now is potentially complex while the estimation is still a standard regression.
 
 ```{r add b}
-mod_cb_f_int <- update(overdisp,  .~.-f_id+cb_f_int)
+mod_cb_f_int <- update(overdisp,  .~.-f_id+cb_f_int, na.action = "na.exclude")
 summary(mod_cb_f_int)[1]
 
-mod_cb_f_spl <- update(overdisp,  .~.-f_id+cb_f_spl)
+mod_cb_f_spl <- update(overdisp,  .~.-f_id+cb_f_spl, na.action = "na.exclude")
 summary(mod_cb_f_spl)[1]
 ```
 
@@ -233,8 +233,65 @@ cp_f_spl$allRRfit["288"]
 ```
 
 
+### Distributed lagged non linear models
+#### Here we also get rid of the assumption of a linear influence of the exposure to the response.
 
+```{r dlnm}
+# crossbasis
+cb_f_ns <- crossbasis(data_short$f_id, 
+                       lag = 5, 
+                       argvar = list(fun = "ns", knots = c(1,3)),
+                       arglag = list(fun = "ns", knots = c(1,3)))
 
+# model
+mo_f_ns <- glm(all ~ cb_f_ns + spltmean + ns(date, 7*2) + dow,
+              family=quasipoisson(), data_short)
 
+# prediction
+cp_f_ns <- crosspred(cb_f_ns, mo_f_ns, at = 0:288, bylag = 0.2, cen = 0)
+```
+
+These predictions can be visualized in a 3D plot.
+
+```{r 3d, echo=FALSE}
+# plot(cp_f_ns, 
+#      xlab = "foehn score", ylab = "Lag", zlab = "RR",
+#      main = "Exposure-Risk_Surface")
+
+plot(cp_f_ns,                 ## Overall cumulative exposure-response
+     "overall",
+     col = 2,
+     xlab = "Exposure",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     # ylim = c(0.6,3),
+     main = "Overall cumulative exposure-response")
+
+plot(cp_f_ns,              ## exposure at specific lag
+     "slices",                       # Show exposure-response curves for specific lags
+     lag  = 3,                       # For a specific lg level
+     ci = "area",                   # Use lines for confidence intervals
+     col = 3,                        # Curve color
+     ci.arg = list(col = rgb(0.5,0.5,0.5,0.3)),    # Uncomment if you want to customize CI color
+     xlab = "Exposure (Foehn)",      # Custom x-axis label
+     ylab = "Relative Risk (RR)",    # Custom y-axis label
+     main = "Exposure-Response at Lag of 3",  # Custom title
+     lwd = 3,                        # Line width for the curve
+     ylim = c(0.85, 1.15)            # Control y-axis limits to focus on RR range
+)
+
+plot(cp_f_ns,              ## exposure at specific exposure increase
+     "slices",                       # Show exposure-response curves for specific lags
+     var = 50,                       # For a specific exposure level
+     #ci = "lines",                   # Use lines for confidence intervals
+     col = 2,                        # Curve color
+     ci.arg = list(density = 20, col = 4 ,angle = -45),    # Uncomment if you want to customize CI color
+     xlab = "Exposure (Foehn)",      # Custom x-axis label
+     ylab = "Relative Risk (RR)",    # Custom y-axis label
+     main = "Exposure-Response at Exposure Increase of 50",  # Custom title
+     lwd = 2                        # Line width for the curve
+     # ylim = c(0.9, 1.1)              # Control y-axis limits to focus on RR range
+)
+```
 
 
