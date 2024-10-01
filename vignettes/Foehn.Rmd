@@ -8,7 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list= ls())
-library(dplyr); library(tidyr); library(ggplot2) ; library(lubridate); library(plotly); library(viridis); library(gridExtra); library(corrplot)
+library(dplyr); library(tidyr); library(ggplot2) ; library(lubridate); library(plotly); library(viridis); library(gridExtra); library(corrplot); library(zoo)
    
 
 # notes for creating html document, paste this into Console
@@ -107,6 +107,36 @@ p2 = ggplot(foehn_d_sum[which(foehn_d_sum$f_id != 0),], aes(x = f_id))+
   labs(title= "foehn score distr. without 0-foehn days", x = " foehn score")
 
 grid.arrange(p1,p2,ncol=2)
+```
+
+#### Average Daily Foehn, excluding no foehn events, with 7 day running average
+An average daily foehn score is: 79.6 (mean), 59 (median)
+```{r average daily foehn intensity without no foehn events, echo=FALSE}
+data$daymonth = format(data$date, "%m.%d")
+
+foehn_d_mean <- data[data$f_id != 0,] %>%
+  group_by(daymonth) %>%
+  summarize(across(f_id, ~ mean(.x, na.rm = TRUE)))
+
+foehn_d_median <- data[data$f_id != 0,]  %>%
+  group_by(daymonth) %>%
+  summarize(across(f_id, ~ median(.x, na.rm = TRUE)))
+
+foehn_d_mean$date = paste0("2000.", foehn_d_mean$daymonth)
+foehn_d_mean$date = as.Date(foehn_d_mean$date, format = "%Y.%m.%d")
+foehn_d_median$date <- foehn_d_mean$date
+
+plot(foehn_d_mean$date, foehn_d_mean$f_id, 
+     xlab = "Date", ylab = "mean daily foehn", col = 2)
+moving_mean <-c(NA,NA, NA,  rollmean(foehn_d_mean$f_id, k = 7), NA, NA,NA)
+lines(foehn_d_mean$date, moving_mean, col = "black", lwd = 2)
+
+# plot(foehn_d_mean$date, foehn_d_median$f_id,
+#      xlab = "Date", ylab = "median daily foehn", col = 3)
+moving_med <-c(NA,NA, NA,  rollmean(foehn_d_median$f_id, k = 7), NA, NA,NA)
+lines(foehn_d_mean$date, moving_med, col = "green", lwd = 2)
+legend("top", legend = c("7-day MA mean", "7-day MA median"), 
+       col = c("black", "green"), lwd = 2, bty = "n")
 ```
 
 #### Trends
