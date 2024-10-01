@@ -110,7 +110,7 @@ grid.arrange(p1,p2,ncol=2)
 ```
 
 #### Average Daily Foehn, excluding no foehn events, with 7 day running average
-An average daily foehn score is: 79.6 (mean), 59 (median)
+An average daily foehn score is: 79.6 (mean) // 18.51 (including 0), 59 (median) // 0 (including 0)
 ```{r average daily foehn intensity without no foehn events, echo=FALSE}
 data$daymonth = format(data$date, "%m.%d")
 
