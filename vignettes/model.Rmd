@@ -1,5 +1,5 @@
 ---
-title: "Model"
+title: "Modeling foehn"
 author: "Tino Schneidewind"
 date: "`r Sys.Date()`"
 output: html_document
@@ -9,10 +9,10 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 ```
 
-#### This documents serves to determine adequat modeling paramteters for my Distributed Lagged (Non-Linear) Model DLNM.
+#### This documents serves to determine adequat modeling paramteters for my Distributed Lagged (Non-Linear) Model DLNM for FOEHN
 
 ```{r packages, message=FALSE, warning=FALSE}
-library(viridisLite); library(dlnm); library(splines); library(ggplot2); library(viridis)
+library(viridisLite); library(dlnm); library(splines); library(ggplot2); library(viridis); library(Epi)
 ```
 ```{r data, message=FALSE, warning=FALSE}
 # data
@@ -26,71 +26,202 @@ data$Year = as.numeric(format(data$date, "%Y")); data$month = as.numeric(format(
 data <- na.exclude(data)
 ```
 
-To reduce processing speed, the data will be shortened. I want to keep all 8 stations and 2 years of the time series of each station in the analysis. 
+To reduce processing speed, the data will be shortened to two years of Altdorf. 
 
 ```{r data shortening}
 # save the first station in the shortened data set for later
-data_short <- data[1:730,]
+data_short <- data[data$station == "Chur",]
+
+data_short <- data_short[data_short$Year == 1998 | data_short$Year == 1999,]
 # extract all station names but the first
-station_names <- unique(data$station)
+# station_names <- unique(data$station)
 
-# extract 4 years of every station and save it in data_shot
-for(i in station_names[-1]){
-  x <- data[data$station == i,]
-  # print(length(unique(x$Year[1:1461])))
-  data_short <- rbind(data_short, x[1:730,])
-}
-```
-```{r plot basic timeseries of hospitalizations, echo=FALSE}
-par(mfrow=c(2,2))
-for (i in c(1,2,5,8)) {
-plot(data_short$date[data_short$station == station_names[i]], 
-     data_short$all[data_short$station == station_names[i]], 
-     col = 1, 
-     xlab = "Date", 
-     ylab = "Daily hospitalisations", 
-     cex = 1, pch = "°", ylim = c(0,18),
-     main = station_names[i])
-}
-
+# # extract 4 years of every station and save it in data_shot
+# for(i in station_names[-1]){
+#   x <- data[data$station == i,]
+#   # print(length(unique(x$Year[1:1461])))
+#   data_short <- rbind(data_short, x[1:730,])
+# }
 ```
 
-
-```{r plot basic timeseries of foehn, echo=FALSE}
-par(mfrow=c(2,2))
-for (i in c(1,2,5,8)) {
-plot(data_short$date[data_short$station == station_names[i]], 
-     data_short$f_id[data_short$station == station_names[i]], 
-     col = 3, 
-     xlab = "Date", 
-     ylab = "Daily foehn score", 
-     cex = 1, pch = "°", ylim = c(0,288),
-     main = station_names[i])
-}
-```
 
 ```{r plot basic timeseries of temperature, echo=FALSE}
-par(mfrow=c(2,2))
-for (i in c(1,2,5,8)) {
-plot(data_short$date[data_short$station == station_names[i]], 
-     data_short$temp[data_short$station == station_names[i]], 
-     col = 2, 
-     xlab = "Date", 
-     ylab = "Daily mean temperature", 
-     cex = 1, pch = "°", ylim = c(-20,30),
-     main = station_names[i])
-}
+# par(mfrow=c(2,2))
+# for (i in c(1,2,5,8)) {
+# plot(data_short$date[data_short$station == station_names[i]], 
+#      data_short$temp[data_short$station == station_names[i]], 
+#      col = 2, 
+#      xlab = "Date", 
+#      ylab = "Daily mean temperature", 
+#      cex = 1, pch = "°", ylim = c(-20,30),
+#      main = station_names[i])
+# }
 
 ```
 
 ```{r temperature plot, echo=FALSE}
-plot(data_short$temp,
+plot(data_short$f_id,
      col = 2,
-     ylab = "Daily mean temperature",
+     ylab = "Daily foehn score",
      xlab = "Index across all dates",
-     cex = 1, pch = "°", ylim = c(-20,30),
-     main = "Temperature Series"
+     cex = 1, pch = "°", ylim = c(0,300),
+     main = "Foehn Series"
+     )
+plot(data_short$all,
+     col = 1,
+     ylab = "Daily hospitalzations",
+     xlab = "Index across all dates",
+     cex = 1, pch = "°", ylim = c(0,30),
+     main = "Hospitalizations Series"
      )
 
 ```
+
+Now lets try to fit a model to the whole foehn series to predict hospitalizations (of the shortened data set).
+```{r model temp}
+# lets start with a model that believes foehn to be the sole contributor
+mnone <- glm(all ~ f_id, data_short, family=poisson)
+# summary(mnone)
+mnone$aic
+ci.exp(mnone, subset = "f_id")
+
+```
+A very simple model shows a very small attenuation of hospitalization through foehn. As a next step, the model will predict hospitalizations based on the date (linear trend) and based on the month (seasonality). And finally, both affects combined.
+
+```{r linear model}
+# linear trend
+mlin <- glm(all ~ date, data_short, family=poisson)
+# summary(mlin)
+mlin$aic
+ci.exp(mlin, subset = "date")
+
+# seasonality
+mmonth <- glm(all ~factor(month), data_short, family = poisson)
+# summary(mmonth)
+mmonth$aic
+# ci.exp(mmonth)
+
+# yearly trend + seasonality
+mmonthinyear <- glm(all ~ factor(month)*factor(Year), data_short, family=poisson)
+# summary(mmonthinyear)
+mmonthinyear$aic
+# ci.exp(mmonthinyear)
+```
+
+The risk from foehn may not be equal in all months. This can be implemented by using non-linear functions such as spline.
+
+```{r nonlinear model}
+# apply a spline to the date and insert it into 
+# 5 degrees of freedom for 16 years of data
+spltime <- bs(data_short$date, df=5*2)
+mspline <- glm(all ~ spltime, data_short, family=poisson)
+
+mspline$aic
+# ci.exp(mspline)
+```
+
+Lest plot the different models and see how they are able to predict the hospitalizations.
+
+```{r plot models, echo=FALSE}
+plot(data_short$date,data_short$all,ylab="Hospitalizations",xlab="date",cex=0.6,col=grey(0.8),
+main="Modelling seasonality and trend")
+lines(data_short$date,predict(mlin, type="response"),col="green")
+lines(data_short$date,predict(mmonth, type="response"),col="blue")
+lines(data_short$date,predict(mmonthinyear, type="response"),col="orange")
+lines(data_short$date,predict(mspline, type="response"),col="red")
+legend("topright",c("Linear time","Month indicators and linear time","Month*year term",
+"Spline function of time"), col=c("green","blue","orange","red"), lty=1,
+cex=0.8,bty="n")
+
+```
+
+
+
+
+Now lets update the model using foehn as a linear term.
+
+```{r model update}
+# update the model with f_id
+mlin <- update(mlin, .~ . + f_id)
+mmonth <- update(mmonth, .~ . + f_id)
+mmonthinyear <- update(mmonthinyear, .~ . + f_id)
+mspline <- update(mspline, .~ . + f_id)
+
+# extract CI
+ci.exp(mlin, subset = "f_id")
+ci.exp(mmonth, subset = "f_id")
+ci.exp(mmonthinyear, subset = "f_id")
+ci.exp(mspline, subset = "f_id")
+
+# comparing the models
+AIC(mnone, mlin, mmonth, mmonthinyear, mspline)
+
+```
+Here, the spline model has the highest flexibility and the best AIC score, despite having 14 less degrees of freedom than month-in-year regression. 
+
+
+But not only foehn and time (trend, seasonality) can influence mortality. A typical confounder is temperature, which can lead to short term variation of mortality. Lets plot temperature against hospitalizations to see the association and fit a polynomial regression to it.  
+
+```{r temp and foehn plots, echo=FALSE}
+par(mfrow=c(1,2))
+
+plot(data_short$temp, data_short$all, ylab="Hospitalizations", xlab="Mean Temperature", cex=0.6,
+col=grey(0.8), main="temperature-hospitalization scatter plot")
+lw <- loess(all ~ temp, data_short)
+pred <- predict(lw, data.frame(temp=-10:25))
+lines(-10:25, pred, col=2)
+
+
+```
+
+Now lets add temperature to our model using a slpine function. 
+
+```{r add temp}
+spltmean <- ns(data_short$temp, df=3)
+mtmean <- glm(all ~ f_id + spltime + dow + spltmean, data_short, family=poisson)
+
+# lets check the confidence intervals
+ci.exp(mtmean, subset="f_id")
+```
+
+For the first time, foehn is modeled to be attenuating to hospitalizations.
+
+```{r aic model}
+AIC(mspline, mtmean)
+```
+
+Through adding temperature to out model, the AIC drastically improved.
+
+Lets investigate the individual components of our model.
+```{r test LRT}
+drop1(mtmean, test = "LRT")
+
+```
+
+I do not really know how to interpret these results. I guess that the lower the LRT test, the better, as by pure logic, dow should be the worst predictor of hospitalizations. This indicates that foehn is a very good predictor of hospitalizations, even compared to temperature.
+
+In this model, we still have overdispersion and auto-correlation. We can adjust our model to account for this by changing the family to "quasi Poisson".
+
+```{r quasi poisson}
+overdisp <- update(mtmean, family=quasipoisson)
+summary(overdisp)$dispersion
+
+ci.exp(mtmean, subset="f_id")
+
+ci.exp(overdisp, subset="f_id")
+
+```
+
+The confidence interval has increased as a result!
+
+Lets investigate the autocorrelation of the data.
+
+```{r autocorr}
+pacf(data_short$all, ylim=c(-0.1,1), main="Original response variable")
+pacf(residuals(mtmean), ylim=c(-0.1,1), na.action=na.pass,
+main="Residuals from the regression model")
+
+```
+In our adjusted model, there is no autocorrelation anymore.
+
 
