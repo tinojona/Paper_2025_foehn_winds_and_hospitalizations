@@ -1,0 +1,63 @@
+---
+title: "Station Selection"
+author: "Tino Schneidewind"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+#### For this analysis to work, there must be a sufficient signal from foehn and from hospitalizations. The 8 stations were originally chosen by their annual foehn hours. However, within a sensible buffer of 5 km, the corresponding hospitalization regions must provide sufficient daily hospitalizations for a signal from foeh nto be visible. This will be investigated in this document.
+
+As a first indicator of sufficient daily hospitalizations we take the mean and median of every stations data.
+
+```{r load data}
+rm(list = ls())
+data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
+
+```
+
+```{r loop mean, echo=FALSE}
+station_names = unique(data$station)
+
+for (i in station_names) {
+  subset = data[data$station == i,]
+  me = mean(subset$all)
+  medi = median(subset$all)
+  print(paste0(i,", all hospitalizations: mean ", me, ", median ", medi))
+  
+}
+
+```
+
+From this, we can already exclude Davos and Poschiavo immidiately. It would be sensible to only continue with Chur, Lugano, Magadino and maybe Visp to keep another station north of the alps. As Visps median is greater than its mean, this mean that Visp has many hospitalization rates slightly above the mean but also quite a few close to 0 to bring the mean down. 
+
+Lets investigate their distribution.
+
+```{r dist, echo=FALSE, fig.height=8}
+stations = c("Chur", "Magadino", "Lugano", "Visp")
+par(mfrow=c(4,2))
+for(i in station_names){
+  subset = data[data$station == i,]
+  n = max(subset$all)
+  hist(subset$all, breaks = n+1, main = i, xlab = "daily hospitalizations")
+}
+
+```
+
+I would only keep Magadino, Chur and Lugano in the analysis. This would lead to the following reduction of the dataset.
+
+```{r diff, echo=FALSE}
+data_new = data[data$station == "Chur" | data$station == "Lugano" | data$station == "Magadino",]
+
+lostobs = nrow(data_new)/nrow(data) *100
+losthosp = sum(data_new$all)/sum(data$all) *100
+lostfoehn = sum(data_new$f_id, na.rm = TRUE)/sum(data$f_id, na.rm = TRUE) *100
+loststat = 3/8 *100
+
+print(paste0( round(loststat, 2), "% of the stations remain in the analysis."))
+print(paste0( round(lostobs, 2), "% of the observations remain in the analysis."))
+print(paste0( round(losthosp, 2), "% of the total hospitalizations remain in the analysis."))
+print(paste0( round(lostfoehn, 2), "% of the cumulative foehn score remains in the analysis."))
+
+print(paste0( "With this adjustement, we still have ", sum(data_new$all), " hospitalizations in the analysis from ", nrow(data_new), " observations, which equals ", (sum(data_new$all)/nrow(data_new)) , " hospitalizations per day on average"))
+```
+
