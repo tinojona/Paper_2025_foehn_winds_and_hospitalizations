@@ -3,14 +3,14 @@
 ### - generate plots of descriptive statistics for temperature, foehn and hospitalizations
 ### - I focus on trends, seasonality and distribution (histogram, boxplots)
 ### - mean, standard deviation, median
-### - these investigations will be done per station (Chur, Magadino, Lugano)
+### - these investigations will be done combined, beause doing them stationwise doesnt add anything
 
 
 ## Preamble ####
 rm(list=ls())
 
 # packages
-library(dplyr); library(tidyr); library(plotly)
+library(dplyr); library(tidyr); library(plotly);library(zoo)
 
 # load data
 # here for buffer of 5 km for the three stations
@@ -20,22 +20,57 @@ data <- read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master T
 data$date = as.Date(data$date)
 
 # remove rows with NAs
-# data <- data[complete.cases(data)]
-# TODO
+data <- data[complete.cases(data),]
 
+# create two age groups below and above 64
+data$a64_below = data$a014y + data$a1564y
+data$a64_above = data$a6574y + data$a7584y + data$a85plusy
+
+# daily means
+data_daily_mean = data %>%
+  mutate(daymonth = format(date, "%m-%d")) %>%
+  group_by(daymonth) %>%
+  summarise(across(c(all, mal, fem, a64_below, a64_above, cvd, resp, temp, f_id), mean)) %>%
+  mutate(daymonth = as.Date(paste0("2000-", daymonth)))
+
+# per stations sets
 chur = data[data$station=="Chur",]
 maga = data[data$station=="Magadino",]
 luga = data[data$station=="Lugano",]
 
-
-# get a list of the three station names for later looping
-station_names = unique(data$station)
 ######
 
+### TEMPERATURE #####
 
-## TEMPERATURE ####
+## some stats about the stations for a table
+print(paste0(chur$station[1], " start: ", chur$date[1], ", end: ", chur$date[nrow(chur)],
+             ", mean temperature: ", round(mean(chur$temp),2), ", standard deviation: ", round(sd(chur$temp),2) ))
+print(paste0(maga$station[1], " start: ", maga$date[1], ", end: ", maga$date[nrow(maga)],
+             ", mean temperature: ", round(mean(maga$temp),2), ", standard deviation: ", round(sd(maga$temp),2) ))
+print(paste0(luga$station[1], " start: ", luga$date[1], ", end: ", luga$date[nrow(luga)],
+             ", mean temperature: ", round(mean(luga$temp),2), ", standard deviation: ", round(sd(luga$temp),2) ))
 
-# trend
+
+## seasonality
+# ticks for ploting
+monthly_ticks <- data_daily_mean$daymonth[!duplicated(format(data_daily_mean$daymonth, "%Y-%m"))]
+
+# plot
+plot(data_daily_mean$daymonth, data_daily_mean$temp, xaxt = "n", col = 2, ylim = c(0,25),
+     xlab = "Time", ylab = "Daily Mean Temperature [°C]", main = "annual cycle of temperature across stations")
+axis(1, at = monthly_ticks + 15, labels = substr(format(monthly_ticks, "%b"),1,1))
+
+
+## distribution
+hist(data$temp, breaks = 40, col = 2,
+     xlim = c(-15,33), # ylim = c(0,1000),
+     xlab = "Daily Mean Temperature [°C]", main = "")
+
+#####
+
+## TEMPERATURE station wise (non useful anymore) ####
+
+# trend with yearly moving average
 plot(chur$date, chur$temp,
      cex = 0.5,
      col = 2,
@@ -43,6 +78,10 @@ plot(chur$date, chur$temp,
      xlab = "Date",
      ylim = c(-15,35),
      main = paste0(chur$station[1], " Temperature Series"))
+chur$MA365 = rollmean(chur$temp, k = 365, fill = NA, align = "center")
+lines(chur$date, chur$MA365, col = rgb(0.2,0.2,0.2,0.7), lwd = 5)
+grid()
+legend("bottomright",  legend = "365-day MA", bty = "n", col = rgb(0.2,0.2,0.2,0.7), lwd = 5)
 
 plot(luga$date, luga$temp,
      cex = 0.5,
@@ -51,6 +90,10 @@ plot(luga$date, luga$temp,
      xlab = "Date",
      ylim = c(-5,30),
      main = paste0(luga$station[1], " Temperature Series"))
+luga$MA365 = rollmean(luga$temp, k = 365, fill = NA, align = "center")
+lines(luga$date, luga$MA365, col = rgb(0.2,0.2,0.2,0.7), lwd = 5)
+grid()
+legend("bottomright",  legend = "365-day MA", bty = "n", col = rgb(0.2,0.2,0.2,0.7), lwd = 5)
 
 plot(maga$date, maga$temp,
      cex = 0.5,
@@ -59,7 +102,73 @@ plot(maga$date, maga$temp,
      xlab = "Date",
      ylim = c(-10,30),
      main = paste0(maga$station[1], " Temperature Series"))
+maga$MA365 = rollmean(maga$temp, k = 365, fill = NA, align = "center")
+lines(maga$date, maga$MA365, col = rgb(0.2,0.2,0.2,0.7), lwd = 5)
+grid()
+legend("bottomright",  legend = "365-day MA", bty = "n", col = rgb(0.2,0.2,0.2,0.7), lwd = 5)
 
-print(paste0(chur$station[1], " Start"))
 
+
+print(paste0(chur$station[1], " start: ", chur$date[1], ", end: ", chur$date[nrow(chur)] ))
+print(paste0(maga$station[1], " start: ", maga$date[1], ", end: ", maga$date[nrow(maga)] ))
+print(paste0(luga$station[1], " start: ", luga$date[1], ", end: ", luga$date[nrow(luga)] ))
+
+# seasonality
+chur_d_mean <- chur %>%
+  mutate(daymonth = format(date, "%m-%d")) %>%
+  group_by(daymonth) %>%
+  summarise(mean_temp = mean(temp, na.rm = TRUE)) %>%
+  mutate(daymonth = as.Date(paste0("2000-", daymonth)))
+
+luga_d_mean <- luga %>%
+  mutate(daymonth = format(date, "%m-%d")) %>%
+  group_by(daymonth) %>%
+  summarise(mean_temp = mean(temp, na.rm = TRUE)) %>%
+  mutate(daymonth = as.Date(paste0("2000-", daymonth)))
+
+maga_d_mean <- maga %>%
+  mutate(daymonth = format(date, "%m-%d")) %>%
+  group_by(daymonth) %>%
+  summarise(mean_temp = mean(temp, na.rm = TRUE)) %>%
+  mutate(daymonth = as.Date(paste0("2000-", daymonth)))
+
+# monthly ticks
+monthly_ticks <- chur_d_mean$daymonth[!duplicated(format(chur_d_mean$daymonth, "%Y-%m"))]
+
+plot(chur_d_mean$daymonth, chur_d_mean$mean_temp, xaxt = "n", col = 2,
+     xlab = "Time", ylab = "Daily Mean Temperature [°C]", main = "Chur")
+axis(1, at = monthly_ticks, labels = substr(format(monthly_ticks, "%b"),1,1))
+
+plot(chur_d_mean$daymonth, luga_d_mean$mean_temp, xaxt = "n", col = 2,
+     xlab = "Time", ylab = "Daily Mean Temperature [°C]", main = "Lugano")
+axis(1, at = monthly_ticks, labels = substr(format(monthly_ticks, "%b"),1,1))
+
+plot(chur_d_mean$daymonth, maga_d_mean$mean_temp, xaxt = "n", col = 2,
+     xlab = "Time", ylab = "Daily Mean Temperature [°C]", main = "Magadino")
+axis(1, at = monthly_ticks, labels = substr(format(monthly_ticks, "%b"),1,1))
+
+# distribution
+hist(chur$temp, breaks = 40, freq = FALSE, col = 2,
+     xlim = c(-15,35), ylim = c(0,0.05),
+     xlab = "Daily Mean Temperature [°C]", main = "Chur")
+chur_mean = round(mean(chur$temp),2)
+chur_median = round(median(chur$temp),2)
+text(-12,0.045,labels = paste0("mean: ", chur_mean), pos = 4)
+text(-12,0.04,labels = paste0("median: ", chur_median), pos = 4)
+
+hist(luga$temp, breaks = 40, freq = FALSE, col = 2,
+     xlim = c(-10,30), ylim = c(0,0.05),
+     xlab = "Daily Mean Temperature [°C]", main = "Lugano")
+luga_mean = round(mean(luga$temp),2)
+luga_median = round(median(luga$temp),2)
+text(-9,0.04,labels = paste0("mean: ", luga_mean), pos = 4)
+text(-9,0.035,labels = paste0("median: ", luga_median), pos = 4)
+
+hist(maga$temp, breaks = 40, freq = FALSE, col = 2,
+     xlim = c(-10,30), ylim = c(0,0.05),
+     xlab = "Daily Mean Temperature [°C]", main = "Magadino")
+maga_mean = round(mean(maga$temp),2)
+maga_median = round(median(maga$temp),2)
+text(-9,0.045,labels = paste0("mean: ", maga_mean), pos = 4)
+text(-9,0.04,labels = paste0("median: ", maga_median), pos = 4)
 #####
