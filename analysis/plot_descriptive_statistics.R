@@ -3,7 +3,7 @@
 ### - generate plots of descriptive statistics for temperature, foehn and hospitalizations
 ### - I focus on trends, seasonality and distribution (histogram, boxplots)
 ### - mean, standard deviation, median
-### - these investigations will be done combined, beause doing them stationwise doesnt add anything
+### - these investigations will be done combined, beause doing them station wise doesnt add anything as they will be analysed together
 
 
 ## Preamble ####
@@ -85,7 +85,7 @@ print(paste0(luga$station[1], ", mean daily foehn: ", round(mean(luga$f_id),2), 
 
 # seasonality
 plot(data_daily_mean$daymonth, data_daily_mean$mean_f_id, xaxt = "n", col = 4,# ylim = c(0,25),
-     xlab = "Time", ylab = "Daily Mean Foehn", main = "annual cycle of foehn across stations", ylim = c(0,130))
+     xlab = "Time", ylab = "Daily Foehn", main = "annual cycle of foehn across stations", ylim = c(0,130))
 axis(1, at = monthly_ticks + 15, labels = substr(format(monthly_ticks, "%b"),1,1))
 
 data_daily_mean$MA365 = rollmean(data_daily_mean$mean_f_id, k = 30, fill = NA, align = "center")
@@ -94,11 +94,9 @@ lines(data_daily_mean$daymonth, data_daily_mean$MA365, col = rgb(0.2,0.2,0.2,0.7
 data_daily_mean$MA365 = rollmean(data_daily_mean$p90_f_id, k = 30, fill = NA, align = "center")
 lines(data_daily_mean$daymonth, data_daily_mean$MA365, col = rgb(0.7,0.2,0.2,0.7), lwd = 3)
 
-legend("topright",  legend = "30-day MA", bty = "n", col = rgb(0.2,0.2,0.2,0.7), lwd = 3)
+legend("topright",  legend = c("30-day MA mean","30-day MA p90"), bty = "n", col = c(rgb(0.2,0.2,0.2,0.7),rgb(0.7,0.2,0.2,0.7)),lwd = 3)
 
 
-# TODO
-# adjust seasonality of foehn MA of p90
 ## distribution
 par(mfrow=c(1,2))
 hist(data$f_id, breaks = 40, col = 4,
@@ -130,8 +128,9 @@ hist(data$f_id[data$f_id!=0], breaks = 40, col = 4,
 #####
 
 
-
-
+### HOSPITALIZTAIONS ####
+# TODO continue with this
+#####
 
 
 
