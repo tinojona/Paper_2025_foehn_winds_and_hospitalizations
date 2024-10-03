@@ -38,7 +38,7 @@ par(mfrow=c(4,2))
 for(i in station_names){
   subset = data[data$station == i,]
   n = max(subset$all)
-  hist(subset$all, breaks = n+1, main = i, xlab = "daily hospitalizations")
+  hist(subset$all, breaks = n+1, main = i, xlab = "daily hospitalizations", xlim = c(0,25))
 }
 
 ```
@@ -58,6 +58,6 @@ print(paste0( round(lostobs, 2), "% of the observations remain in the analysis."
 print(paste0( round(losthosp, 2), "% of the total hospitalizations remain in the analysis."))
 print(paste0( round(lostfoehn, 2), "% of the cumulative foehn score remains in the analysis."))
 
-print(paste0( "With this adjustement, we still have ", sum(data_new$all), " hospitalizations in the analysis from ", nrow(data_new), " observations, which equals ", (sum(data_new$all)/nrow(data_new)) , " hospitalizations per day on average"))
+print(paste0( "With this adjustement, we still have ", sum(data_new$all), " hospitalizations in the analysis from ", nrow(data_new), " observations, which equals ",round((sum(data_new$all)/nrow(data_new)),2) , " hospitalizations per day on average"))
 ```
 
