@@ -11,7 +11,7 @@ As a first indicator of sufficient daily hospitalizations we take the mean and m
 
 ```{r load data}
 rm(list = ls())
-data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
+data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
 
 ```
 

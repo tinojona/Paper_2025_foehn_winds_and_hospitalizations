@@ -7,7 +7,7 @@
 rm(list=ls())
 
 # get all the files in that folder
-files_buffer = list.files("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated")
+files_buffer = list.files("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated")
 
 # filter for ones that have hosp_buffer in them
 files_buffer = grep("hosp_buffer", files_buffer, value = TRUE)
@@ -19,11 +19,11 @@ for(i in 1:4){
   file = files_buffer[i]
   buffer_size = buffers[i]
 
-  data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/", file))
+  data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/", file))
 
   subdata = data[data$station == "Chur" | data$station == "Lugano" | data$station == "Magadino",]
 
   # save the new data set
-  write.csv(subdata, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/CLM_buffersize_", buffer_size, ".csv"))
+  write.csv(subdata, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/CLM_buffersize_", buffer_size, ".csv"))
 
 }

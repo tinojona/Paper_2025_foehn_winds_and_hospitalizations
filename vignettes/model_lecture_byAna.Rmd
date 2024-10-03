@@ -18,7 +18,7 @@ library(viridisLite); library(dlnm); library(splines); library(ggplot2); library
 ```
 ```{r data, message=FALSE, warning=FALSE, echo=FALSE}
 # data
-data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
+data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
 
 # we add an Month and Year Index to the data
 data$date = as.Date(data$date)

@@ -37,7 +37,7 @@ knitr::include_graphics("C:/Users/tinos/Documents/Master - Climate Science/3 - M
 
 ```{r load data, error=FALSE, warning=FALSE, message=FALSE}
 # load data
-mesh <- st_read("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/MedStat/MEDSTAT_AREAS_2019.shp", quiet = TRUE)
+mesh <- st_read("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/MedStat/MEDSTAT_AREAS_2019.shp", quiet = TRUE)
 
 # transform meshdat geometry to MeteoSchweiz geometry
 mesh$geometry <- st_transform(mesh$geometry, crs= 2056)
@@ -98,7 +98,7 @@ for(i in 1:length(df_regions$MDST04)){
 
 # create a list for Sujung
 list_regions <- na.omit(df_regions$ID)
-write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MetStatRegions/MDSTID_MetRegions_", buffer_size, ".csv"))
+write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/MDSTID_MetRegions_", buffer_size, ".csv"))
 ```
 
 
@@ -153,7 +153,7 @@ for(i in 1:length(df_regions$MDST04)){
 
 # create a list for Sujung
 list_regions <- na.omit(df_regions$ID)
-write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MetStatRegions/MDSTID_MetRegions_", buffer_size, ".csv"))
+write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/MDSTID_MetRegions_", buffer_size, ".csv"))
 
 
 

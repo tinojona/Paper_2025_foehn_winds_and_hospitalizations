@@ -18,7 +18,7 @@ library(dplyr); library(tidyr); library(ggplot2) ; library(lubridate); library(p
 
 ```{r data, echo=FALSE, warning=FALSE, fig.width=12}
 # read Altdorf data with 5k buffer radius
-altdorf = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/by_station/Lugano_buffer_5000.csv")
+altdorf = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/by_station/Lugano_buffer_5000.csv")
 
 # convert date to date format
 altdorf$date <- as.Date(altdorf$date)

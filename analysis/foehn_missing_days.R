@@ -13,7 +13,7 @@ rm(list=ls())
 
 
 # load the raw data
-files_list = list.files(path = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/foehn/data")
+files_list = list.files(path = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/foehn/data")
 
 # create empty dates percentage record
 foehn_dates = data.frame(stations = rep(NA,8),
@@ -23,7 +23,7 @@ foehn_dates = data.frame(stations = rep(NA,8),
 for(i in 1:8){
 
   # load complete path to file
-  file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/foehn/data/", files_list[i])
+  file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/foehn/data/", files_list[i])
 
   # load data
   data = read.table(file, header = TRUE)
@@ -57,14 +57,14 @@ for(i in 1:8){
 }
 
 # write NA file
-path_for_NA = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/NA/NA_dates_raw.csv")
+path_for_NA = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/NA/NA_dates_raw.csv")
 write.csv(foehn_dates, file = path_for_NA)
 
 
 ### one more time for the aggregated data that has been processed
 rm(list=ls())
 # load the raw data
-files_list = list.files(path = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/foehn_processed")
+files_list = list.files(path = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/foehn_processed")
 
 # create empty dates percentage record
 foehn_dates = data.frame(stations = rep(NA,8),
@@ -74,7 +74,7 @@ foehn_dates = data.frame(stations = rep(NA,8),
 for(i in 1:8){
 
   # load complete path to file
-  file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/foehn_processed/", files_list[i])
+  file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/foehn_processed/", files_list[i])
 
   # load data
   data = read.csv(file, header = TRUE)
@@ -113,7 +113,7 @@ for(i in 1:8){
 }
 
 # write NA file
-path_for_NA = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/NA/NA_dates_aggr.csv")
+path_for_NA = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/NA/NA_dates_aggr.csv")
 write.csv(foehn_dates, file = path_for_NA)
 
 
@@ -123,9 +123,9 @@ write.csv(foehn_dates, file = path_for_NA)
 ## load missing dates percentage in aggregated data
 rm(list=ls())
 
-data_raw = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/NA/NA_record_foehn.csv")
+data_raw = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/NA/NA_record_foehn.csv")
 
-data_aggr = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/NA/NA_dates_aggr.csv")
+data_aggr = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/NA/NA_dates_aggr.csv")
 
 
 summer = data_raw$raw + data_aggr$missing
@@ -136,7 +136,7 @@ summer = data_raw$raw + data_aggr$missing
 ## lets look into the final product
 rm(list=ls())
 
-data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/CLM_buffersize_5000.csv")
+data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/CLM_buffersize_5000.csv")
 
 1 - (sum(complete.cases(data)) / nrow(data))
 # -> 16% missing data

@@ -23,7 +23,7 @@ library(viridis)
 
 # load data (and shorten it for tryouts) ####
 rm(list=ls())
-data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
+data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
 
 # HANDLE NAs HERE SET TO 0
 data$f_id[is.na(data$f_id)] <- 0

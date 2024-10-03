@@ -10,7 +10,7 @@ library(lubridate) # for UTC to CET
 rm(list = ls())
 
 # Specify the folder path
-folder_path <- "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/foehn/data"
+folder_path <- "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/foehn/data"
 
 # List all files in the folder
 file_names <- list.files(path = folder_path)
@@ -23,7 +23,7 @@ foehn_NA = data.frame(stations = rep(NA,8),
 for(i in 1:8){
 
   # load complete path to file
-  file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data-raw/foehn/data/", file_names[i])
+  file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/foehn/data/", file_names[i])
 
   # load data
   data = read.table(file, header = TRUE)
@@ -45,7 +45,7 @@ for(i in 1:8){
   station_abbr = substring(file_names[i], 14,16)
 
   # path for file
-  path_for_file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/foehn_processed/",station_abbr,"_daily_aggregated.csv")
+  path_for_file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/foehn_processed/",station_abbr,"_daily_aggregated.csv")
 
   # save aggregated file
   write.csv(data_agg_daily_sum, file = path_for_file)
@@ -60,5 +60,5 @@ for(i in 1:8){
 }
 
 # write NA file
-path_for_NA = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/data/NA/NA_record_foehn.csv")
+path_for_NA = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/NA/NA_record_foehn.csv")
 write.csv(foehn_NA, file = path_for_NA)
