@@ -3,7 +3,13 @@
 ### - generate plots of descriptive statistics for temperature, foehn and hospitalizations
 ### - I focus on trends, seasonality and distribution (histogram, boxplots)
 ### - mean, standard deviation, median
-### - these investigations will be done combined, beause doing them station wise doesnt add anything as they will be analysed together
+### - these investigations will be done combined, because doing them station wise doesnt add anything as they will be analysed together
+### - color scheme: temp: rgb(1,.1,.1,0.6), foehn: rgb(0.1,0.1,1,0.7) , MA : rgb(0.2,0.2,0.2,0.8)
+
+
+# table notes for study site section
+# data availability time frames for the three stations, for temp, foehn, hosp...
+# canton, elevation, south/north of the alps, rows with NAs
 
 
 ## Preamble ####
@@ -45,8 +51,10 @@ luga = data[data$station=="Lugano",]
 
 ######
 
-### TEMPERATURE #####
 
+### TEMPERATURE #####
+# table notes:
+# per station: trend?, mean, sd, p01, p99
 ## some stats about the stations for a table
 print(paste0(chur$station[1], " start: ", chur$date[1], ", end: ", chur$date[nrow(chur)],
              ", mean temperature: ", round(mean(chur$temp),2), ", standard deviation: ", round(sd(chur$temp),2) ))
@@ -59,66 +67,58 @@ print(paste0(luga$station[1], " start: ", luga$date[1], ", end: ", luga$date[nro
 ## seasonality
 # ticks for ploting
 monthly_ticks <- data_daily_mean$daymonth[!duplicated(format(data_daily_mean$daymonth, "%Y-%m"))]
-
+par(mfrow=c(1,2))
 # plot
-plot(data_daily_mean$daymonth, data_daily_mean$temp, xaxt = "n", col = 2, ylim = c(0,25),
-     xlab = "Time", ylab = "Daily Mean Temperature [°C]", main = "annual cycle of temperature across stations")
-axis(1, at = monthly_ticks + 15, labels = substr(format(monthly_ticks, "%b"),1,1))
+plot(data_daily_mean$daymonth, data_daily_mean$temp, xaxt = "n", col = rgb(1,.1,.1,0.6), ylim = c(0,25),
+     xlab = "month", ylab = "daily mean temperature [°C]", pch = 20, cex.axis = 0.6, cex.label = 0.7, bty = "n")
+axis(1, at = monthly_ticks + 15, labels = substr(format(monthly_ticks, "%b"),1,1), cex.axis = 0.6)
 
 
 ## distribution
-hist(data$temp, breaks = 40, col = 2,
+hist(data$temp, breaks = 20, col = rgb(1,.1,.1,0.6),
      xlim = c(-15,33), # ylim = c(0,1000),
-     xlab = "Daily Mean Temperature [°C]", main = "")
+     xlab = "daily mean temperature [°C]", main = "", cex.axis = 0.6,
+     ylab = "frequency")
 
 #####
 
 
 ### FOEHN ####
-
+# table notes
+# per station: trend?, mean yearly, sd, mean daily, sd, 0s,
 ## some stats about the stations for a table
 print(paste0(chur$station[1], ", mean daily foehn: ", round(mean(chur$f_id),2), ", standard deviation: ", round(sd(chur$f_id),2) ))
 print(paste0(maga$station[1], ", mean daily foehn: ", round(mean(maga$f_id),2), ", standard deviation: ", round(sd(maga$f_id),2) ))
 print(paste0(luga$station[1], ", mean daily foehn: ", round(mean(luga$f_id),2), ", standard deviation: ", round(sd(luga$f_id),2) ))
 
 
-
 # seasonality
-plot(data_daily_mean$daymonth, data_daily_mean$mean_f_id, xaxt = "n", col = 4,# ylim = c(0,25),
-     xlab = "Time", ylab = "Daily Foehn", main = "annual cycle of foehn across stations", ylim = c(0,130))
-axis(1, at = monthly_ticks + 15, labels = substr(format(monthly_ticks, "%b"),1,1))
+par(mfrow=c(1,2))
+plot(data_daily_mean$daymonth, data_daily_mean$mean_f_id, xaxt = "n", col = rgb(0.1,0.1,1,0.7),
+     xlab = "month", ylab = "daily foehn score", ylim = c(0,130), pch = 20, cex.axis = 0.6, bty = "n")
+axis(1, at = monthly_ticks + 15, labels = substr(format(monthly_ticks, "%b"),1,1), cex.axis = 0.6)
 
-data_daily_mean$MA365 = rollmean(data_daily_mean$mean_f_id, k = 30, fill = NA, align = "center")
-lines(data_daily_mean$daymonth, data_daily_mean$MA365, col = rgb(0.2,0.2,0.2,0.7), lwd = 3)
+# data_daily_mean$MA365 = rollmean(data_daily_mean$mean_f_id, k = 30, fill = NA, align = "center")
+# lines(data_daily_mean$daymonth, data_daily_mean$MA365, col = rgb(0.2,0.2,0.2,0.8), lwd = 3.5)
 
 data_daily_mean$MA365 = rollmean(data_daily_mean$p90_f_id, k = 30, fill = NA, align = "center")
-lines(data_daily_mean$daymonth, data_daily_mean$MA365, col = rgb(0.7,0.2,0.2,0.7), lwd = 3)
+lines(data_daily_mean$daymonth, data_daily_mean$MA365, col = rgb(0.2,0.2,.2,0.8), lwd = 3, lty = 1)
+# legend("topleft",  legend = "30-day MA mean", bty = "n",
+#        col = rgb(0.2,0.2,0.2,0.8),lwd = 3, , lty = 1)
+legend(monthly_ticks[6], 120,  legend = "30-day MA p90", bty = "n",
+       col = rgb(0.2,0.2,.2,0.7),lwd = 3, lty = 1, cex = 0.7)
 
-legend("topright",  legend = c("30-day MA mean","30-day MA p90"), bty = "n", col = c(rgb(0.2,0.2,0.2,0.7),rgb(0.7,0.2,0.2,0.7)),lwd = 3)
+
+
+
 
 
 ## distribution
-par(mfrow=c(1,2))
-hist(data$f_id, breaks = 40, col = 4,
-     #xlim = c(-15,33),  ylim = c(0,1000),
-     xlab = "Daily Mean Foehn", main = "foehn distribution across stations")
-hist(data$f_id[data$f_id!=0], breaks = 40, col = 4,
-     #xlim = c(-15,33),  ylim = c(0,1000),
-     xlab = "Daily Mean Foehn", main = "foehn distribution across station (!=0)")
+hist(data$f_id[data$f_id!=0], breaks = 20, col = rgb(0.1,0.1,1,0.7),
+     xlim = c(0,300),  #ylim = c(0,900),
+     xlab = "daily foehn score", main = "", ylab = "frequency", cex.axis = 0.6)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+print(paste0("Percentage of 0 foehn score of all days: ", round(length(data$f_id[data$f_id==0]) / nrow(data),4) *100, "%"      ))
 
 
 
@@ -129,8 +129,47 @@ hist(data$f_id[data$f_id!=0], breaks = 40, col = 4,
 
 
 ### HOSPITALIZTAIONS ####
-# TODO continue with this
-#####
+# table notes per station
+# trend?, total, 0, mean yearly all, sd, mean daily, sd,
+# percentages for of total: mal fem age64_below age64_above, and 2 disease groups
+
+
+# TODO
+# h
+## seasonality
+par(mfrow=c(1,2))
+
+# all
+plot(data_daily_mean$daymonth, data_daily_mean$all, xaxt = "n", col = rgb(.1,.8,.1,.6), xlab = "month", pch=20,
+     ylab = "daily hospitalizations", main = "", ylim = c(0,12), cex.axis = 0.6, bty = "n")
+axis(1, at = monthly_ticks + 15, labels = substr(format(monthly_ticks, "%b"),1,1), cex.axis = 0.6)
+# data_daily_mean$MA365 = rollmean(data_daily_mean$all, k = 30, fill = NA, align = "center")
+# lines(data_daily_mean$daymonth, data_daily_mean$MA365, col = rgb(0.2,0.2,0.7,0.7), lwd = 3)
+
+# disease groups ! you need to mention that these are not all groups! (csd+resp!=100%)
+# cvd
+points(data_daily_mean$daymonth, data_daily_mean$cvd, col = rgb(.1,.4,.2,.6), type = "p", pch = 20)
+# data_daily_mean$MA365 = rollmean(data_daily_mean$cvd, k = 30, fill = NA, align = "center")
+# lines(data_daily_mean$daymonth, data_daily_mean$MA365, col = rgb(0.2,0.2,0.7,0.7), lwd = 3)
+
+points(data_daily_mean$daymonth, data_daily_mean$resp, col = rgb(.9,.9,.1,.5),  type = "p", pch = 20)
+# data_daily_mean$MA365 = rollmean(data_daily_mean$resp, k = 30, fill = NA, align = "center")
+# lines(data_daily_mean$daymonth, data_daily_mean$MA365, col = rgb(0.2,0.7,0.2,0.7), lwd = 3)
+
+legend(monthly_ticks[1], 12,  legend = "all", bty = "n",
+       col = rgb(.1,.8,.1,.6) , cex = 0.7, pch = 20, pt.cex = 1.5)
+legend(monthly_ticks[4], 12,  legend = "cvd", bty = "n",
+       col = rgb(.1,.4,.2,.6) , cex = 0.7, pch = 20, pt.cex = 1.5)
+legend(monthly_ticks[7], 12,  legend = "resp", bty = "n",
+       col = rgb(.9,.9,.1,.5) , cex = 0.7, pch = 20, pt.cex = 1.5)
+
+
+## distribution
+hist(data$all, breaks = 40, col = rgb(.1,.8,.1,.6),
+     xlim = c(0,25),  ylim = c(0,4000),
+     xlab = "daily hospitalizations", main = "", ylab = "frequency",
+     cex.axis = 0.6)
+#######
 
 
 
