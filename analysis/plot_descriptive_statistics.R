@@ -49,8 +49,148 @@ chur = data[data$station=="Chur",]
 maga = data[data$station=="Magadino",]
 luga = data[data$station=="Lugano",]
 
+
 ######
 
+
+### DESCRIPTIVE STATISTICS TABLE ####
+
+station_names = c("Chur", "Lugano", "Magadino")
+
+stats = data.frame(t_trend          = as.numeric(rep(NA,3)),
+                   t_trend_slope    = as.numeric(rep(NA,3)),
+                   t_mean           = as.numeric(rep(NA,3)),
+                   t_sd             = as.numeric(rep(NA,3)),
+                   t_p01            = as.numeric(rep(NA,3)),
+                   t_p99            = as.numeric(rep(NA,3)),
+                   f_trend          = as.numeric(rep(NA,3)),
+                   f_trend_slope    = as.numeric(rep(NA,3)),
+                   f_mean_yearly    = as.numeric(rep(NA,3)),
+                   f_mean_yearly_sd = as.numeric(rep(NA,3)),
+                   f_mean_daily     = as.numeric(rep(NA,3)),
+                   f_mean_daily_sd  = as.numeric(rep(NA,3)),
+                   f_0s             = as.numeric(rep(NA,3)),
+                   h_trend          = as.numeric(rep(NA,3)),
+                   h_trend_slope    = as.numeric(rep(NA,3)),
+                   h_total          = as.numeric(rep(NA,3)),
+                   h_mean_yearly    = as.numeric(rep(NA,3)),
+                   h_mean_yearly_sd = as.numeric(rep(NA,3)),
+                   h_mean_daily     = as.numeric(rep(NA,3)),
+                   h_mean_daily_sd  = as.numeric(rep(NA,3)),
+                   h_perc_mal       = as.numeric(rep(NA,3)),
+                   h_perc_fem       = as.numeric(rep(NA,3)),
+                   h_perc_b64       = as.numeric(rep(NA,3)),
+                   h_perc_a64       = as.numeric(rep(NA,3)),
+                   h_perc_cvd       = as.numeric(rep(NA,3)),
+                   h_perc_resp      = as.numeric(rep(NA,3)),
+                   row.names= station_names)
+
+
+for(i in 1:3){
+
+  # extract station
+  subs = data[data$station == station_names[i],]
+
+  # yearly mean data
+  subs_y_mean = subs %>%
+    mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
+    group_by(year) %>%
+    summarize(across(c(all, mal:uri, f_id, temp, a64_below, a64_above), ~mean(.x, na.rm = TRUE)))
+
+
+  # yearly sum data
+  subs_y_sum = subs %>%
+    mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
+    group_by(year) %>%
+    summarize(across(c(all, mal:uri, f_id, temp, a64_below, a64_above), ~sum(.x, na.rm = TRUE)))
+
+  # t_trend
+  lmod = summary(lm(temp ~ date, subs))
+  if(lmod$r.squared < 0.05){
+    stats$t_trend[i] = lmod$r.squared}
+
+  # slope
+  stats$t_trend_slope[i] = lmod$coefficients["date", "Estimate"]*365
+
+  # t_mean
+  stats$t_mean[i] = mean(subs$temp, na.rm = TRUE)
+
+  # t_sd
+  stats$t_sd[i] = sd(subs$temp, na.rm = TRUE)
+
+  #t_p01
+  stats$t_p01[i] = quantile(subs$temp, .01, na.rm = TRUE)
+
+  #t_p99
+  stats$t_p99[i] = quantile(subs$temp, .99, na.rm = TRUE)
+
+  # f_trend
+  lmod = summary(lm(f_id ~ date, subs))
+  if(lmod$r.squared < 0.05){
+    stats$f_trend[i] = lmod$r.squared}
+
+  # slope
+  stats$f_trend_slope[i] = lmod$coefficients["date", "Estimate"]*365
+
+  # f_mean_yearly, mean yearly foehn
+  stats$f_mean_yearly[i] = mean(subs_y_sum$f_id, na.rm = TRUE)
+
+  # f_mean_yearly_sd, mean yearly foehn
+  stats$f_mean_yearly_sd[i] = sd(subs_y_sum$f_id, na.rm = TRUE)
+
+  # f_mean daily
+  stats$f_mean_daily[i] = mean(subs$f_id, na.rm = TRUE)
+
+  # f_mean daily sd
+  stats$f_mean_daily_sd[i] = sd(subs$f_id, na.rm = TRUE)
+
+  # percentage of no foehn days
+  stats$f_0s[i] = 100 * (length(which(subs$f_id == 0)) /nrow(subs))
+
+  # trend in hospitalizations
+  lmod = summary(lm(all ~ date, subs))
+  if(lmod$r.squared < 0.05){
+    stats$h_trend[i] = lmod$r.squared}
+
+  # slope
+  stats$h_trend_slope[i] = lmod$coefficients["date", "Estimate"] *365
+
+  # total hosp
+  stats$h_total[i] = sum(subs$all, na.rm = TRUE)
+
+  # yearly mean number of hosp
+  stats$h_mean_yearly[i] = mean(subs_y_sum$all, na.rm = TRUE )
+
+  # sd
+  stats$h_mean_yearly_sd[i] = sd(subs_y_sum$all, na.rm = TRUE )
+
+  # mean daily hosp
+  stats$h_mean_daily[i] = mean(subs$all, na.rm = TRUE)
+
+  # mean daily hosp sd
+  stats$h_mean_daily_sd[i] = sd(subs$all, na.rm = TRUE)
+
+  # male perc
+  stats$h_perc_mal[i] = sum(subs$mal) / sum(subs$all)
+
+  # female perc
+  stats$h_perc_fem[i] = sum(subs$fem) / sum(subs$all)
+
+  # perc below 64
+  stats$h_perc_b64[i] = sum(subs$a64_below) / sum(subs$all)
+
+  # perc above 64
+  stats$h_perc_a64[i] = sum(subs$a64_above) / sum(subs$all)
+
+  # perc cvd
+  stats$h_perc_cvd[i] = sum(subs$cvd) / sum(subs$all)
+
+  # perc resp
+  stats$h_perc_resp[i] = sum(subs$resp) / sum(subs$all)
+}
+
+
+#######
 
 ### TEMPERATURE #####
 # table notes:
@@ -81,7 +221,6 @@ hist(data$temp, breaks = 20, col = rgb(1,.1,.1,0.6),
      ylab = "frequency")
 
 #####
-
 
 ### FOEHN ####
 # table notes
