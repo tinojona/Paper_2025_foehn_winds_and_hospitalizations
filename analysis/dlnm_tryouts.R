@@ -1,7 +1,7 @@
 ################################################################################
 # Package DLNM exploration
-# - load the data and correct NAs (how?)
-# - perform crossbasis function for  foehn and temp
+# - load the data and correct NAs (how?) ONLY USE COMPLETE.CASES()
+# - perform crossbasis function for  foehn TODO and temp (done by Ana)
 # - calculate model
 # - predict using the model
 # - plot the prediction in all possible ways
@@ -10,7 +10,6 @@
 # - Overall effect of foehn: foehn vs RR with all lags included
 # - effect of foehn on lag day 1-3
 # - convert RR to percentages (easier to read)
-#
 
 
 # packages ####
@@ -18,6 +17,7 @@ library(dlnm)
 library(splines)
 library(ggplot2)
 library(viridis)
+library(gnm)
 #####
 
 
@@ -33,15 +33,15 @@ data_short = data[1:5114,]
 
 
 # crossbasis functions for foehn and temp ####
-cb.foehn <- crossbasis(data_short$f_id,                       # input variable
-                        lag=5,                                # maximum lag to be considered
-                        argvar=list(fun="poly", degree = 2),  # defines how you want to model the nonlinear association between the exposure variable and the outcome.
-                        arglag=list(fun="poly",degree = 2))   # This list defines how the effect of the exposure changes over time (the lag structure)
+cb.foehn <- crossbasis(data$f_id,                       # input variable
+                        lag=3,                                # maximum lag to be considered
+                        argvar=list(fun="lin"),  # defines how you want to model the nonlinear association between the exposure variable and the outcome.
+                        arglag=list(fun="integer"))   # This list defines how the effect of the exposure changes over time (the lag structure)
 
-cb.temp <- crossbasis(data_short$temp,                       # input variable
-                        lag=5,                               # maximum lag to be considered
-                        argvar=list(fun="poly", degree = 2), # defines how you want to model the nonlinear association between the exposure variable and the outcome.
-                        arglag=list(fun="poly",degree = 2))
+cb.temp <- crossbasis(data$temp,                       # input variable
+                        lag=21,                               # maximum lag to be considered
+                        argvar=list(fun="ns", knots = quantile(data$temp, c(.1,.75,.9), na.rm=TRUE)), # defines how you want to model the nonlinear association between the exposure variable and the outcome.
+                        arglag=list(fun="ns", knots = logknots(21,3)))
 
 # for multiple stations the group function cuts so that there is no continuous lag from
 # one station to the other; the same for temp
@@ -57,12 +57,19 @@ cb.temp <- crossbasis(data_short$temp,                       # input variable
 #                            group = data$station)
 
 #####
+data$date = as.Date(data$date)
+data$year = as.factor(format(data$date, "%Y"))
+data$month = as.factor(format(data$date, "%m"))
+data$dow = as.factor(data$dow)
 
+data$stratum = with(data, factor(paste(station, year, month, dow, sep="-")))
+
+ind = tapply(data$all, data$stratum, sum)
 
 # model for impact on all hospitalisations   ####
-model <- glm(all ~ cb.foehn + cb.temp + ns(X, 7*14) + dow,
-              family=quasipoisson(), data_short)
+model <- gnm(all ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum, subset=ind>0)
 
+model2 <- glm(all ~ cb.foehn + cb.temp + ns(X, 7*14) + dow,  family=quasipoisson(), data_short)
 # with all data
 # model_all <- glm(all ~ cb.foehn_all + cb.temp_all + ns(X, 7*14) + dow,
 #              family=quasipoisson(), data)
@@ -73,8 +80,7 @@ model <- glm(all ~ cb.foehn + cb.temp + ns(X, 7*14) + dow,
 # predict the impact of foehn on hosp ####
 pred <- crosspred(cb.foehn,                    # basis
                   model,                       # model based on crossbasis functions
-                  at=0:288,                    # values of the exposure at which to make predictions
-                  bylag=0.2,                   # This specifies whether to make predictions by each individual lag or across cumulative lags. can also be T or F
+                  at=0:288,                   # This specifies whether to make predictions by each individual lag or across cumulative lags. can also be T or F
                   cumul=FALSE,                 # cumulative effect of the exposure across all lags, instead of separating the effects by each lag.
                   cen = 0)                     # the value that the effect will be compared to
 # all data
@@ -96,7 +102,6 @@ plot(pred,                 ## Overall cumulative exposure-response
      xlab = "Exposure",
      ylab = "Cumulative Response",
      lwd = 2,
-     ylim = c(0.75,2),
      main = "Overall cumulative exposure-response")
 # grid()
 
