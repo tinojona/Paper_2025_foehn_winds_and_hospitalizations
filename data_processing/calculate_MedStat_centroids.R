@@ -4,10 +4,8 @@
 # - cut out the pop densities per shapefile
 # - calculate the centroid per shapefile
 
-
-
-
 ### DATA ####
+
 rm(list=ls())
 
 # packages
@@ -78,12 +76,8 @@ calculate_weighted_centroid <- function(extract_data) {
 
 # Extract both raster values and coordinates for each polygon
 centroids <- exact_extract(pop_sui, mesh$geometry, fun = calculate_weighted_centroid, include_xy = TRUE, summarize_df = TRUE)
-centroids <- t(as.data.frame(centroids))
-
-# coordinates to mesh file
-mesh$centroid_x <- centroids[,1]
-mesh$centroid_y <- centroids[,2]
-
+centroids <- as.data.frame(t(centroids))
+colnames(centroids) = c("x","y")
 
 # Plot the raster
 plot(pop_sui,
@@ -96,10 +90,37 @@ plot(pop_sui,
 plot(st_geometry(mesh$geometry), add = TRUE, border = "red", lwd = .2)
 
 # Plot the weighted centroids
-points(mesh$centroid_x, mesh$centroid_y, col = "blue", pch = 19, cex = .3)
+points(centroids$x, centroids$y, col = "blue", pch = 19, cex = .3)
 #####
+
+
+
+### CONVERT COORDINATES TO SHAPEFILE POINTS ####
+
+# add columns
+centroids$MDSTID <-  mesh$MDSTID
+centroids$MDST04 <-  mesh$MDST04
+
+# Convert the data frame to an sf object (geometry points)
+sf_centroids <- st_as_sf(centroids, coords = c("x", "y"), crs = crs_raster)
+
+# convert mesh and centroids crs to Meteoschweiz
+mesh$geometry <- st_transform(mesh$geometry, crs= 2056)
+sf_centroids$geometry <- st_transform(sf_centroids$geometry, crs = 2056)
+
+#####
+
+
+
+
 
 ## WRITE CSV ####
 
-st_write(mesh, "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/MedStat/MedStat_Areas_2019_w_centroids_popdensity.shp")
+# new mesh (crs adjusted)
+st_write(mesh, "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/shapefiles/MedStat_csr_adjusted.shp")
+
+# centroids
+st_write(sf_centroids, "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/shapefiles/MedStat_centroids_popdensity.shp")
+
+
 ######
