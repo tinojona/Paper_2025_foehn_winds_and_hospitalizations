@@ -30,10 +30,10 @@ files_temp = list.files("C:/Users/tinos/Documents/Master - Climate Science/3 - M
 
 
 # get regions sorted to station files
-files_regions = list.files("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/per_station")[7:12]
+files_regions = list.files("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/per_station")
 
 # recreate all the buffer sies that are in files_regions, in THE SAME ORDER
-buffer_sizes =   seq(4000, 9000, 1000)  # c(seq(10000,15000,1000), seq(4000, 9000, 1000))
+buffer_sizes = c(seq(10000,15000,1000), seq(4000, 9000, 1000))
 
 
 # start loop for 4 buffers
