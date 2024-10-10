@@ -243,22 +243,22 @@ index_regions = match(list_regions, mesh$MDST04)
 map_plot <- ggplot() +
   geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
   geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.7) +  
-  geom_sf(data = mesh$geometry[mesh$MDST04 == "VS20"], fill = "red", alpha = 0.7) +
-  geom_sf(data = mesh$geometry[mesh$MDST04 == "BE86" ], fill = "red", alpha = 0.7) +
-  geom_sf(data = mesh$geometry[mesh$MDST04 == "GR22" ], fill = "red", alpha = 0.7) +
-  geom_sf(data = mesh$geometry[mesh$MDST04 == "GR10" ], fill = "green2", alpha = 0.7) +
-  geom_sf(data = mesh$geometry[mesh$MDST04 == "GR13" ], fill = "red", alpha = 0.7) +
-  geom_sf(data = mesh$geometry[mesh$MDST04 == "GR07" ], fill = "red", alpha = 0.7) +
-  geom_sf(data = mesh$geometry[mesh$MDST04 == "VS05" ], fill = "red", alpha = 0.7) +
-  geom_sf(data = mesh$geometry[mesh$MDST04 == "TI01" ], fill = "red", alpha = 0.7) +
-    geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) + 
-  geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
-  geom_sf(data = buffer_list[[3]], fill = "brown1", alpha = 0.4) + 
-  geom_sf(data = buffer_list[[4]], fill = "brown1", alpha = 0.4) + 
-  geom_sf(data = buffer_list[[5]], fill = "brown1", alpha = 0.4) + 
-  geom_sf(data = buffer_list[[6]], fill = "brown1", alpha = 0.4) + 
-  geom_sf(data = buffer_list[[7]], fill = "brown1", alpha = 0.4) + 
-  geom_sf(data = buffer_list[[8]], fill = "brown1", alpha = 0.4) +
+  geom_sf(data = mesh$geometry[mesh$MDST04 == "TI22"], fill = "red", alpha = 0.7) +
+  geom_sf(data = mesh$geometry[mesh$MDST04 == "TI27" ], fill = "red", alpha = 0.7) +
+  # geom_sf(data = mesh$geometry[mesh$MDST04 == "GR22" ], fill = "red", alpha = 0.7) +
+  # geom_sf(data = mesh$geometry[mesh$MDST04 == "GR10" ], fill = "red", alpha = 0.7) +
+  # geom_sf(data = mesh$geometry[mesh$MDST04 == "GR13" ], fill = "red", alpha = 0.7) +
+  # geom_sf(data = mesh$geometry[mesh$MDST04 == "GR07" ], fill = "red", alpha = 0.7) +
+  # geom_sf(data = mesh$geometry[mesh$MDST04 == "VS05" ], fill = "red", alpha = 0.7) +
+  # geom_sf(data = mesh$geometry[mesh$MDST04 == "TI01" ], fill = "red", alpha = 0.7) +
+  #   geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) + 
+  # geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
+  # geom_sf(data = buffer_list[[3]], fill = "brown1", alpha = 0.4) + 
+  # geom_sf(data = buffer_list[[4]], fill = "brown1", alpha = 0.4) + 
+  # geom_sf(data = buffer_list[[5]], fill = "brown1", alpha = 0.4) + 
+  # geom_sf(data = buffer_list[[6]], fill = "brown1", alpha = 0.4) + 
+  # geom_sf(data = buffer_list[[7]], fill = "brown1", alpha = 0.4) + 
+  # geom_sf(data = buffer_list[[8]], fill = "brown1", alpha = 0.4) +
   theme_minimal() +
   labs(title = paste0("selected regions with buffer: ", buffer_size))
 
