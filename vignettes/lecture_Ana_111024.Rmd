@@ -1,0 +1,12 @@
+---
+title: "Lesson by Ana"
+author: "Tino Schneidewind"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+This is the documentation or the notes I have taken from the lecture session on the 11.10.24 held by Ana about **Time Series Models**. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
