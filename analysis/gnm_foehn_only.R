@@ -24,6 +24,7 @@ data$dow   = as.factor(data$dow)
 
 # create stratum and index
 data$stratum = with(data, factor(paste(station, year, month, dow, sep="-")))
+# data$stratum = with(data, factor(paste(station, year, month, sep="-")))
 ind = tapply(data$all, data$stratum, sum)
 
 #####
@@ -48,9 +49,9 @@ QAIC <- function(model) {
 # RUN THE MODEL FOR EACH COMBINATION OF FUNCTIONS
 for (j in 1:nrow(comb)){
 
-  qaic <- rep(NA, 1)
+  qaic <- rep(NA, 1) # what is the purpose of this?
 
-  # EXTRACT THE dat_sum_rt
+  # EXTRACT THE dat_sum_rt <- ?what is that? just the maximum lags?
   maxlago <- 3
 
   # SET DIFFERENT VAR FUNCTIONS FOR TMEAN
@@ -68,18 +69,13 @@ for (j in 1:nrow(comb)){
   arglag3o<-list(fun="integer")
 
 
-  # DEFINE THE STRATA
-  # data$stratum <- with(data, factor(paste(station, year, month, sep="-")))
-
-  # ELIMINATE EMPTY STRATA (FOR CORRECT COMPUTATION OF CI IN gnm)
-  # ind <- tapply(data[,idcol], data$stratum, sum)[data$stratum]
-
-  #DEFINE CROSSBASIS TEMPERATURE
+  #DEFINE CROSSBASIS
   cb.f_id <- crossbasis(data$f_id, lag=maxlago,
                         argvar=get(paste("argvar",comb[j,1],"o", sep="")),
                         arglag=get(paste("arglag",comb[j,2],"o", sep="")),
                         group=data$station)
 
+  # MODEL
   mod <- gnm(all ~ cb.f_id,
              eliminate=stratum,
              family=quasipoisson(), data=data, na.action="na.exclude",
