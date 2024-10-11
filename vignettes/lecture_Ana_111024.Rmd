@@ -10,3 +10,82 @@ This is the documentation or the notes I have taken from the lecture session on 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+time series advantages:
+- **short term effects**
+- little knowledge needed about response (mortality/hospitalization)
+- can make general conclusions about the association
+- you can control for potential confounders (that maybe drive longterm/seasonal patterns, like sex etc.)
+
+- we have to remove temporal trends to only identify short term effects. 
+- we have to remove seasonality for the same reason.
+
+- the association we will determine will only rely on the short term interaction
+- all factors that dont change over time (or over very long time scales) are controlled for (status, lifestyle etc.)
+
+- we have to look at all confounding affects that have the same interval as our exposure variable (temp and pollution eg.)
+
+- we cannot make clear predictions because the response is mainly driven by other (unknown) factors. We can only estimate the bias (rr)
+
+
+#### Splines
+to correct for time in our model
+
+
+- with splines you can account for trends and seasonality at the same time
+- piece wise polynomial functions specified by a series of knots (points/degree of flexibility, the more the more flexible)
+- knots are coefficients that describes the association between two variables
+- the more knots, the more complex the model becomes, too many degrees of freedom likely captures part of my temporal trends
+
+- splines usually need less degrees of freedom than strata
+
+#### 2 types of splines
+- **bs** cubic or quadratic, df = ..., often used for tmep-mortality association, little restriction for extremes
+- **ns** cubic, better for extremes as the constrain, beyonds these thresholds the association is linear, very good for estimates of the relationship, is more conservative than bs, less sensitive to outliers
+
+
+#### Poisson regression
+- suitable because we work with counts
+- assumptions of pr are not fully met, because we have more overdispersion than assumed in the model
+- if we do not account for overdispersion, our estimate (CI) are biased, we need to correct
+- thats why we apply **quasi likelyhood -> quasi Poisson regression**
+
+#### Residual auto-correlation
+- we assume the residuals to be independent from each other and unevenly distributed
+- because we are in time series, we have correlation to yesterday, this is temporal dependency
+- you can test for this using the PACF plot -> not too strong (subjective)
+
+
+
+
+#### MODEL formulation
+
+- start with one from the literature
+- continue to improve and compare (qAIC)
+
+
+
+
+#### Limitation
+- only for short term effects
+- sensitive to model choices regarding trend/seasonality
+- we use aggregated data not individual -> associations not causality
+
+
+
+
+#### DLM
+- we have lagged or delayed effects of the exposure to the response
+- this also corrects for harvesting
+- we also model the dependecy between those lags.
+
+
+
+#### case time series design
+"small area analysis" I DO THIS
+
+- we can leverage small scale data with little responses and therefore account for more heteorogeneity
+- conditional poisson regression gnm()
+- we account for all regions while getting an average effect over all regions
+
+
