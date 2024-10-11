@@ -32,11 +32,53 @@ data_short = data[1:5114,]
 
 
 
+
+
+
+
+
 # crossbasis functions for foehn and temp ####
 cb.foehn <- crossbasis(data$f_id,                       # input variable
                         lag=3,                                # maximum lag to be considered
                         argvar=list(fun="lin"),  # defines how you want to model the nonlinear association between the exposure variable and the outcome.
                         arglag=list(fun="integer"))   # This list defines how the effect of the exposure changes over time (the lag structure)
+
+
+### CROSSBASIS FOEHN #####
+## lag = 3 is fixed
+
+# linear
+cb.foehn <- crossbasis(data$f_id,
+                       lag=3,
+                       argvar=list(fun="lin"),
+                       arglag=list(fun="integer"))
+
+
+#####
+
+### MODEL ######
+
+mod_nm <- gnm(all ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum, subset=ind>0)
+
+# mod_lm <- glm(all ~ cb.foehn + ns(X, 7*14) + dow,  family=quasipoisson(), data_short)
+#####
+
+### PREDICTION ####
+pred_nm <- crosspred(cb.foehn,
+                     mod_nm,
+                     at=0:288,
+                     cumul=FALSE,
+                     cen = 0)
+
+#######
+
+
+
+
+
+
+
+
 
 cb.temp <- crossbasis(data$temp,                       # input variable
                         lag=21,                               # maximum lag to be considered
