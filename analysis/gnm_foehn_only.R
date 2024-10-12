@@ -4,9 +4,15 @@
 # - determine the best
 
 # - stratum is used to work with time trends and seasonality and station differences
-# - foehn has a maximum LAG of 3 -> fun = "integer"
+# - foehn has a maximum LAG of 3 -> fun = "integer",
+# - strata for lag doesnt make sense because temperature exposure doesnt behave like this (?)
+# - lin for var ergibt sinn weil warum sollte der effect von foehn nichtlin sein
 
-
+#TODO adjust the algorithm so that..
+#...the functions are easier defined outside the loop
+#...the results are saved in a matrix
+#...this matrix has row and colnames (the funcitons)
+#...the functions of the minimum qAIC are directly extracted and used for plotting
 
 ### PACKAGES ####
 library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm)
@@ -49,8 +55,8 @@ QAIC <- function(model) {
 ### ALGORITHM ####
 
 # CREATE TWO MATRIX WITH THE DIFFERENT COMB OF FUNCTIONS
-comb <- expand.grid(1:7,1:3) # the number of specifications for argvar and arglag below
-comb_eg <- comb
+comb <- expand.grid(1:7,1:4) # the number of specifications for argvar and arglag below
+
 # CREATE AN EMPTY MATRIX BY F_ID MATRIX TO STORE THE QAIC
 qaic_tab <- matrix(NA, nrow = 1, ncol=nrow(comb))
 
@@ -66,18 +72,26 @@ for (j in 1:nrow(comb)){
 
   # different functions for argvar: exposure response association
   argvar1o <- list(fun="ns", knots = quantile(data$f_id, c(.8, .9), na.rm=TRUE),Boundary=range(data$f_id))
-  argvar2o <- list(fun="ns", knots = quantile(data$f_id, c(.8, .9, .95), na.rm=TRUE),Boundary=range(data$f_id))
-  argvar3o <- list(fun="ns", knots = quantile(data$f_id, c(.78, .86, .94), na.rm=TRUE),Boundary=range(data$f_id))
-  argvar4o <- list(fun="bs", degree=2,knots=quantile(data$f_id, c(.8, .9), na.rm=T))
-  argvar5o <- list(fun="bs", degree=2,knots=quantile(data$f_id, c(.8, .9, .95), na.rm=TRUE))
-  argvar6o <- list(fun="bs", degree=2,knots=quantile(data$f_id, c(.78, .86, .94), na.rm=TRUE))
+  # argvar2o <- list(fun="ns", knots = quantile(data$f_id, c(.8, .9, .95), na.rm=TRUE),Boundary=range(data$f_id))
+  # argvar3o <- list(fun="ns", knots = quantile(data$f_id, c(.78, .86, .94), na.rm=TRUE),Boundary=range(data$f_id))
+  # are both worse than number 1
+  argvar2o <- list(fun="strata", breaks = 1)
+  argvar3o <- list(fun="strata", breaks = 2)
+  argvar4o <- list(fun="strata", breaks = equalknots(data$f_id, nk=3))
+  argvar5o <- list(fun="ns", knots = equalknots(data$f_id, nk=2) ,Boundary=range(data$f_id))
+  argvar6o <- list(fun="ns", knots = equalknots(data$f_id, nk=3) ,Boundary=range(data$f_id))
+  # argvar6o <- list(fun="bs", degree=2,knots=quantile(data$f_id, c(.8, .9), na.rm=T))
+  # argvar7o <- list(fun="bs", degree=2,knots=quantile(data$f_id, c(.8, .9, .95), na.rm=TRUE))
+  # argvar6o <- list(fun="bs", degree=2,knots=quantile(data$f_id, c(.78, .86, .94), na.rm=TRUE))
+  # perform both worse than the below, bs is inferior to lin
   argvar7o <- list(fun="lin")
 
   # function for arglag: exposure lag association
   # maxlago = 3 -> integer only needed
   arglag1o<-list(fun="integer")
   arglag2o<-list(fun="ns", knots = 1)
-  arglag3o<-list(fun="strata", breaks = 1)
+  arglag3o<-list(fun="ns", knots = c(1,2))
+  arglag4o<-list(fun="strata", breaks = 1)
 
 
   # crossbasis
@@ -96,15 +110,26 @@ for (j in 1:nrow(comb)){
 
 }
 
-which.min(qaic_tab) # Check model with lowest Q-AIC score
-qaic_tab
+# Check model with lowest Q-AIC score
+# which.min(qaic_tab) # qaic_tab
+
+
+# create matrix of results
+results <- matrix(qaic_tab, nrow = 7, ncol = 4, byrow = FALSE)
+which(results == min(results), arr.ind = TRUE)
+# row = argvar, col = arglag
+
+
 
 #####
 
 
+
+
+# visualization of the best perfoming combination
 cb.foehn <- crossbasis(data$f_id,lag=3,
-                       argvar=argvar2o,
-                       arglag=arglag3o
+                       argvar=argvar7o,
+                       arglag=arglag1o
                        )
 
 mod_nm <- gnm(all ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum, subset=ind>0)
@@ -158,4 +183,5 @@ plot(pred_nm,              ## exposure at specific lag
      main = "Exposure-Response at Exposure of 150",
      lwd = 2
 )
+
 
