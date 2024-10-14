@@ -17,12 +17,21 @@
 # - argvar definetly "lin", arglag "stratum" (break at 1)
 # - stratum with dow is far more accurate
 
-
+# seasonal tests
+# months 6:9
+# - 8k, var: lin, lag: strata: overall slightly >1 RR
+# - HOWEVER <1 RR for lag0, but >1 RR for lag1 etc
+# months 11:3
+# - 8k, var: Var function: list(fun = "ns", knots = c(`80%` = 4, `90%` = 72.29), Boundary = c(0, 288)), lag: strata
+# - overall <1 RR between 80-200 foehn, clear lagged impact of heat during cold season
+# - very complex pattern in winter
 
 ### PACKAGES ####
 library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm)
-rm(list=ls())
+
 ######
+
+rm(list=ls())
 
 # buffer size for data file read
 buffer = 8000
@@ -31,6 +40,10 @@ buffer = 8000
 data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv"))
 
 data$date = as.Date(data$date)
+
+# SUBSET FOR SEASONAL ANALYSIS
+# data <- subset(data, month %in% c(6:9))
+# data <- subset(data, month %in% c(11,12,1,2,3))
 
 # index to include only stratum that have hosp counts
 data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$stratum)
@@ -112,7 +125,7 @@ for (i in 1:length(v_var)){
 
 
 # Check model with lowest Q-AIC score
-min_qaic = min(qaic_tab)
+min_qaic = min(qaic_tab, na.rm = TRUE)
 
 # extract location of minimum value
 min_position <- which(qaic_tab == min_qaic, arr.ind = TRUE)
@@ -138,8 +151,8 @@ cat("Lag function:", opt_lag, "\n")
 
 # crossbasis
 cb.foehn <- crossbasis(data$f_id,lag = 3,
-                       argvar = eval(parse(text = opt_var)), # list(fun="lin")
-                       arglag = eval(parse(text = opt_lag)) # list(fun="integer")
+                       argvar = eval(parse(text = opt_var)), # list(fun="lin") #
+                       arglag = eval(parse(text = opt_lag)) # list(fun="integer") #
                        )
 # model
 mod_nm <- gnm(all ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum, subset=ind>0)
@@ -185,17 +198,17 @@ plot(pred_nm,              ## exposure at specific lag
 
 plot(pred_nm,              ## exposure at foehn increase
      "slices",
-     var  = 150,
+     lag  = 2,
      ci = "area",
      col = 5,
      ci.arg = list(density = 20, col = 5 ,angle = -45),
      xlab = "Exposure (Foehn)",
      ylab = "Relative Risk (RR)",
-     main = "Exposure-Response at Exposure of 150",
+     main = "Exposure-Response at Lag of 2",
      lwd = 2
 )
 
-for(i in c(80, 120, 200, 280)){
+for(i in c(50, 120, 200, 280)){
 plot(pred_nm,              ## exposure at foehn increase
      "slices",
      var  = i,
@@ -212,3 +225,7 @@ plot(pred_nm,              ## exposure at foehn increase
 par(mfrow=c(1,1))
 plot(pred_nm)
 #####
+
+
+
+dev.off()
