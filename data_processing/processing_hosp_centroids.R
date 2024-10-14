@@ -159,6 +159,14 @@ for(i in 1:length(buffer_sizes)){
     aggregated_by_station$dow <- weekdays(aggregated_by_station$date)
 
 
+    # create 2 stratum variables of 1: station-year-month, 2: station-year-month-dow
+    aggregated_by_station$dow   = as.factor(aggregated_by_station$dow)
+    aggregated_by_station$year  = as.factor(format(aggregated_by_station$date, "%Y"))
+    aggregated_by_station$month = as.factor(format(aggregated_by_station$date, "%m"))
+
+    aggregated_by_station$stratum_dow = with(aggregated_by_station, factor(paste(station, year, month, dow, sep="-")))
+    aggregated_by_station$stratum = with(aggregated_by_station, factor(paste(station, year, month, sep="-")))
+
     # save the data per station and buffer
     # file_name = paste0(station_current, "_buffer_", buffer, ".csv")
     # write.csv(aggregated_by_station, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/by_station/", file_name))
