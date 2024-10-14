@@ -3,22 +3,32 @@
 # - try out many different options to model foehn
 # - determine the best
 
-# - stratum is used to work with time trends and seasonality and station differences
-# - foehn has a maximum LAG of 3 -> fun = "integer",
-# - strata for lag works better than integer
-# - lin for var ergibt sinn weil warum sollte der effect von foehn nicht lin sein
+# notes:
+# - foehn has a maximum LAG of 3 -> fun = "integer" advised
+# - 4K BUFFER: 104166.81 (significantly less rows), var: lin, lag: strata (integer +4, worse than both ns)
+# - 6K BUFFER: 134934.11 (all stations represented) var: lin, lag: strata (integer +3, but worse than ns with 1 knot), stratum with dow is way better than without, very little response
+# - 8K BUFFER: 148163.11 var: list(fun = "strata", breaks = c(57.6, 115.2, 172.8, 230.4)) (lin +0.6, lin better for lag = integer), lag: strata (integer +4), a lot higher response
+# - 10k BUFFER: 166022.31 var: lin, lag: strata (integer +3), stratum with dow is way better than without
+# - 12K BUFFER: 180278.71 var: lin, lag: strata (integer +3.3)
+# - 14k BUFFER: 184111.31 var: lin, lag: strata (integer +3), stratum with dow is way better than without
+# conclusions:
+# - smallest buffer radius possible -> 6k
+# - 6k has most accurate response, 8k has a lot more response
+# - argvar definetly "lin", arglag "stratum" (break at 1)
+# - stratum with dow is far more accurate
+
 
 
 ### PACKAGES ####
 library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm)
-
+rm(list=ls())
 ######
 
-
+# buffer size for data file read
+buffer = 8000
 
 ### DATA ####
-rm(list=ls())
-data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_10000.csv")
+data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv"))
 
 data$date = as.Date(data$date)
 
@@ -26,16 +36,9 @@ data$date = as.Date(data$date)
 data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$stratum)
 ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
 
-
-
-# data$stratum = with(data, factor(paste(station, year, month, sep="-"))) -> inferior to above
-ind = tapply(data$all, data$stratum_dow, sum)
-
 #####
 
-
-
-### FUNCTIONS ####
+### FUNCTION qAIC ####
 # q-AIC computation
 QAIC <- function(model) {
   phi <- summary(model)$dispersion
@@ -45,7 +48,7 @@ QAIC <- function(model) {
 
 ######
 
-
+### ARGVAR ARGLAG DEFINITION ####
 # two lists of argvar and arglag arguments
 v_var <- list(list(fun="ns", knots = quantile(data$f_id, c(.8, .9), na.rm=TRUE),Boundary=range(data$f_id)),
               list(fun="ns", knots = quantile(data$f_id, c(.8, .9, .95), na.rm=TRUE),Boundary=range(data$f_id)),
@@ -64,12 +67,10 @@ v_lag <- list(list(fun="integer"),
               list(fun="ns", knots = c(1,2))
 )
 
+#####
 
 ### ALGORITHM ####
 
-# distribution of foehn (for argvar)
-# quantile(data$f_id, seq(.75,1,0.01))
-# mean(data$f_id[data$f_id != 0])
 # define the maximum lag distance we account for
 maxlago <- 3
 
@@ -100,7 +101,7 @@ for (i in 1:length(v_var)){
     # model
     mod <- gnm(all ~ cb.f_id,
                data=data,
-               eliminate=stratum_dow,
+               eliminate=stratum,
                subset=ind>0,
                family=quasipoisson())
 
@@ -121,14 +122,11 @@ opt_var <- rownames(qaic_tab)[min_position[1]]
 opt_lag <- colnames(qaic_tab)[min_position[2]]
 
 # print results
-print(paste0("Minimum value:", round(min_qaic, 1), digits = 1))
+print(paste0("Minimum value: ", round(min_qaic, 1), digits = 1))
 cat("Var function:", opt_var, "\n")
 cat("Lag function:", opt_lag, "\n")
 
 #####
-
-
-
 
 ### VISUALIZATION of the best performing combination ####
 
@@ -140,7 +138,7 @@ cat("Lag function:", opt_lag, "\n")
 
 # crossbasis
 cb.foehn <- crossbasis(data$f_id,lag = 3,
-                       argvar = eval(parse(text = opt_var)),
+                       argvar = eval(parse(text = opt_var)), # list(fun="lin")
                        arglag = eval(parse(text = opt_lag)) # list(fun="integer")
                        )
 # model
@@ -197,5 +195,20 @@ plot(pred_nm,              ## exposure at foehn increase
      lwd = 2
 )
 
+for(i in c(80, 120, 200, 280)){
+plot(pred_nm,              ## exposure at foehn increase
+     "slices",
+     var  = i,
+     ci = "area",
+     col = 5,
+     ci.arg = list(density = 20, col = 5 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Relative Risk (RR)",
+     main = paste0("Exposure-Response at Exposure of ", i),
+     lwd = 2
+)
+}
 
+par(mfrow=c(1,1))
+plot(pred_nm)
 #####
