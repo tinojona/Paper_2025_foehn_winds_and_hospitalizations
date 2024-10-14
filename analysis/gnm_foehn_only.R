@@ -29,15 +29,12 @@ data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Th
 data$date  = as.Date(data$date); data$dow   = as.factor(data$dow)
 data$year  = as.factor(format(data$date, "%Y")); data$month = as.factor(format(data$date, "%m"))
 
-# create stratum and index
+# create stratum and index for deealing with trends/seasonality
 data$stratum = with(data, factor(paste(station, year, month, dow, sep="-")))
-# data$stratum = with(data, factor(paste(station, year, month, sep="-")))
+# data$stratum = with(data, factor(paste(station, year, month, sep="-"))) -> inferior to above
 ind = tapply(data$all, data$stratum, sum)
 
 #####
-
-# distribution of foehn (for argvar)
-quantile(data$f_id, seq(.75,1,0.01))
 
 
 
@@ -52,10 +49,25 @@ QAIC <- function(model) {
 ######
 
 
+
 ### ALGORITHM ####
 
+# distribution of foehn (for argvar)
+quantile(data$f_id, seq(.75,1,0.01))
+
+
+# two vectors of argvar and arglag arguments
+
+v_var <-
+
+v_lag <-
+
+
+
+
+
 # CREATE TWO MATRIX WITH THE DIFFERENT COMB OF FUNCTIONS
-comb <- expand.grid(1:7,1:4) # the number of specifications for argvar and arglag below
+comb <- expand.grid(1:length(v_var),1:length(v_lag)) # the number of specifications for argvar and arglag below
 
 # CREATE AN EMPTY MATRIX BY F_ID MATRIX TO STORE THE QAIC
 qaic_tab <- matrix(NA, nrow = 1, ncol=nrow(comb))
@@ -115,8 +127,26 @@ for (j in 1:nrow(comb)){
 
 
 # create matrix of results
-results <- matrix(qaic_tab, nrow = 7, ncol = 4, byrow = FALSE)
-which(results == min(results), arr.ind = TRUE)
+results <- matrix(qaic_tab, nrow = length(v_var), ncol = length(v_lag), byrow = FALSE)
+
+
+# convert to data frame
+
+
+# assign col and row names
+
+
+# extract location of minimum value
+
+
+# extract name of col and row and save them for plotting (the functions)
+opt_var <-
+
+opt_lag <-
+
+
+
+# which(results == min(results), arr.ind = TRUE)
 # row = argvar, col = arglag
 
 
@@ -126,10 +156,18 @@ which(results == min(results), arr.ind = TRUE)
 
 
 
-# visualization of the best perfoming combination
+### VISUALIZATION of the best performing combination ####
+
+# read different buffer data for sensitivity analysis
+data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_10000.csv")
+data$date  = as.Date(data$date); data$dow   = as.factor(data$dow); data$year  = as.factor(format(data$date, "%Y")); data$month = as.factor(format(data$date, "%m"))
+
+data$stratum = with(data, factor(paste(station, year, month, dow, sep="-"))); ind = tapply(data$all, data$stratum, sum)
+
+# crossbasis
 cb.foehn <- crossbasis(data$f_id,lag=3,
-                       argvar=argvar7o,
-                       arglag=arglag1o
+                       argvar=opt_var, #
+                       arglag=opt_lag
                        )
 
 mod_nm <- gnm(all ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum, subset=ind>0)
@@ -172,7 +210,7 @@ plot(pred_nm,              ## exposure at specific lag
 )
 
 
-plot(pred_nm,              ## exposure at specific lag
+plot(pred_nm,              ## exposure at foehn increase
      "slices",
      var  = 150,
      ci = "area",
@@ -185,3 +223,4 @@ plot(pred_nm,              ## exposure at specific lag
 )
 
 
+#####
