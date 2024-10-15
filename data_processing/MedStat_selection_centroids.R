@@ -33,7 +33,8 @@ df_stations <- data.frame(station = c("Davos", "Chur", "Altdorf", "Montana", "Vi
 
 ### DETERMINE LIST OF MEDSTAT REGIONS #####
 
-buffer_size_list = seq(4000, 15000, by = 1000)
+# buffer_size_list = seq(4000, 15000, by = 1000)
+buffer_size_list = 8000
 buffer_list = list()
 
 for(i in buffer_size_list){
@@ -95,7 +96,7 @@ for(i in buffer_size_list){
     geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
     geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.7) +   # Adjust color and transparency
     geom_sf(data = centroids$geometry[index_regions], alpha = 0.7) +
-    geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
+    # geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
     geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) +
     geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
     geom_sf(data = buffer_list[[3]], fill = "brown1", alpha = 0.4) +
