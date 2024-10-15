@@ -224,6 +224,12 @@ plot(pred_nm,              ## exposure at foehn increase
 
 par(mfrow=c(1,1))
 plot(pred_nm)
+
+# par(mfrow=c(1,2))
+# pacf(data$all, ylim=c(-0.1,1), main="Original response variable")
+# pacf(residuals(mod_nm), ylim=c(-0.1,.1), na.action=na.pass,
+#      main="Residuals from the regression model")
+
 #####
 
 
