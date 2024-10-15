@@ -22,7 +22,7 @@ In this analysis, all 8 stations are analyzed together and their foehn scores su
 rm(list= ls())
 
 # load data
-data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/hosp_buffer_5000.csv")
+data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_8000.csv")
 
 # convert date
 data$date = as.Date(data$date)
@@ -243,6 +243,43 @@ ggplot(foehn_y_long, aes(x = year, y = value, color = variable)) +
 
 
 
+```
+
+
+```{r daily foehn}
+
+rm(list= ls())
+
+folder_path <- "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/foehn/data"
+
+# List all files in the folder
+file_names <- list.files(path = folder_path)
+
+par(mfrow = c(4,2))
+for (i in file_names) {
+  file_path = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/foehn/data/", i)
+  
+  data = read.table(file_path, header = TRUE)
+
+data$time_conv <- as.POSIXct(strptime(data$time, format = "%Y%m%d%H%M"), tz = "UTC")
+
+# convert time_conv from UTC to CET
+data$time_conv = with_tz(data$time_conv, tzone = Sys.timezone())
+
+# convert foehn data to numeric
+data$f_id <- as.numeric(data$wcc006s0)
+
+
+data_hourly <- data %>%
+  mutate(hour = format(time_conv, format = "%H:%M")) %>%
+  group_by(hour) %>%
+  summarize(mean_f_id = mean(f_id, na.rm = TRUE))
+
+data_hourly$time <- strptime(data_hourly$hour, format = "%H:%M")
+
+plot(data_hourly$time, data_hourly$mean_f_id, 
+     ylim = c(0,1), ylab = "average foehn", xlab = "time of the day")
+}
 ```
 
 ```{r pca, echo=FALSE}
