@@ -117,10 +117,10 @@ sf_centroids$geometry <- st_transform(sf_centroids$geometry, crs = 2056)
 ## WRITE CSV ####
 
 # new mesh (crs adjusted)
-st_write(mesh, "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/shapefiles/MedStat_csr_adjusted.shp")
+# st_write(mesh, "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/shapefiles/MedStat_csr_adjusted.shp")
 
 # centroids
-st_write(sf_centroids, "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/shapefiles/MedStat_centroids_popdensity.shp")
+# st_write(sf_centroids, "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/shapefiles/MedStat_centroids_popdensity.shp")
 
 
 ######
