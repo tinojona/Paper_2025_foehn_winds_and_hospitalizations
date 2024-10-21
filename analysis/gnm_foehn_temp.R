@@ -44,7 +44,7 @@ data$date = as.Date(data$date)
 
 # SUBSET FOR SEASONAL ANALYSIS
 # data <- subset(data, month %in% c(6:9))
-data <- subset(data, month %in% c(11,12,1,2,3))
+# data <- subset(data, month %in% c(11,12,1,2,3))
 
 # index to include only stratum that have hosp counts
 data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$stratum)
@@ -161,7 +161,7 @@ cat("Lag function:", opt_lag, "\n")
 
 # crossbasis
 cb.foehn <- crossbasis(data$f_id,lag = 3,
-                       argvar = eval(parse(text = opt_var)), # list(fun="lin") #
+                       argvar = eval(parse(text = opt_var)), # list(fun="lin"), #
                        arglag = eval(parse(text = opt_lag)) # list(fun="integer") #
                        )
 # model
@@ -208,13 +208,13 @@ plot(pred_nm,              ## exposure at specific lag
 
 plot(pred_nm,              ## exposure at foehn increase
      "slices",
-     lag  = 2,
+     lag  = 3,
      ci = "area",
      col = 5,
      ci.arg = list(density = 20, col = 5 ,angle = -45),
      xlab = "Exposure (Foehn)",
      ylab = "Relative Risk (RR)",
-     main = "Exposure-Response at Lag of 2",
+     main = "Exposure-Response at Lag of 3",
      lwd = 2
 )
 
