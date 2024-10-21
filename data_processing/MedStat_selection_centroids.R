@@ -9,6 +9,7 @@
 library(sf)
 library(raster)
 library(ggplot2)
+library(gridExtra)
 
 ### DATA #####
 rm(list=ls())
@@ -83,7 +84,7 @@ for(i in buffer_size_list){
 
   # create a list of all medstat regions that fall within a buffer
   list_regions <- na.omit(df_regions$ID)
-  write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/MDSTID_MetRegions_", buffer_size, ".csv"))
+  # write.csv(list_regions, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/MDSTID_MetRegions_", buffer_size, ".csv"))
 
 
 
@@ -95,7 +96,7 @@ for(i in buffer_size_list){
   map_plot <- ggplot() +
     geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +  # Adjust color and transparency
     geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.7) +   # Adjust color and transparency
-    geom_sf(data = centroids$geometry[index_regions], alpha = 0.7) +
+    geom_sf(data = centroids$geometry[index_regions], alpha = 0.7, cex = 0.5) +
     # geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
     geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) +
     geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
@@ -142,16 +143,15 @@ for(i in buffer_size_list){
 
 # ### FOR TESTING MEDSTAT #####
 #
-# map_plot <- ggplot() +
-# ggplot() +
+# map_plot2 <- ggplot() +
 #   geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +
 #   geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.7) +
 #   geom_sf(data = centroids$geometry[index_regions], alpha = 0.7) +
 #   geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
 #
-#   geom_sf(data = mesh$geometry[mesh$MDST04 == "SZ05" ], fill = "green", alpha = 0.7) +
-#   geom_sf(data = mesh$geometry[mesh$MDST04 == "SG24" ], fill = "blue", alpha = 0.7) +
-#   geom_sf(data = mesh$geometry[mesh$MDST04 == "TI01" ], fill = "orange", alpha = 0.7) +
+#   # geom_sf(data = mesh$geometry[mesh$MDST04 == "SZ05" ], fill = "green", alpha = 0.7) +
+#   # geom_sf(data = mesh$geometry[mesh$MDST04 == "SG24" ], fill = "blue", alpha = 0.7) +
+#   # geom_sf(data = mesh$geometry[mesh$MDST04 == "TI01" ], fill = "orange", alpha = 0.7) +
 #
 #   geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) +
 #   geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
@@ -163,5 +163,30 @@ for(i in buffer_size_list){
 #   geom_sf(data = buffer_list[[8]], fill = "brown1", alpha = 0.4) +
 #   theme_minimal() +
 #   labs(title = paste0("selected regions with buffer: ", buffer_size))
+# print(map_plot2)
+
+map_plot2 <- ggplot() +
+  geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +
+  geom_sf(data = mesh$geometry, fill = "skyblue1", alpha = 0.7) +
+  geom_sf(data = centroids$geometry, alpha = 0.7, cex = 0.5) +
+  geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
+
+  # geom_sf(data = mesh$geometry[mesh$MDST04 == "SZ05" ], fill = "green", alpha = 0.7) +
+  # geom_sf(data = mesh$geometry[mesh$MDST04 == "SG24" ], fill = "blue", alpha = 0.7) +
+  # geom_sf(data = mesh$geometry[mesh$MDST04 == "TI01" ], fill = "orange", alpha = 0.7) +
+
+  # geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) +
+  # geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
+  # geom_sf(data = buffer_list[[3]], fill = "brown1", alpha = 0.4) +
+  # geom_sf(data = buffer_list[[4]], fill = "brown1", alpha = 0.4) +
+  # geom_sf(data = buffer_list[[5]], fill = "brown1", alpha = 0.4) +
+  # geom_sf(data = buffer_list[[6]], fill = "brown1", alpha = 0.4) +
+  # geom_sf(data = buffer_list[[7]], fill = "brown1", alpha = 0.4) +
+  # geom_sf(data = buffer_list[[8]], fill = "brown1", alpha = 0.4) +
+  theme_minimal() +
+  labs(title = paste0("selected regions with buffer: ", buffer_size))
+print(map_plot2)
+
+grid.arrange(map_plot2, map_plot, ncol = 2)
 #
 # #####
