@@ -3,6 +3,17 @@
 # - try out many different options to model foehn when combined with temperature
 # - determine the best
 
+# - foehn (0:288) is not clear enough, CI too large, to many variations depending on the model type
+# - 8k buffer has the strongest association -> continue analysis with this one, other ones for sensitivity analysis
+# - linear for variable modeling seems to perform best because too little data (20%) actually has foehn in it, all others are 0
+#   thats why we change our approach to treshold and binary definition of the foehn impact
+
+
+
+
+
+
+
 # notes:
 # -
 # - 4K BUFFER: 113763.41 (worse than without temp), var: lin, lag: strata (integer +1.5, but same performance as one ns)
@@ -57,7 +68,8 @@ ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$s
 cb.temp <- crossbasis(data$temp,
                       lag=21,
                       argvar=list(fun="ns", knots = quantile(data$temp, c(.1,.75,.9), na.rm=TRUE)),
-                      arglag=list(fun="ns", knots = logknots(21,3)))
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data$station)
 
 #####
 
@@ -75,6 +87,7 @@ QAIC <- function(model) {
 # two lists of argvar and arglag arguments
 v_var <- list(list(fun="ns", knots = quantile(data$f_id, c(.8, .9), na.rm=TRUE),Boundary=range(data$f_id)),
               list(fun="ns", knots = quantile(data$f_id, c(.8, .9, .95), na.rm=TRUE),Boundary=range(data$f_id)),
+              list(fun="ns", knots = quantile(data$f_id, c(.9, .95, .99), na.rm=TRUE),Boundary=range(data$f_id)),
               list(fun="strata", breaks = equalknots(data$f_id, nk = 3)),
               list(fun="strata", breaks = equalknots(data$f_id, nk = 4)),
               list(fun="strata", breaks = equalknots(data$f_id, nk = 5)),
@@ -162,8 +175,8 @@ cat("Lag function:", opt_lag, "\n")
 # crossbasis
 cb.foehn <- crossbasis(data$f_id,lag = 3,
                        argvar = eval(parse(text = opt_var)), # list(fun="lin"), #
-                       arglag = eval(parse(text = opt_lag)) # list(fun="integer") #
-                       )
+                       arglag = eval(parse(text = opt_lag)), # list(fun="integer") #
+                       group = data$station)
 # model
 mod_nm <- gnm(all ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum, subset=ind>0)
 # prediction
@@ -233,7 +246,19 @@ plot(pred_nm,              ## exposure at foehn increase
 }
 
 par(mfrow=c(1,1))
-plot(pred_nm)
+plot(pred_nm,            ## 3D Plot
+     "3d",
+     xlab = "Exposure (Foehn)",
+     ylab = "Lag (Days)",
+     zlab = "Relative Risk",
+     theta = 210,                    # The azimuthal angle (horizontal rotation)
+     phi = 30,                      # The colatitude (vertical rotation).
+     # col = "skyblue2",              # color of the 3d surface
+     border = "black", # color of the borders
+     #ticktype = "simple",           # type of grid on surface, alt.: "detailed"
+     #nticks = 10                    # number of ticks
+     r = 0.02
+)
 
 # par(mfrow=c(1,2))
 # pacf(data$all, ylim=c(-0.1,1), main="Original response variable")
