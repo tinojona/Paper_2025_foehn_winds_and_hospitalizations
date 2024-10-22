@@ -61,6 +61,7 @@ data$date = as.Date(data$date)
 data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$stratum)
 ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
 
+data$station <- as.factor(data$station)
 #####
 
 ### CROSSBASIS TEMPERATURE ####
