@@ -3,10 +3,9 @@
 # - try out many different options to model foehn when combined with temperature
 # - determine the best treshold for foehn
 
-
-
 # notes:
-
+# - Is this something?
+# - a threshold of 275 (with max = 288) performs best....this cant be meaningful
 
 ### PACKAGES ####
 library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm)
@@ -27,6 +26,7 @@ data$date = as.Date(data$date)
 data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$stratum)
 ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
 
+data$station <- as.factor(data$station)
 #####
 
 ### CROSSBASIS TEMPERATURE ####
@@ -51,18 +51,20 @@ QAIC <- function(model) {
 
 ### ARGVAR ARGLAG DEFINITION ####
 # two lists of argvar and arglag arguments
-v_var <- list(
-
-
-
-  # treshold definitions
-
-
+v_var <- list(list(fun = "thr", thr.value = 40),
+              # list(fun = "thr", thr.value = 80),
+              # list(fun = "thr", thr.value = 100),
+              # list(fun = "thr", thr.value = 140),
+              # list(fun = "thr", thr.value = 180),
+              # list(fun = "thr", thr.value = 220),
+              list(fun = "thr", thr.value = 260),
+              list(fun = "thr", thr.value = 275),
               list(fun="lin")
 )
 
 v_lag <- list(list(fun="integer"),
               list(fun="strata", breaks = 1)
+              # list(fun="strata", breaks = c(1,2))
               )
 
 #####
@@ -130,8 +132,8 @@ cat("Lag function:", opt_lag, "\n")
 
 # crossbasis
 cb.foehn <- crossbasis(data$f_id,lag = 3,
-                       argvar = eval(parse(text = opt_var)),
-                       arglag = eval(parse(text = opt_lag)),
+                       argvar = eval(parse(text = opt_var)), # list(fun = "thr",  thr.value = 40), #
+                       arglag = eval(parse(text = opt_lag)), # list(fun="integer"), #
                        group = data$station)
 # model
 mod_nm <- gnm(all ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum, subset=ind>0)
