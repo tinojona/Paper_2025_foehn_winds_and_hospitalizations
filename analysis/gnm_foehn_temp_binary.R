@@ -121,7 +121,7 @@ View(qaic_tab)
 
 # binary foehn
 foehn_bin <- ifelse(data$f_id > 180, 1, 0) #  as.numeric(opt_var) c(20,40,80,120,160,200,240,270)
-
+# foehn_bin[data$f_id > 180] <-  2
 
 # crossbasis
 cb.foehn <- crossbasis(foehn_bin,
