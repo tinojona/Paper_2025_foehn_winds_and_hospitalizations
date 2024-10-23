@@ -138,8 +138,8 @@ for (i in 1:length(v_var)){
     # model
     mod <- gnm(all ~ cb.f_id + cb.temp,
                data=data,
-               eliminate=stratum,
-               subset=ind>0,
+               eliminate=stratum_dow,
+               subset=ind_dow>0,
                family=quasipoisson())
 
     # save qAIC in qaic_tab
@@ -167,19 +167,13 @@ cat("Lag function:", opt_lag, "\n")
 
 ### VISUALIZATION of the best performing combination ####
 
-# # read different buffer data for sensitivity analysis
-# data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_10000.csv")
-# # index to include only stratum that have hosp counts
-# data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$stratum)
-# ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
-
 # crossbasis
 cb.foehn <- crossbasis(data$f_id,lag = 3,
-                       argvar = eval(parse(text = opt_var)), # list(fun="lin"), #
-                       arglag = eval(parse(text = opt_lag)), # list(fun="integer") #
+                       argvar = list(fun="lin"), #eval(parse(text = opt_var)), # list(fun="lin"), #
+                       arglag = list(fun="integer"), #eval(parse(text = opt_lag)), # list(fun="integer"), #
                        group = data$station)
 # model
-mod_nm <- gnm(all ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum, subset=ind>0)
+mod_nm <- gnm(all ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 # prediction
 pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
 

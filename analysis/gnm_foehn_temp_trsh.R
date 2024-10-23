@@ -52,18 +52,18 @@ QAIC <- function(model) {
 ### ARGVAR ARGLAG DEFINITION ####
 # two lists of argvar and arglag arguments
 v_var <- list(list(fun = "thr", thr.value = 40),
-              # list(fun = "thr", thr.value = 80),
-              # list(fun = "thr", thr.value = 100),
-              # list(fun = "thr", thr.value = 140),
-              # list(fun = "thr", thr.value = 180),
-              # list(fun = "thr", thr.value = 220),
-              list(fun = "thr", thr.value = 260),
+              list(fun = "thr", thr.value = 80),
+              list(fun = "thr", thr.value = 100),
+              list(fun = "thr", thr.value = 140),
+              list(fun = "thr", thr.value = 180),
+              list(fun = "thr", thr.value = 220),
+              list(fun = "thr", thr.value = 230),
               list(fun = "thr", thr.value = 275),
               list(fun="lin")
 )
 
-v_lag <- list(list(fun="integer"),
-              list(fun="strata", breaks = 1)
+v_lag <- list(list(fun="integer")#,
+              # list(fun="strata", breaks = 1)
               # list(fun="strata", breaks = c(1,2))
               )
 
@@ -101,8 +101,8 @@ for (i in 1:length(v_var)){
     # model
     mod <- gnm(all ~ cb.f_id + cb.temp,
                data=data,
-               eliminate=stratum,
-               subset=ind>0,
+               eliminate=stratum_dow,
+               subset=ind_dow>0,
                family=quasipoisson())
 
     # save qAIC in qaic_tab
@@ -136,7 +136,7 @@ cb.foehn <- crossbasis(data$f_id,lag = 3,
                        arglag = eval(parse(text = opt_lag)), # list(fun="integer"), #
                        group = data$station)
 # model
-mod_nm <- gnm(all ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum, subset=ind>0)
+mod_nm <- gnm(all ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
 # prediction
 pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
@@ -210,8 +210,8 @@ plot(pred_nm,            ## 3D Plot
      xlab = "Exposure (Foehn)",
      ylab = "Lag (Days)",
      zlab = "Relative Risk",
-     theta = 210,                    # The azimuthal angle (horizontal rotation)
-     phi = 30,                      # The colatitude (vertical rotation).
+     theta = 250,                    # The azimuthal angle (horizontal rotation)
+     phi = 40,                      # The colatitude (vertical rotation).
      # col = "skyblue2",              # color of the 3d surface
      border = "black", # color of the borders
      #ticktype = "simple",           # type of grid on surface, alt.: "detailed"

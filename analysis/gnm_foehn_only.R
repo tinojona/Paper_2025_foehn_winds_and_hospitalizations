@@ -115,7 +115,7 @@ for (i in 1:length(v_var)){
     mod <- gnm(all ~ cb.f_id,
                data=data,
                eliminate=stratum,
-               subset=ind>0,
+               subset=ind_dow>0,
                family=quasipoisson())
 
     # save qAIC in qaic_tab
