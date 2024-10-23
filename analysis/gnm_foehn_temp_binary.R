@@ -2,6 +2,9 @@
 # GNM FOEHN
 # - try out many different options to model foehn when combined with temperature
 # - determine the best binary code for foehn
+# - because we are in binary, there are limited options for the argvar and arglag
+# - argvar = integer, this is fixed due to our foehn only being 0 and 1
+# - arglag = integer, because we only have three lags
 
 # notes:
 
@@ -28,10 +31,6 @@ ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$s
 data$station <- as.factor(data$station)
 #####
 
-### BINARY CODES ####
-# TODO
-#####
-
 ### CROSSBASIS TEMPERATURE ####
 
 cb.temp <- crossbasis(data$temp,
@@ -53,21 +52,17 @@ QAIC <- function(model) {
 ######
 
 ### ARGVAR ARGLAG DEFINITION ####
-# two lists of argvar and arglag arguments
-v_var <- list(list(fun = "integer"),
-              list(fun="strata")
-)
 
-v_lag <- list(list(fun="integer"),
-              list(fun="strata", breaks = 1)
-              )
+#  define var function
+argvar = list(fun="integer")
+
+#  define lag function
+arglag = list(fun="integer")
 
 #####
 
 
-# TODO
-# restructure the algorithm so that the matrix at the end has a third dimension:
-# the different binary definitions
+bin_thresholds = c(20,40,80,120,160, 180 ,200,240,270)
 
 ### ALGORITHM ####
 
@@ -76,38 +71,33 @@ maxlago <- 3
 
 # create an empty matrix to store the qAIC
 qaic_tab <- matrix(NA,
-                   nrow = length(v_var),
-                   ncol=length(v_lag),
-                   dimnames = list(c(v_var), c(v_lag)))
+                   nrow = length(bin_thresholds),
+                   ncol=1,
+                   dimnames = list(c(bin_thresholds)))
 
 ## Run the model for each combination
-for (i in 1:length(v_var)){
+for (i in 1:length(bin_thresholds)){
 
-  # extract variable function
-  argvar = v_var[[i]]
+  # define binary data based on bin_threshold
+  foehn_bin <- ifelse(data$f_id > i, 1, 0)
 
-  for (j in 1:length(v_lag)) {
+  # crossbasis
+  cb.f_id <- crossbasis(foehn_bin,
+                        lag=maxlago,
+                        argvar=argvar,
+                        arglag=arglag,
+                        group=data$station)
 
-    #  extract lag function
-    arglag = v_lag[[j]]
+  # model
+  mod <- gnm(all ~ cb.f_id + cb.temp,
+             data=data,
+             eliminate=stratum,
+             subset=ind_dow>0,
+             family=quasipoisson())
 
-    # crossbasis
-    cb.f_id <- crossbasis(data$f_id,
-                          lag=maxlago,
-                          argvar=argvar,
-                          arglag=arglag,
-                          group=data$station)
+  # save qAIC in qaic_tab
+  qaic_tab[i,] <- QAIC(mod)
 
-    # model
-    mod <- gnm(all ~ cb.f_id + cb.temp,
-               data=data,
-               eliminate=stratum,
-               subset=ind>0,
-               family=quasipoisson())
-
-    # save qAIC in qaic_tab
-    qaic_tab[i,j] <- QAIC(mod)
-  }
 }
 
 
@@ -119,90 +109,106 @@ min_position <- which(qaic_tab == min_qaic, arr.ind = TRUE)
 
 # extract name of col and row and save them for plotting (the functions)
 opt_var <- rownames(qaic_tab)[min_position[1]]
-opt_lag <- colnames(qaic_tab)[min_position[2]]
 
 # print results
 print(paste0("Minimum value: ", round(min_qaic, 1), digits = 1))
-cat("Var function:", opt_var, "\n")
-cat("Lag function:", opt_lag, "\n")
+cat("Binary Threshold:", opt_var, "\n")
 
+View(qaic_tab)
 #####
 
 ### VISUALIZATION of the best performing combination ####
 
+# binary foehn
+foehn_bin <- ifelse(data$f_id > 180, 1, 0) #  as.numeric(opt_var) c(20,40,80,120,160,200,240,270)
+
+
 # crossbasis
-cb.foehn <- crossbasis(data$f_id,lag = 3,
-                       argvar = eval(parse(text = opt_var)), # list(fun = "thr",  thr.value = 40), #
-                       arglag = eval(parse(text = opt_lag)), # list(fun="integer"), #
+cb.foehn <- crossbasis(foehn_bin,
+                       lag = maxlago,
+                       argvar = argvar,
+                       arglag = arglag,
                        group = data$station)
-# model
-mod_nm <- gnm(all ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum, subset=ind>0)
 
-# prediction
-pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
+# model with and without foehn
+mod_nm <- gnm(all ~  cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+mod_nm_f <- gnm(all ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prediction with and without foehn
+pred_nm <- crosspred(cb.temp, mod_nm, cen = 28, cumul=FALSE)
+pred_nm_f <- crosspred(cb.temp, mod_nm_f, cen = 28, cumul=FALSE)
 
 
-par(mfrow=c(2,2))
+
 
 plot(pred_nm,              ## cumulative exposure
      "overall",
      col = 2,
-     ci.arg = list(density = 20, col = 2 ,angle = -45),
-     xlab = "Exposure (Foehn)",
-     ylab = "Cumulative Response",
-     lwd = 2,
+     ci.arg = list(density = 10, col = 2 ,angle = -45),
+     lwd = 5,
      main = "Overall cumulative exposure-response")
 
-plot(pred_nm,              ## exposure at specific lag
-     "slices",
-     lag  = 0,
-     ci = "area",
-     col = 3,
-     ci.arg = list(density = 20, col = 3 ,angle = -45),
-     xlab = "Exposure (Foehn)",
-     ylab = "Relative Risk (RR)",
-     main = "Exposure-Response at Lag of 0",
-     lwd = 2
-)
-
-plot(pred_nm,              ## exposure at specific lag
-     "slices",
-     lag  = 1,
-     ci = "area",
+lines(pred_nm_f,           ## cumulative exposure
+     "overall",
      col = 4,
-     ci.arg = list(density = 20, col = 4 ,angle = -45),
-     xlab = "Exposure (Foehn)",
-     ylab = "Relative Risk (RR)",
-     main = "Exposure-Response at Lag of 1",
-     lwd = 2
-)
-
-
-plot(pred_nm,              ## exposure at foehn increase
-     "slices",
-     lag  = 3,
      ci = "area",
-     col = 5,
-     ci.arg = list(density = 20, col = 5 ,angle = -45),
-     xlab = "Exposure (Foehn)",
-     ylab = "Relative Risk (RR)",
-     main = "Exposure-Response at Lag of 3",
-     lwd = 2
-)
+     ci.arg = list(density = 10, col = 4 ,angle = 45),
+     lwd = 2)
 
-for(i in c(50, 120, 200, 280)){
-plot(pred_nm,              ## exposure at foehn increase
-     "slices",
-     var  = i,
-     ci = "area",
-     col = 5,
-     ci.arg = list(density = 20, col = 5 ,angle = -45),
-     xlab = "Exposure (Foehn)",
-     ylab = "Relative Risk (RR)",
-     main = paste0("Exposure-Response at Exposure of ", i),
-     lwd = 2
-)
-}
+legend("topright", legend = c("temp", "temp+binary foehn"), col = c(2,4), lwd = 2)
+
+#
+#
+# plot(pred_nm_f,              ## exposure at specific lag
+#      "slices",
+#      lag  = 0,
+#      ci = "area",
+#      col = 3,
+#      ci.arg = list(density = 20, col = 3 ,angle = -45),
+#      xlab = "Exposure (Foehn)",
+#      ylab = "Relative Risk (RR)",
+#      main = "Exposure-Response at Lag of 0",
+#      lwd = 2
+# )
+#
+# plot(pred_nm,              ## exposure at specific lag
+#      "slices",
+#      lag  = 1,
+#      ci = "area",
+#      col = 4,
+#      ci.arg = list(density = 20, col = 4 ,angle = -45),
+#      xlab = "Exposure (Foehn)",
+#      ylab = "Relative Risk (RR)",
+#      main = "Exposure-Response at Lag of 1",
+#      lwd = 2
+# )
+#
+#
+# plot(pred_nm,              ## exposure at foehn increase
+#      "slices",
+#      lag  = 3,
+#      ci = "area",
+#      col = 5,
+#      ci.arg = list(density = 20, col = 5 ,angle = -45),
+#      xlab = "Exposure (Foehn)",
+#      ylab = "Relative Risk (RR)",
+#      main = "Exposure-Response at Lag of 3",
+#      lwd = 2
+# )
+#
+# for(i in c(50, 120, 200, 280)){
+# plot(pred_nm,              ## exposure at foehn increase
+#      "slices",
+#      var  = i,
+#      ci = "area",
+#      col = 5,
+#      ci.arg = list(density = 20, col = 5 ,angle = -45),
+#      xlab = "Exposure (Foehn)",
+#      ylab = "Relative Risk (RR)",
+#      main = paste0("Exposure-Response at Exposure of ", i),
+#      lwd = 2
+# )
+# }
 
 par(mfrow=c(1,1))
 plot(pred_nm,            ## 3D Plot
@@ -221,7 +227,47 @@ plot(pred_nm,            ## 3D Plot
 
 #####
 
+### OTHER MODELS ####
 
+# binary foehn
+foehn_bin <- ifelse(data$f_id > 80, 1, 0) #  as.numeric(opt_var) c(20,40,80,120,160,200,240,270)
+
+
+# crossbasis
+cb.foehn <- crossbasis(foehn_bin,
+                       lag = maxlago,
+                       argvar = argvar,
+                       arglag = arglag,
+                       group = data$station)
+
+# model with and without foehn
+mod_nm <- glm(all ~  cb.temp + ns(X, 7*20), data = data,  family=quasipoisson())
+
+mod_nm_f <- glm(all ~ cb.foehn + cb.temp + ns(X, 7*20), data = data,  family=quasipoisson())
+
+# prediction with and without foehn
+pred_nm <- crosspred(cb.temp, mod_nm, cen = 18, cumul=FALSE)
+
+pred_nm_f <- crosspred(cb.temp, mod_nm_f, cen = 18, cumul=FALSE)
+
+
+
+
+plot(pred_nm,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 2 ,angle = -45),
+     lwd = 2,
+     main = "Overall cumulative exposure-response")
+
+lines(pred_nm_f,           ## cumulative exposure
+      "overall",
+      col = 4,
+      ci = "area",
+      ci.arg = list(density = 20, col = 4 ,angle = 45),
+      lwd = 2)
+
+#####
 
 dev.off()
 
