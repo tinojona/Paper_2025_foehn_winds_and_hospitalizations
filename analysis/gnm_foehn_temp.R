@@ -169,7 +169,7 @@ cat("Lag function:", opt_lag, "\n")
 
 # crossbasis
 cb.foehn <- crossbasis(data$f_id,lag = 3,
-                       argvar = list(fun="lin"), #eval(parse(text = opt_var)), # list(fun="lin"), #
+                       argvar = list(fun="ns", knots = equalknots(data$f_id, nk=4) ,Boundary=range(data$f_id)),#eval(parse(text = opt_var)), # list(fun="lin"), #
                        arglag = list(fun="integer"), #eval(parse(text = opt_lag)), # list(fun="integer"), #
                        group = data$station)
 # model
@@ -240,20 +240,107 @@ plot(pred_nm,              ## exposure at foehn increase
 )
 }
 
-par(mfrow=c(1,1))
-plot(pred_nm,            ## 3D Plot
+# pred_nm <- crosspred(cb.foehn, mod_nm, at=seq(0,288,4), cumul=FALSE, cen = 0)
+# Define the layout matrix
+layout_matrix <- matrix(c(1, 1, 1, 2, 2,
+                          1, 1, 1, 2, 2,
+                          1, 1, 1, 0, 0,
+                          4, 4, 0, 3, 3,
+                          4, 4, 0, 3, 3
+                          ), nrow = 5, byrow = TRUE)
+
+# Set up the layout with different relative widths and heights
+layout(layout_matrix)
+par(mar = c(4, 4, .5, 0.5))
+# par(mfrow=c(1,1))
+d3 =plot(pred_nm,            ## 3D Plot
      "3d",
      xlab = "Exposure (Foehn)",
      ylab = "Lag (Days)",
      zlab = "Relative Risk",
-     theta = 210,                    # The azimuthal angle (horizontal rotation)
-     phi = 30,                      # The colatitude (vertical rotation).
+     theta = 230,                    # The azimuthal angle (horizontal rotation)
+     phi = 40,                      # The colatitude (vertical rotation).
      # col = "skyblue2",              # color of the 3d surface
      border = "black", # color of the borders
      #ticktype = "simple",           # type of grid on surface, alt.: "detailed"
      #nticks = 10                    # number of ticks
      r = 0.02
 )
+lines(trans3d(x=250, y=seq(0, maxlago), z=pred_nm$matRRfit["252",], pmat=d3),
+      col="red", lwd=3)
+lines(trans3d(x=pred_nm$predvar, y=0, z=pred_nm$matRRfit[,"lag0"], pmat=d3),
+      col=6, lwd=3)
+# lines(trans3d(x=pred_nm$predvar, y=2, z=pred_nm$matRRfit[,"lag2"], pmat=d3),
+#       col=6, lwd=3)
+
+plot(pred_nm,              ## cumulative exposure
+     "overall",
+     col = 1,
+     ci.arg = list(density = 20, col = 1 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = "Overall cumulative exposure-response")
+
+plot(pred_nm,              ## exposure at foehn increase
+     "slices",
+     var  = 252,
+     ci = "area",
+     col = "red",
+     ci.arg = list(density = 20, col = "red" ,angle = -45),
+     xlab = "Lag (Days)",
+     ylab = "Relative Risk (RR)",
+     main = "Exposure-Response at Exposure of 252 ",
+     lwd = 2
+)
+
+plot(pred_nm,              ## exposure at specific lag
+     "slices",
+     lag  = 0,
+     ci = "area",
+     col = 6,
+     ci.arg = list(density = 20, col = 6 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Relative Risk (RR)",
+     main = "Exposure-Response at Lag of 0",
+     lwd = 2
+)
+
+
+
+### CAUSE ANALYSIS FOR PAPER
+# model
+mod_nm <- gnm(mal ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# prediction
+pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
+
+
+par(mfrow=c(1,2))
+
+plot(pred_nm,              ## cumulative exposure
+     "overall",
+     col = 3,
+     ci.arg = list(density = 20, col = 3 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = "cumulative ex-re: male",
+     ylim = c(.8,1.4))
+mod_nm <- gnm(fem ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# prediction
+pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
+
+
+
+plot(pred_nm,              ## cumulative exposure
+     "overall",
+     col = 3,
+     ci.arg = list(density = 20, col = 3 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = "cumulative ex-re: female",
+     ylim = c(.8,1.4))
 
 # par(mfrow=c(1,2))
 # pacf(data$all, ylim=c(-0.1,1), main="Original response variable")
@@ -264,5 +351,5 @@ plot(pred_nm,            ## 3D Plot
 
 
 
-dev.off()
+# dev.off()
 
