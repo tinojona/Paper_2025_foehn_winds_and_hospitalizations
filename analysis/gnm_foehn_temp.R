@@ -310,7 +310,7 @@ plot(pred_nm,              ## exposure at specific lag
 
 ### CAUSE ANALYSIS FOR PAPER
 # model
-mod_nm <- gnm(mal ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+mod_nm <- gnm(resp ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 # prediction
 pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
 
@@ -319,14 +319,14 @@ par(mfrow=c(1,2))
 
 plot(pred_nm,              ## cumulative exposure
      "overall",
-     col = 3,
-     ci.arg = list(density = 20, col = 3 ,angle = -45),
+     col = 2,
+     ci.arg = list(density = 20, col = 2 ,angle = -45),
      xlab = "Exposure (Foehn)",
      ylab = "Cumulative Response",
      lwd = 2,
-     main = "cumulative ex-re: male",
+     main = "cumulative ex-re: respiratory",
      ylim = c(.8,1.4))
-mod_nm <- gnm(fem ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+mod_nm <- gnm(cvd ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 # prediction
 pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
 
@@ -334,12 +334,12 @@ pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
 
 plot(pred_nm,              ## cumulative exposure
      "overall",
-     col = 3,
-     ci.arg = list(density = 20, col = 3 ,angle = -45),
+     col = 2,
+     ci.arg = list(density = 20, col = 2 ,angle = -45),
      xlab = "Exposure (Foehn)",
      ylab = "Cumulative Response",
      lwd = 2,
-     main = "cumulative ex-re: female",
+     main = "cumulative ex-re: cardio",
      ylim = c(.8,1.4))
 
 # par(mfrow=c(1,2))
