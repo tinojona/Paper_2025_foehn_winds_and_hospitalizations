@@ -122,8 +122,8 @@ modif <- cb.temp * foehn_bin
 modif_rev <- cb.temp *foehn_bin_rev
 
 # model with and without foehn
-mod_modif <- gnm(all ~  cb.temp + modif, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
-mod_modif_rev <- gnm(all ~  cb.temp + modif_rev, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+mod_modif <- gnm(cvd ~  cb.temp + modif, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+mod_modif_rev <- gnm(cvd ~  cb.temp + modif_rev, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
 # return significance of modif term in model
 # coef_summary <- summary(mod_modif)$coefficients
@@ -133,8 +133,13 @@ mod_modif_rev <- gnm(all ~  cb.temp + modif_rev, data = data,  family=quasipoiss
 
 # prediction with and without foehn
 pred_modif <- crosspred(cb.temp, mod_modif, cen = 20, cumul=FALSE)
-pred_modif_rev <- crosspred(cb.temp, mod_modif_rev, cen = 20, cumul=FALSE)
 
+# centering value
+# index <- which(as.vector(pred_modif$allRRfit) == min(as.vector(pred_modif$allRRfit)))
+# new_cen <- as.numeric(names(pred_modif$allRRfit[index]))
+#
+# pred_modif <- crosspred(cb.temp, mod_modif, cen = new_cen, cumul=FALSE)
+pred_modif_rev <- crosspred(cb.temp, mod_modif_rev, cen = 20, cumul=FALSE)
 
 
 plot(pred_modif,              ## cumulative exposure
@@ -142,7 +147,8 @@ plot(pred_modif,              ## cumulative exposure
      col = 2,
      ci.arg = list(density = 10, col = 2 ,angle = -45),
      lwd = 2,
-     main = paste0("Overall cum exp-resp: modifier, binary thr=",i))
+     main = paste0("Overall cum exp-resp: modifier, binary thr=",i),
+     ylim = c(0.5,1.5))
 
 lines(pred_modif_rev,           ## cumulative exposure
      "overall",
