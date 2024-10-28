@@ -7,7 +7,7 @@
 
 ### PACKAGES ####
 library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm);library(mgcv)
-
+library(dplyr)
 ######
 
 rm(list=ls())
@@ -25,6 +25,17 @@ data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$st
 ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
 
 data$station <- as.factor(data$station)
+
+
+
+# create larger age groups
+
+data <- data %>%
+  mutate(y64 = a014y + a1564y) %>%
+  mutate(o64 = a6574y + a7584y + a85plusy)
+
+
+
 #####
 
 ### CROSSBASIS TEMPERATURE ######
@@ -122,8 +133,8 @@ modif <- cb.temp * foehn_bin
 modif_rev <- cb.temp *foehn_bin_rev
 
 # model with and without foehn
-mod_modif <- gnm(cvd ~  cb.temp + modif, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
-mod_modif_rev <- gnm(cvd ~  cb.temp + modif_rev, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+mod_modif <- gnm(o64 ~  cb.temp + modif, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+mod_modif_rev <- gnm(o64 ~  cb.temp + modif_rev, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
 # return significance of modif term in model
 # coef_summary <- summary(mod_modif)$coefficients
@@ -148,7 +159,7 @@ plot(pred_modif,              ## cumulative exposure
      ci.arg = list(density = 10, col = 2 ,angle = -45),
      lwd = 2,
      main = paste0("Overall cum exp-resp: modifier, binary thr=",i),
-     ylim = c(0.5,1.5))
+     ylim = c(0.7,3))
 
 lines(pred_modif_rev,           ## cumulative exposure
      "overall",
