@@ -120,7 +120,7 @@ View(qaic_tab)
 ### VISUALIZATION of the best performing combination ####
 
 # binary foehn
-foehn_bin <- ifelse(data$f_id > 180, 1, 0) #  as.numeric(opt_var) c(20,40,80,120,160,200,240,270)
+foehn_bin <- ifelse(data$f_id > 0, 1, 0) #  as.numeric(opt_var) c(20,40,80,120,160,200,240,270)
 # foehn_bin[data$f_id > 180] <-  2
 
 # crossbasis
@@ -135,13 +135,13 @@ mod_nm <- gnm(all ~  cb.temp, data = data,  family=quasipoisson(), eliminate=str
 mod_nm_f <- gnm(all ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
 # prediction with and without foehn
-pred_nm <- crosspred(cb.temp, mod_nm, cen = 28, cumul=FALSE)
-pred_nm_f <- crosspred(cb.temp, mod_nm_f, cen = 28, cumul=FALSE)
+pred_nm <- crosspred(cb.foehn, mod_nm, cen = 0, cumul=FALSE)
+pred_nm_f <- crosspred(cb.foehn, mod_nm_f, cen = 0,at=1, cumul=FALSE)
 
 
 
 
-plot(pred_nm,              ## cumulative exposure
+plot(pred_nm_f,              ## cumulative exposure
      "overall",
      col = 2,
      ci.arg = list(density = 10, col = 2 ,angle = -45),
