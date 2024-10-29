@@ -125,7 +125,7 @@ par(mfrow=c(2,2))
 for( i in c(10,35,80,140)){ #c(0,5,60,120
 
 # binary foehn
-foehn_bin <- ifelse(data$f_id > i, 0, 1) #  as.numeric(opt_var) c(20,40,80,120,160,200,240,270)
+foehn_bin <- ifelse(data$f_id > 20, 0, 1) #  as.numeric(opt_var) c(20,40,80,120,160,200,240,270)
 foehn_bin_rev <- ifelse(foehn_bin == 1, 0, 1)
 
 
@@ -155,12 +155,12 @@ pred_modif <- crosspred(cb.temp, mod_modif, cen = min1b, cumul=FALSE)
 pred_modif_rev <- crosspred(cb.temp, mod_modif_rev, cen = min1b, cumul=FALSE)
 
 
-plot(pred_modif,              ## cumulative exposure
+plot(pred_modif2,              ## cumulative exposure
      "overall",
      col = 2,
      ci.arg = list(density = 20, col = 2 ,angle = -45),
      lwd = 2,
-     main = paste0("Overall cum exp-resp: modifier, binary thr=",i),
+     main = paste0("Overall cum exp-resp: modifier, binary thr=",20),
      ylim = c(0.7,3))
 
 lines(pred_modif_rev,           ## cumulative exposure
