@@ -40,6 +40,7 @@
 
 ### PACKAGES ####
 library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm)
+library(dplyr)
 
 ######
 
@@ -62,6 +63,12 @@ data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$st
 ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
 
 data$station <- as.factor(data$station)
+
+
+
+data <- data %>%
+  mutate(y64 = a014y + a1564y) %>%
+  mutate(o64 = a6574y + a7584y + a85plusy)
 #####
 
 ### CROSSBASIS TEMPERATURE ####
@@ -169,7 +176,7 @@ cat("Lag function:", opt_lag, "\n")
 
 # crossbasis
 cb.foehn <- crossbasis(data$f_id,lag = 3,
-                       argvar = list(fun="ns", knots = equalknots(data$f_id, nk=4) ,Boundary=range(data$f_id)),#eval(parse(text = opt_var)), # list(fun="lin"), #
+                       argvar = eval(parse(text = opt_var)), # list(fun="lin"), #
                        arglag = list(fun="integer"), #eval(parse(text = opt_lag)), # list(fun="integer"), #
                        group = data$station)
 # model
@@ -347,7 +354,39 @@ plot(pred_nm,              ## cumulative exposure
 # pacf(residuals(mod_nm), ylim=c(-0.1,.1), na.action=na.pass,
 #      main="Residuals from the regression model")
 
-#####
+
+
+
+
+
+
+
+# plots for all causes/sexes/ages
+# crossbasis
+cb.foehn <- crossbasis(data$f_id,lag = 3,
+                       argvar = list(fun="lin"), #
+                       arglag = list(fun="strata", breaks = 1), #eval(parse(text = opt_lag)), # list(fun="integer"), #
+                       group = data$station)
+# model
+par(mfrow=c(1,2))
+mod_nm <- gnm(fem ~ cb.foehn + cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# prediction
+pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
+
+
+
+plot(pred_nm,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 2 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod_nm$formula[2]))
+
+
+
+
 
 
 
