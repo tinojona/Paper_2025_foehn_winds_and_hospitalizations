@@ -33,9 +33,11 @@ data$station <- as.factor(data$station)
 data <- data %>%
   mutate(y64 = a014y + a1564y) %>%
   mutate(o64 = a6574y + a7584y + a85plusy)
+# define the maximum lag distance we account for
+maxlago <- 3
 
-
-
+# mmt function
+source("functions/findmin.R")
 #####
 
 ### CROSSBASIS TEMPERATURE ######
@@ -72,8 +74,6 @@ bin_thresholds = c(0,5)#,10,20,40,80,120,160, 180 ,200,240,270)
 
 ### ALGORITHM ####
 
-# define the maximum lag distance we account for
-maxlago <- 3
 
 # create an empty matrix to store the qAIC
 qaic_tab <- matrix(NA,
@@ -145,18 +145,20 @@ mod_modif_rev <- gnm(o64 ~  cb.temp + modif_rev, data = data,  family=quasipoiss
 # prediction with and without foehn
 pred_modif <- crosspred(cb.temp, mod_modif, cen = 20, cumul=FALSE)
 
+min1b <- findmin(cb.temp,pred_modif,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
 # centering value
 # index <- which(as.vector(pred_modif$allRRfit) == min(as.vector(pred_modif$allRRfit)))
 # new_cen <- as.numeric(names(pred_modif$allRRfit[index]))
 #
 # pred_modif <- crosspred(cb.temp, mod_modif, cen = new_cen, cumul=FALSE)
-pred_modif_rev <- crosspred(cb.temp, mod_modif_rev, cen = 20, cumul=FALSE)
+pred_modif <- crosspred(cb.temp, mod_modif, cen = min1b, cumul=FALSE)
+pred_modif_rev <- crosspred(cb.temp, mod_modif_rev, cen = min1b, cumul=FALSE)
 
 
 plot(pred_modif,              ## cumulative exposure
      "overall",
      col = 2,
-     ci.arg = list(density = 10, col = 2 ,angle = -45),
+     ci.arg = list(density = 20, col = 2 ,angle = -45),
      lwd = 2,
      main = paste0("Overall cum exp-resp: modifier, binary thr=",i),
      ylim = c(0.7,3))
@@ -165,7 +167,7 @@ lines(pred_modif_rev,           ## cumulative exposure
      "overall",
      col = 4,
      ci = "area",
-     ci.arg = list(density = 10, col = 4 ,angle = 45),
+     ci.arg = list(density = 20, col = 4 ,angle = 45),
      lwd = 2)
 
 legend("topright", legend = c("temp+modif", "temp-modif"), col = c(2,4), lwd = 2)
