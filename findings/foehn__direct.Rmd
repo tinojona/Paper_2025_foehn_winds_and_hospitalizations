@@ -1,0 +1,325 @@
+---
+title: "the direct effect of foehn on hospitalizations"
+author: "Tino Schneidewind"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br>
+
+This Markdown document presents and summarizes the findings of an analysis concerning the following research question.
+
+<br>
+
+#### *Research questions: are hospitalizations affected by foehn in Switzerland? are certain subgroups (hospitalization cause/sex/age) a differentiating factor of this effect?*
+
+<br>
+
+Through an iterative process, we found that the **buffer radius** of 8km around the measurement station showed the greatest effect of foehn on hospitalizations. The following results originate from this buffer radius. 
+
+We chose a **generalized non linear model** as our model type due to data characteristics. We determined the modeling parameters for the crossbasis of foehn by comparing the model performance using the quasi Akaike information criterion. The maximum lag period of 3 was fixed, because we assumed foehn to have a similar effect than regular heatwaves. For modeling the exposure response relationship, a linear model performed best. The lag response association was best modeled by a strata function with one knot at lag 1, with the consequence of all lags having the same relationship. We chose to implement the second best option of using an integer function to allow for some variation. Integer is an appropriate choice for lag periods as short as ours.
+
+We chose a stratum function due to the data structure which consists of the station, year, month and day of the week.
+
+We recentred the prediction to the minimum hospitalization foehn score using a function extracted from the GitHub repository 2017_tobias_Epidem_Rcodedata owned by Antonio Gasparrini, which can be found in this repository in the folder functions.
+
+This Analysis was repeated below with accounting for the influence of temperature on hospitalizations.
+
+<br>
+
+
+```{r data, echo=FALSE, warning=FALSE, message=FALSE}
+library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr)
+
+buffer = 8000 # buffer size
+
+data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv")) # data
+
+data$date = as.Date(data$date); data$station <- as.factor(data$station)
+
+# index to include only stratum that have hosp counts
+data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$stratum)
+ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
+
+data <- data %>%
+  mutate(y64 = a014y + a1564y) %>%
+  mutate(o64 = a6574y + a7584y + a85plusy)
+
+# mmt function
+source("../functions/findmin.R")
+
+```
+
+```{r qAiC}
+# q-AIC computation
+QAIC <- function(model) {
+  phi <- summary(model)$dispersion
+  loglik <- sum(dpois(model$y, model$fitted.values, log=TRUE))
+  return(-2*loglik + 2*summary(model)$df[3]*phi)
+}
+
+
+# crossbasis of foehn
+cb.foehn <- crossbasis(data$f_id,
+                       lag = 3,
+                       argvar = list(fun="lin"),
+                       arglag =  list(fun="integer")
+                       )
+
+# model
+mod <- gnm(all ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prelimminray prediction
+predprel <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+
+# minimum value
+mini <- findmin(cb.foehn,predprel,from=quantile(data$f_id, .1),to=quantile(data$f_id, .9))
+
+# final prediction
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = mini)
+
+```
+
+<br>
+
+#### figures of the overall cumulative response of different affected subgroups 
+
+```{r plot1, echo=FALSE}
+par(mfrow=c(2,2))
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 2 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+# old ppl
+mod <- gnm(o64 ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 3 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+# mal
+mod <- gnm(mal ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 4 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+# fem
+mod <- gnm(fem ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 5 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+par(mfrow=c(2,2))
+# resp
+mod <- gnm(resp ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 2 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+# cvd
+mod <- gnm(cvd ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 3 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+# inf
+mod <- gnm(inf ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 4 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+# y64
+mod <- gnm(y64 ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 5 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+
+```
+
+<br>
+
+#### Conclusions
+Just from these figures we can conclude, that foehn alone does not have an independent and significant effect on hospitalizations on any subgroup as all 95% confidence intervals cross the 1 line. Consequently, within this range the effect of foehn can both be positive and negative.  
+
+<br>
+
+#### Temperature inclusion into the model
+As a next step, we included temperature in our model. The crossbasis for temperature was published in the lancet report. However, here we adjust the crossbasis to have a little less flexibility and reduce the number of knots in the exposure response function from the original 3 in the 10th, 75th and 90th percentile.
+
+```{r sbtemp}
+# crossbasis temperature
+cb.temp <- crossbasis(data$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data$station)
+
+# model including temperature
+mod <- gnm(all ~ cb.temp + cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prelimminray prediction
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0) # 0 is always the minimum effect value
+
+
+```
+
+
+#### figures of the overall cumulative response of different affected subgroups including the temperature effect
+
+```{r plot2, echo=FALSE}
+par(mfrow=c(2,2))
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 2 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+# old ppl
+mod <- gnm(o64 ~ cb.temp + cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 3 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+# mal
+mod <- gnm(mal ~cb.temp + cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 4 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+# fem
+mod <- gnm(fem ~ cb.temp + cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 5 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+par(mfrow=c(2,2))
+# resp
+mod <- gnm(resp ~ cb.temp + cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 2 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+# cvd
+mod <- gnm(cvd ~ cb.temp + cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 3 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+# inf
+mod <- gnm(inf ~ cb.temp + cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 4 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+# y64
+mod <- gnm(y64 ~ cb.temp + cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+predfin <- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = 0)
+plot(predfin,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 5 ,angle = -45),
+     xlab = "Exposure (Foehn)",
+     ylab = "Cumulative Response",
+     lwd = 2,
+     main = as.character(mod$formula[2]))
+
+
+```
+
+<br>
+
+#### Conclusion
+Through the inclusion of temperature in our model, the effect of foehn has even decreased to a more insignificant proportion. This clearly shows, that foehn has no independent effect on hospitalizations, especially when accounting for temperature. This holds for all investigated subgroups that cover age, sex, and the cause of hospitalization. 
+
+<br>
+
+
+
+
+
