@@ -8,8 +8,6 @@ library(shiny)
 library(bslib)
 
 
-
-
 # source ui and server
 source("app/ui.R")
 source("app/server.R")
