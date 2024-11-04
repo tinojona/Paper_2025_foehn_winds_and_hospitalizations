@@ -22,7 +22,6 @@ Excluding all days without foehn, we can see that the frequency of the daily foe
 The relatively stationary distance between the moving average of the percentiles suggest a similar but shifted average distribution over the annual cycle (daily average foehn score). Foehn events are strongest in spring, followed by late autumn. Foehn is on average the least intense in summer and slightly more intense in winter. Median foehn daily foehn score is year round 0, while mean foehn reaches values up to 70 in spring. The mean values follow the 80th percentile moving average closer than the median moving average, further indicating a very skewed distribution.
 
 
-
 ```{r data, echo=FALSE, warning=FALSE, message=FALSE}
 ## Preamble ####
 rm(list=ls())
@@ -47,12 +46,20 @@ data_daily_mean = data %>%
   mutate(daymonth = format(date, "%m-%d")) %>%
   group_by(daymonth) %>%
   summarise(
-    across(c(all, mal, fem, y64, o64, cvd, resp, temp), mean),
+    across(c(mal, fem, y64, o64, cvd, resp), mean),
     mean_f_id = mean(f_id),
+    mean_temp = mean(temp),
+    mean_all = mean(all),
     p50_f_id = quantile(f_id, 0.5),
     p95_f_id = quantile(f_id, 0.95),
     p80_f_id = quantile(f_id, 0.8),
     p90_f_id = quantile(f_id, 0.9),
+    p25_temp = quantile(temp, 0.25),
+    p50_temp = quantile(temp, 0.5),
+    p75_temp = quantile(temp, 0.75),
+    p25_all = quantile(all, 0.25),
+    p50_all = quantile(all, 0.5),
+    p75_all = quantile(all, 0.75),
   ) %>%
   mutate(daymonth = as.Date(paste0("2000-", daymonth)))
 
@@ -61,19 +68,27 @@ data_daily_mean$MA95 = rollmean(data_daily_mean$p95_f_id, k = 30, fill = NA, ali
 data_daily_mean$MA80 = rollmean(data_daily_mean$p80_f_id, k = 30, fill = NA, align = "center")
 data_daily_mean$MA90 = rollmean(data_daily_mean$p90_f_id, k = 30, fill = NA, align = "center")
 
+data_daily_mean$MA25_temp = rollmean(data_daily_mean$p25_temp, k = 30, fill = NA, align = "center")
+data_daily_mean$MA50_temp = rollmean(data_daily_mean$p50_temp, k = 30, fill = NA, align = "center")
+data_daily_mean$MA75_temp = rollmean(data_daily_mean$p75_temp, k = 30, fill = NA, align = "center")
+
+data_daily_mean$MA25_all = rollmean(data_daily_mean$p25_all, k = 30, fill = NA, align = "center")
+data_daily_mean$MA50_all = rollmean(data_daily_mean$p50_all, k = 30, fill = NA, align = "center")
+data_daily_mean$MA75_all = rollmean(data_daily_mean$p75_all, k = 30, fill = NA, align = "center")
+
 monthly_ticks <- data_daily_mean$daymonth[!duplicated(format(data_daily_mean$daymonth, "%Y-%m"))]
 
 ```
 
 
-```{r plot_foehn, echo=FALSE, fig.width= 10, fig.height=8}
-par(mfrow=c(2,2))
+```{r plot_foehn, echo=FALSE, fig.width= 10, fig.height=4}
+par(mfrow=c(1,2))
 hist(data$f_id[data$f_id!=0], 
      breaks = 150, 
-     col = rgb(1,.1,.1,0.6), 
+     col = rgb(0.1,0.1,1,0.7), 
      xlim = c(0,300),
-     xlab = "daily mean foehn score (excluding 0 foehn days)", 
-     main = "daily foehn score distribution", 
+     xlab = "daily mean foehn score", 
+     main = "", 
      cex.axis = 0.6,
      ylab = "frequency")
 
@@ -83,8 +98,8 @@ plot(data_daily_mean$daymonth,
      type = "p",
      xlab = "month", 
      ylab = "daily foehn score", 
-     main = "daily average foehn score",
-     ylim = c(0,220), 
+     main = "",
+     ylim = c(0,250), 
      pch = 20, 
      cex.axis = 0.6, 
      bty = "n")
@@ -99,24 +114,357 @@ lines(data_daily_mean$daymonth, data_daily_mean$MA80, col = 4, lwd = 2, lty = 1)
 lines(data_daily_mean$daymonth, data_daily_mean$MA90, col = 3, lwd = 2, lty = 1)
 lines(data_daily_mean$daymonth, data_daily_mean$MA95, col = 5, lwd = 2, lty = 1)
 
-legend(monthly_ticks[6], 193,  
+legend(monthly_ticks[5], 223,  
        legend = c("p50", "p80","p90","p95"), bty = "n",
        col = c(2,4,3,5),lwd = 1, lty = 1, cex = 0.7, ncol = 4)
 
-text(monthly_ticks[12], 200, labels = "30-day moving averages of percentiles", cex = 0.7, pos = 2)
+text(monthly_ticks[12], 230, labels = "30-day moving averages of percentiles", cex = 0.7, pos = 2)
 
 
 
 
 ```
+
+*Figure 1: daily foehn score distribution excluding 0-foehn days of the whole foehn series (left) and the daily average foehn score with moving averages of percentiles (right).*
+
+<br>
+
+*Table 1: Statistical information about the foehn data in general and per station.*
 
 ```{r foehn stats, echo = FALSE}
-foehn_stats =  data.frame(f_mean_yearly    = as.numeric(rep(NA,1)),
-                   f_mean_yearly_sd = as.numeric(rep(NA,1)),
-                   f_mean_daily     = as.numeric(rep(NA,1)),
-                   f_mean_daily_sd  = as.numeric(rep(NA,1)),
-                   f_0s             = as.numeric(rep(NA,1)))
+# per station and for all
+foehn_stats =  data.frame(yearly_average    = as.numeric(rep(NA,9)),
+                          yearly_sd = as.numeric(rep(NA,9)),
+                          daily_average     = as.numeric(rep(NA,9)),
+                          daily_sd  = as.numeric(rep(NA,9)),
+                          no_foehn_percentage = as.numeric(rep(NA,9)),
+                          years = as.numeric(rep(NA,9)),
+                          row.names = c("all", as.vector(unique(data$station))))
+
+
+data$station_year = paste0(data$station, data$year)
+
+    # yearly mean data all
+subs_y_all = data %>%
+  group_by(station_year) %>%
+  summarize(mittel = mean(f_id, na.rm = TRUE),
+            stand = sd(f_id, na.rm = TRUE),
+            summe = sum(f_id, na.rm = TRUE)) 
+  
+foehn_stats$yearly_average[1] = mean(subs_y_all$summe, na.rm = TRUE)
+foehn_stats$yearly_sd[1]      = sd(subs_y_all$summe, na.rm = TRUE)
+foehn_stats$daily_average[1]  = mean(subs_y_all$mittel, na.rm = TRUE)
+foehn_stats$daily_sd[1]       = sd(subs_y_all$mittel, na.rm = TRUE)
+foehn_stats$years[1]          = length(unique(data$station_year))    
+  
+foehn_stats$no_foehn_percentage[1] = round( (length(which(data$f_id == 0)) / nrow(data))*100, digits = 1)
+
+
+for(i in 1:8){
+
+  # extract station
+  subs = data[data$station == unique(data$station)[i],]
+
+  # yearly mean data
+  subs_y = subs %>%
+    mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
+    group_by(year) %>%
+    summarize(mittel = mean(f_id, na.rm = TRUE),
+              stand = sd(f_id, na.rm = TRUE),
+              summe = sum(f_id, na.rm = TRUE)) 
+  
+    # daily mean data
+  subs_d = subs %>%
+    mutate(day = as.Date(paste0("2000-",format(date, "%m-%d")))) %>%  # Convert year to Date
+    group_by(day) %>%
+    summarize(mittel = mean(f_id, na.rm = TRUE),
+              stand = sd(f_id, na.rm = TRUE),
+              summe = sum(f_id, na.rm = TRUE)) 
+  
+  foehn_stats$yearly_average[i+1] = mean(subs_y$summe, na.rm = TRUE)
+  foehn_stats$yearly_sd[i+1]      = sd(subs_y$summe, na.rm = TRUE)
+  foehn_stats$daily_average[i+1]  = mean(subs_d$mittel, na.rm = TRUE)
+  foehn_stats$daily_sd[i+1]       = sd(subs_d$mittel, na.rm = TRUE)
+  
+  foehn_stats$no_foehn_percentage[i+1] = round( (length(which(data$f_id[data$station == unique(data$station)[i]]== 0)) / nrow(data[data$station == unique(data$station)[i],]) )*100, digits = 1)
+  
+  foehn_stats$years[i+1]          = length(unique(subs$station_year))
+
+}
+
+kable(foehn_stats, 
+      digits = 2, 
+      col.names = c("yearly average", "yearly sd", "daily average", "daily sd", "percentage no-foehn", "years [n]")
+      # 
+)
+
+
+```
+
+<br>
+
+The average of the yearly sum of foehn scores varies between stations between 5207 for Lugano and 13473 for Poschiavo (see Table 1). On average including all stations, accounting for the different timescales of recorded foehn data per station with 141 total years of observations,  we have an annual
+foehn score of 6625. The high standard deviations relative to the averages indicate strong fluctuations in the yearly sum. On average, daily foehn is relatively similar in all stations between 15 and 20, with the exception of Poschiavo. Here again, standard deviation fairly close to the mean imply a lot of variation in the daily foehn score. All station experience at least 68% of all recorded days no foehn, Altdorf even 84%. Over the whole data set, roughly 3 quarter of all days show no foehn. 
+
+<br>
+
+#### temperature statistics
+
+Daily mean temperature ranges between -22 °C and 30 °C over all stations (see Figure 2). The data is not normal distributed according to a Anderson-Darling normality test. However, the histogram follows a bell shape like pattern. Mean daily temperature is highest in summer July with 19 °C and lowest in winter January with -1 °C. This displays the climatological characteristics of alpine valleys that observe foehn.
+
+
+```{r plot_temp, echo=FALSE, fig.width= 10, fig.height=4}
+par(mfrow=c(1,2))
+hist(data$temp, 
+     breaks = 150, 
+     col = rgb(1,.1,.1,0.6), 
+     # xlim = c(0,300),
+     xlab = "daily mean temperature [\u00B0C]", 
+     main = "", 
+     cex.axis = 0.6,
+     ylab = "frequency")
+
+plot(data_daily_mean$daymonth, 
+     data_daily_mean$mean_temp, 
+     xaxt = "n", col = rgb(.1, .1, .1, alpha = 0.4),
+     type = "p",
+     xlab = "month", 
+     ylab = "daily mean temperature [\u00B0C]", 
+     main = "",
+     ylim = c(-5,25),
+     pch = 20, 
+     cex.axis = 0.6, 
+     bty = "n")
+
+axis(1, 
+     at = monthly_ticks + 15, 
+     labels = substr(format(monthly_ticks, "%b"),1,1),
+     cex.axis = 0.6)
+
+lines(data_daily_mean$daymonth, data_daily_mean$MA25_temp, col = 2, lwd = 2, lty = 1)
+lines(data_daily_mean$daymonth, data_daily_mean$MA50_temp, col = 4, lwd = 2, lty = 1)
+lines(data_daily_mean$daymonth, data_daily_mean$MA75_temp, col = 3, lwd = 2, lty = 1)
+
+legend(monthly_ticks[5], -1,  
+       legend = c("p25", "p50","p75"), bty = "n",
+       col = c(2,4,3),lwd = 1, lty = 1, cex = 0.7, ncol = 3)
+
+text(monthly_ticks[11], -0, labels = "30-day moving averages of percentiles", cex = 0.7, pos = 2)
+```
+
+*Figure 2: daily mean temperature distribution of the whole temperature series (left) and the average of the daily mean temperature for every day (right).*
+
+<br>
+
+*Table 2: descriptive statistics for the yearly averages of temperature in general and per station.*
+
+
+```{r temp stats, echo = FALSE}
+# per station and for all
+temp_stats =  data.frame(yearly_average    = as.numeric(rep(NA,9)),
+                          yearly_sd = as.numeric(rep(NA,9)),
+                          maxi     = as.numeric(rep(NA,9)),
+                          mini  = as.numeric(rep(NA,9)),
+                          row.names = c("all", as.vector(unique(data$station))))
+
+
+
+    # yearly mean data all
+subs_y_all = data %>%
+  group_by(station_year) %>%
+  summarize(mittel = mean(temp, na.rm = TRUE),
+            stand = sd(temp, na.rm = TRUE),
+            summe = sum(temp, na.rm = TRUE)) 
+  
+temp_stats$yearly_average[1] = mean(subs_y_all$mittel, na.rm = TRUE)
+temp_stats$yearly_sd[1]     = sd(subs_y_all$mittel, na.rm = TRUE)
+temp_stats$maxi[1]          = max(subs_y_all$mittel, na.rm = TRUE)
+temp_stats$mini[1]          = min(subs_y_all$mittel, na.rm = TRUE)
+  
+for(i in 1:8){
+
+  # extract station
+  subs = data[data$station == unique(data$station)[i],]
+
+  subs_y = subs %>%
+    mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
+    group_by(year) %>%
+    summarize(mittel = mean(temp, na.rm = TRUE),
+            stand = sd(temp, na.rm = TRUE),
+            summe = sum(temp, na.rm = TRUE))
+  
+  temp_stats$yearly_average[i+1] = mean(subs_y$mittel, na.rm = TRUE)
+  temp_stats$yearly_sd[i+1]      = sd(subs_y$mittel, na.rm = TRUE)
+  temp_stats$maxi[i+1]          = max(subs_y$mittel, na.rm = TRUE)
+  temp_stats$mini[i+1]          = min(subs_y$mittel, na.rm = TRUE)
+  
+
+}
+
+kable(temp_stats, 
+      digits = 2, 
+      col.names = c("yearly mean", "yearly sd", "maximum", "minimum")
+      # 
+)
+
 
 ```
 
 
+<br>
+
+The average of all yearly mean temperatures varies between the stations, with a value of 9 °C across stations. Both stations in the Ticino have the highest average yearly mean temperatures. The standard deviation is relatively similar across stations around or below 1 with the exception of Visp. The maximum and minimum yearly mean temperature is across all stations but Visp in a range of plus minus 1.5 °C from the average over all means.  
+ 
+<br>
+
+#### hospitalization statistics
+
+
+```{r plot_hosp, echo=FALSE, fig.width= 10, fig.height=4}
+par(mfrow=c(1,2))
+hist(data$all, 
+     breaks = 60, 
+     col = rgb(0.2,0.2,0.2,0.8), 
+     xlim = c(0,20),
+     xlab = "daily all-cause hospitalizations", 
+     main = "", 
+     cex.axis = 0.6,
+     ylab = "frequency")
+
+plot(data_daily_mean$daymonth, 
+     data_daily_mean$mean_all, 
+     xaxt = "n", col = rgb(.1, .1, .1, alpha = 0.4),
+     type = "p",
+     xlab = "month", 
+     ylab = "daily all-cause hospitalizations", 
+     main = "",
+     ylim = c(0,7),
+     pch = 20, 
+     cex.axis = 0.6, 
+     bty = "n")
+
+axis(1, 
+     at = monthly_ticks + 15, 
+     labels = substr(format(monthly_ticks, "%b"),1,1),
+     cex.axis = 0.6)
+
+lines(data_daily_mean$daymonth, data_daily_mean$MA25_all, col = 2, lwd = 2, lty = 1)
+lines(data_daily_mean$daymonth, data_daily_mean$MA50_all, col = 4, lwd = 2, lty = 1)
+lines(data_daily_mean$daymonth, data_daily_mean$MA75_all, col = 3, lwd = 2, lty = 1)
+
+legend(monthly_ticks[5], 6.5,  
+       legend = c("p25", "p50","p75"), bty = "n",
+       col = c(2,4,3),lwd = 1, lty = 1, cex = 0.7, ncol = 3)
+
+text(monthly_ticks[12], 7, labels = "30-day moving averages of percentiles", cex = 0.7, pos = 2)
+```
+
+
+```{r hosp stats, echo = FALSE}
+# per station and for all
+hosp_stats =  data.frame(yearly_average    = as.numeric(rep(NA,9)),
+                          yearly_sd = as.numeric(rep(NA,9)),
+                          daily_average     = as.numeric(rep(NA,9)),
+                          daily_sd  = as.numeric(rep(NA,9)),
+                         perc_no_hosp = as.numeric(rep(NA,9)),
+                          row.names = c("all", as.vector(unique(data$station))))
+
+
+
+    # yearly mean data all
+subs_y_all = data %>%
+  group_by(station_year) %>%
+  summarize(mittel = mean(all, na.rm = TRUE),
+            stand = sd(all, na.rm = TRUE),
+            summe = sum(all, na.rm = TRUE)) 
+  
+hosp_stats$yearly_average[1] = mean(subs_y_all$summe, na.rm = TRUE)
+hosp_stats$yearly_sd[1]     = sd(subs_y_all$summe, na.rm = TRUE)
+hosp_stats$daily_average[1] = mean(subs_y_all$mittel, na.rm = TRUE)
+hosp_stats$daily_sd[1]      = sd(subs_y_all$mittel, na.rm = TRUE)
+hosp_stats$perc_no_hosp[1]  = length(data$all[data$all==0]) / nrow(data)
+  
+for(i in 1:8){
+
+  # extract station
+  subs = data[data$station == unique(data$station)[i],]
+
+  subs_y = subs %>%
+    mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
+    group_by(year) %>%
+    summarize(mittel = mean(all, na.rm = TRUE),
+            stand = sd(all, na.rm = TRUE),
+            summe = sum(all, na.rm = TRUE))
+  
+  hosp_stats$yearly_average[i+1] = mean(subs_y$summe, na.rm = TRUE)
+  hosp_stats$yearly_sd[i+1]     = sd(subs_y$summe, na.rm = TRUE)
+  hosp_stats$daily_average[i+1] = mean(subs_y$mittel, na.rm = TRUE)
+  hosp_stats$daily_sd[i+1]      = sd(subs_y$mittel, na.rm = TRUE)
+  
+  hosp_stats$perc_no_hosp[i+1] = round( (length(which(data$all[data$station == unique(data$station)[i]]== 0)) / nrow(data[data$station == unique(data$station)[i],]) )*100, digits = 1)
+
+}
+
+kable(hosp_stats, 
+      digits = 2, 
+      col.names = c("yearly mean", "yearly sd", "daily mean", "daily sd", "no hosp percentage")
+      # 
+)
+
+
+```
+
+
+```{r hosp stats 2, echo = FALSE}
+# per station and for all
+hosp_stats_2 =  data.frame(y64  = as.numeric(rep(NA,9)),
+                         o64  = as.numeric(rep(NA,9)),
+                         male  = as.numeric(rep(NA,9)),
+                         fema = as.numeric(rep(NA,9)),
+                         cvd  = as.numeric(rep(NA,9)),
+                         resp  = as.numeric(rep(NA,9)),
+                         uri  = as.numeric(rep(NA,9)),
+                         inf  = as.numeric(rep(NA,9)),
+                         ment = as.numeric(rep(NA,9)),
+                        row.names = c("all", as.vector(unique(data$station))))
+
+
+hosp_stats_2$y64[1] = sum(data$y64[data$y64 > 0]) / sum(data$all) *100
+hosp_stats_2$o64[1] = sum(data$o64[data$o64 > 0]) / sum(data$all) *100
+hosp_stats_2$male[1] = sum(data$mal[data$mal > 0]) / sum(data$all) *100
+hosp_stats_2$fema[1] = sum(data$fem[data$fem > 0]) / sum(data$all) *100
+hosp_stats_2$cvd[1] = sum(data$cvd[data$cvd > 0]) / sum(data$all) *100
+hosp_stats_2$resp[1] = sum(data$resp[data$resp > 0]) / sum(data$all) *100
+hosp_stats_2$uri[1] = sum(data$uri[data$uri > 0]) / sum(data$all) *100
+hosp_stats_2$inf[1] = sum(data$inf[data$inf > 0]) / sum(data$all) *100
+hosp_stats_2$ment[1] = sum(data$ment[data$ment > 0]) / sum(data$all) *100
+  
+for(i in 1:8){
+
+  # extract station
+  subs = data[data$station == unique(data$station)[i],]
+  
+  hosp_stats_2$y64[i+1] = sum(subs$y64[subs$y64 > 0]) / sum(subs$all)  *100
+  hosp_stats_2$o64[i+1] = sum(subs$o64[subs$o64 > 0]) / sum(subs$all) *100
+  hosp_stats_2$male[i+1] = sum(subs$mal[subs$mal > 0]) / sum(subs$all) *100 
+  hosp_stats_2$fema[i+1] = sum(subs$fem[subs$fem > 0]) / sum(subs$all) *100
+  hosp_stats_2$cvd[i+1] = sum(subs$cvd[subs$cvd > 0]) / sum(subs$all) *100
+  hosp_stats_2$resp[i+1] = sum(subs$resp[subs$resp > 0]) / sum(subs$all) *100
+  hosp_stats_2$uri[i+1] = sum(subs$uri[subs$uri > 0]) / sum(subs$all) *100
+  hosp_stats_2$inf[i+1] = sum(subs$inf[subs$inf > 0]) / sum(subs$all) *100
+  hosp_stats_2$ment[i+1] = sum(subs$ment[subs$ment > 0]) / sum(subs$all) *100
+
+
+
+}
+
+kable(hosp_stats_2, 
+      digits = 2, 
+      col.names = c("y64", "o64", "male", "female", "cvd", "resp", "uri", "inf", "ment")
+      # 
+)
+
+
+```
+ 
+<br>
