@@ -238,11 +238,6 @@ text(monthly_ticks[12], 5.4, labels = "(f)", pos = 2)
 
 ```{r timeseriesplot, echo=FALSE, fig.width= 10, fig.height=9}
 
-# moving averages for time series
-# data_time_serie$MA_f_id = rollmean(data_time_serie$mean_f_id, k = 30, fill = NA, align = "center")
-# data_time_serie$MA_all = rollmean(data_time_serie$mean_all, k = 30, fill = NA, align = "center")
-# data_time_serie$MA_temp = rollmean(data_time_serie$mean_temp, k = 30, fill = NA, align = "center")
-
 # margins
 par(mfrow = c(3, 1), 
     mar = c(0, 4, 0, 0.5),  # Top two plots have zero bottom margin
@@ -319,94 +314,161 @@ text(as.Date("2008-01-01")+10, 5.2, labels = "(x)", pos = 4, col = "brown1")
 
 <br>
 
-#### weather table
+#### hospitalization table
 
-*Table 1: Statistical information about the foehn data in general and per station.*
-
-```{r foehn stats, echo = FALSE}
-# per station and for all
-foehn_stats =  data.frame(yearly_average    = as.numeric(rep(NA,9)),
-                          yearly_sd = as.numeric(rep(NA,9)),
-                          daily_average     = as.numeric(rep(NA,9)),
-                          daily_sd  = as.numeric(rep(NA,9)),
-                          no_foehn_percentage = as.numeric(rep(NA,9)),
-                          foehn_percentage = as.numeric(rep(NA,9)),
-                          years = as.numeric(rep(NA,9)),
-                          row.names = c("all", as.vector(unique(data$station))))
+*Table 1: General information about the whole data set and hospitalization characteristics based on annual sums.*
 
 
+```{r gen_table, echo=FALSE}
 data$station_year = paste0(data$station, data$year)
 
-    # yearly mean data all
+gen_stats = data.frame(years = NA,
+                       stations = NA,
+                       start_date = "",
+                       end_date = "2019-12-31",
+                       n_NA = NA,
+                       hosp_annual_mean = NA,
+                       hosp_annual_sd = NA)
+
+# general stats
+gen_stats$years = length(unique(data$station_year))
+gen_stats$stations = length(unique(data$station))
+gen_stats$start_date = paste0(min(data$date), "^")
+
+# missing data
+full_dates <- seq(min(data$date), max(data$date), by = "day")
+missing_dates <- setdiff(full_dates, unique(data$date))
+gen_stats$n_NA <- paste0( round((length(missing_dates) / length(full_dates)), digits = 4) * 100, "%")
+
+# hospitalizations
+# yearly mean data all
 subs_y_all = data %>%
   group_by(station_year) %>%
-  summarize(mittel = mean(f_id, na.rm = TRUE),
-            stand = sd(f_id, na.rm = TRUE),
-            summe = sum(f_id, na.rm = TRUE)) 
-  
-foehn_stats$yearly_average[1] = mean(subs_y_all$summe, na.rm = TRUE)
-foehn_stats$yearly_sd[1]      = sd(subs_y_all$summe, na.rm = TRUE)
-foehn_stats$daily_average[1]  = mean(subs_y_all$mittel, na.rm = TRUE)
-foehn_stats$daily_sd[1]       = sd(subs_y_all$mittel, na.rm = TRUE)
-foehn_stats$years[1]          = length(unique(data$station_year)) 
-foehn_stats$foehn_percentage[1] = (sum(data$f_id) / sum(data$f_id)) *100
-  
-foehn_stats$no_foehn_percentage[1] = round( (length(which(data$f_id == 0)) / nrow(data))*100, digits = 1)
+  summarize(summe = sum(all, na.rm = TRUE)) 
 
+gen_stats$hosp_annual_mean = mean(subs_y_all$summe, na.rm = TRUE)
+gen_stats$hosp_annual_sd = sd(subs_y_all$summe, na.rm = TRUE)
+gen_stats$max_hosp = max(subs_y_all$summe, na.rm = TRUE)
+gen_stats$min_hosp = min(subs_y_all$summe, na.rm = TRUE)
 
-for(i in 1:8){
-
-  # extract station
-  subs = data[data$station == unique(data$station)[i],]
-
-  # yearly mean data
-  subs_y = subs %>%
-    mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
-    group_by(year) %>%
-    summarize(mittel = mean(f_id, na.rm = TRUE),
-              stand = sd(f_id, na.rm = TRUE),
-              summe = sum(f_id, na.rm = TRUE)) 
-  
-    # daily mean data
-  subs_d = subs %>%
-    mutate(day = as.Date(paste0("2000-",format(date, "%m-%d")))) %>%  # Convert year to Date
-    group_by(day) %>%
-    summarize(mittel = mean(f_id, na.rm = TRUE),
-              stand = sd(f_id, na.rm = TRUE),
-              summe = sum(f_id, na.rm = TRUE)) 
-  
-  foehn_stats$yearly_average[i+1] = mean(subs_y$summe, na.rm = TRUE)
-  foehn_stats$yearly_sd[i+1]      = sd(subs_y$summe, na.rm = TRUE)
-  foehn_stats$daily_average[i+1]  = mean(subs_d$mittel, na.rm = TRUE)
-  foehn_stats$daily_sd[i+1]       = sd(subs_d$mittel, na.rm = TRUE)
-  
-  foehn_stats$foehn_percentage[i+1] = (sum(data$f_id[data$station == unique(data$station)[i]]) / sum(data$f_id)) *100
-  
-  foehn_stats$no_foehn_percentage[i+1] = round( (length(which(data$f_id[data$station == unique(data$station)[i]]== 0)) / nrow(data[data$station == unique(data$station)[i],]) )*100, digits = 1)
-  
-  foehn_stats$years[i+1]          = length(unique(subs$station_year))
-
-}
-
-kable(foehn_stats, 
+kable(gen_stats, 
       digits = 2, 
-      col.names = c("yearly average", "yearly sd", "daily average", "daily sd", "percentage no-foehn", "percentage foehn score", "years [n]")
+      col.names = c("years [n]", "stations [n]", "start date", "end date", "missing days", "mean hosp", "sd of hosp", "max hosp", "min hosp")
       # 
 )
+
+```
+
+*^ the datasets for multiple stations started after this date (see appendix or figure 2)*
+
+
+#### weather table
+
+*Table 2: Temperature statistics based on annual means and foehn statistics based on annual sums.*
+
+```{r foehn stats, echo = FALSE}
+weather_stats = data.frame(mean_temp = NA)
+
+# yearly mean data all
+subs_y_all = data %>%
+  group_by(station_year) %>%
+  summarize(mittel_temp = mean(temp, na.rm = TRUE),
+            summe_foehn = sum(f_id, na.rm = TRUE)) 
+  
+# temperature stats
+weather_stats$mean_temp = mean(subs_y_all$mittel_temp, na.rm = TRUE)
+weather_stats$sd_temp = sd(subs_y_all$mittel_temp, na.rm = TRUE)
+weather_stats$max_temp = max(subs_y_all$mittel_temp, na.rm = TRUE)
+weather_stats$min_temp = min(subs_y_all$mittel_temp, na.rm = TRUE)
+
+# foehn stats
+weather_stats$mean_f = mean(subs_y_all$summe_foehn, na.rm = TRUE)
+weather_stats$sd_f = sd(subs_y_all$summe_foehn, na.rm = TRUE)
+weather_stats$max_f = max(subs_y_all$summe_foehn, na.rm = TRUE)
+weather_stats$min_f = min(subs_y_all$summe_foehn, na.rm = TRUE)
+
+
+kable(weather_stats, 
+      digits = 2, 
+      col.names = c("mean temp [°C]", "sd temp [°C]", "max temp [°C]", "min temp [°C]", "mean foehn", "sd foehn", "max foehn", "min foehn")
+      # 
+)
+
 
 
 ```
 
 
+#### Appendix
 
-*Figure 2: daily mean temperature distribution of the whole temperature series (left) and the average of the daily mean temperature for every day (right).*
+*Table 3: General information per station and hospitalization characteristics per station based on annual sums.*
+
+```{r gen_table_station, echo=FALSE}
+stations = as.vector(unique(data$station)) 
+
+gen_stats = data.frame(station = stations)
+
+for (i in 1:length(stations)) {
+  sta = stations[i]
+  
+  subs = data[data$station == sta,]
+  
+  subs_y_all = subs %>%
+  group_by(year) %>%
+  summarize(summe = sum(all, na.rm = TRUE)) 
+
+  gen_stats$years[i] = length(unique(subs$year))
+  gen_stats$start_date[i] = min(subs$date)
+  
+  # missing data
+  full_dates <- seq(min(subs$date), max(subs$date), by = "day")
+  missing_dates <- setdiff(full_dates, subs$date)
+  gen_stats$n_NA[i] <- paste0( round((length(missing_dates) / length(full_dates)), digits = 4) * 100, "%")
+  
+  # hosp stats
+  gen_stats$hosp_annual_mean[i] = mean(subs_y_all$summe, na.rm = TRUE)
+  gen_stats$hosp_annual_sd[i] = sd(subs_y_all$summe, na.rm = TRUE)
+  gen_stats$max_hosp[i] = max(subs_y_all$summe, na.rm = TRUE)
+  gen_stats$min_hosp[i] = min(subs_y_all$summe, na.rm = TRUE) 
+  
+  
+  
+  
+  }
+# general stats
+
+# missing data
+full_dates <- seq(min(data$date), max(data$date), by = "day")
+missing_dates <- setdiff(full_dates, unique(data$date))
+gen_stats$n_NA <- paste0( round((length(missing_dates) / length(full_dates)), digits = 4) * 100, "%")
+
+# hospitalizations
+# yearly mean data all
+subs_y_all = data %>%
+  group_by(station_year) %>%
+  summarize(summe = sum(all, na.rm = TRUE)) 
+
+gen_stats$hosp_annual_mean = mean(subs_y_all$summe, na.rm = TRUE)
+gen_stats$hosp_annual_sd = sd(subs_y_all$summe, na.rm = TRUE)
+gen_stats$max_hosp = max(subs_y_all$summe, na.rm = TRUE)
+gen_stats$min_hosp = min(subs_y_all$summe, na.rm = TRUE)
+
+kable(gen_stats, 
+      digits = 2, 
+      col.names = c("years [n]", "stations [n]", "start date", "end date", "missing days", "mean hosp", "sd of hosp", "max hosp", "min hosp")
+      # 
+)
+
+```
+
+
 
 <br>
 
 *Table 2: descriptive statistics for the yearly averages of temperature in general and per station.*
 
 
-```{r temp stats, echo = FALSE}
+```{r temp stats3, echo = FALSE}
 # per station and for all
 temp_stats =  data.frame(yearly_average    = as.numeric(rep(NA,9)),
                           yearly_sd = as.numeric(rep(NA,9)),
@@ -468,7 +530,7 @@ kable(temp_stats,
 
 
 
-```{r hosp stats, echo = FALSE}
+```{r hosp stats3, echo = FALSE}
 # per station and for all
 hosp_stats =  data.frame(yearly_average    = as.numeric(rep(NA,9)),
                           yearly_sd = as.numeric(rep(NA,9)),
@@ -578,5 +640,265 @@ kable(hosp_stats_2,
 ```
  
 <br>
+
+
+*Table 1: Statistical information about the foehn data in general and per station.*
+
+```{r foehn stats3, echo = FALSE}
+# per station and for all
+foehn_stats =  data.frame(yearly_average    = as.numeric(rep(NA,9)),
+                          yearly_sd = as.numeric(rep(NA,9)),
+                          daily_average     = as.numeric(rep(NA,9)),
+                          daily_sd  = as.numeric(rep(NA,9)),
+                          no_foehn_percentage = as.numeric(rep(NA,9)),
+                          foehn_percentage = as.numeric(rep(NA,9)),
+                          years = as.numeric(rep(NA,9)),
+                          row.names = c("all", as.vector(unique(data$station))))
+
+
+data$station_year = paste0(data$station, data$year)
+
+    # yearly mean data all
+subs_y_all = data %>%
+  group_by(station_year) %>%
+  summarize(mittel = mean(f_id, na.rm = TRUE),
+            stand = sd(f_id, na.rm = TRUE),
+            summe = sum(f_id, na.rm = TRUE)) 
+  
+foehn_stats$yearly_average[1] = mean(subs_y_all$summe, na.rm = TRUE)
+foehn_stats$yearly_sd[1]      = sd(subs_y_all$summe, na.rm = TRUE)
+foehn_stats$daily_average[1]  = mean(subs_y_all$mittel, na.rm = TRUE)
+foehn_stats$daily_sd[1]       = sd(subs_y_all$mittel, na.rm = TRUE)
+foehn_stats$years[1]          = length(unique(data$station_year)) 
+foehn_stats$foehn_percentage[1] = (sum(data$f_id) / sum(data$f_id)) *100
+  
+foehn_stats$no_foehn_percentage[1] = round( (length(which(data$f_id == 0)) / nrow(data))*100, digits = 1)
+
+
+for(i in 1:8){
+
+  # extract station
+  subs = data[data$station == unique(data$station)[i],]
+
+  # yearly mean data
+  subs_y = subs %>%
+    mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
+    group_by(year) %>%
+    summarize(mittel = mean(f_id, na.rm = TRUE),
+              stand = sd(f_id, na.rm = TRUE),
+              summe = sum(f_id, na.rm = TRUE)) 
+  
+    # daily mean data
+  subs_d = subs %>%
+    mutate(day = as.Date(paste0("2000-",format(date, "%m-%d")))) %>%  # Convert year to Date
+    group_by(day) %>%
+    summarize(mittel = mean(f_id, na.rm = TRUE),
+              stand = sd(f_id, na.rm = TRUE),
+              summe = sum(f_id, na.rm = TRUE)) 
+  
+  foehn_stats$yearly_average[i+1] = mean(subs_y$summe, na.rm = TRUE)
+  foehn_stats$yearly_sd[i+1]      = sd(subs_y$summe, na.rm = TRUE)
+  foehn_stats$daily_average[i+1]  = mean(subs_d$mittel, na.rm = TRUE)
+  foehn_stats$daily_sd[i+1]       = sd(subs_d$mittel, na.rm = TRUE)
+  
+  foehn_stats$foehn_percentage[i+1] = (sum(data$f_id[data$station == unique(data$station)[i]]) / sum(data$f_id)) *100
+  
+  foehn_stats$no_foehn_percentage[i+1] = round( (length(which(data$f_id[data$station == unique(data$station)[i]]== 0)) / nrow(data[data$station == unique(data$station)[i],]) )*100, digits = 1)
+  
+  foehn_stats$years[i+1]          = length(unique(subs$station_year))
+
+}
+
+kable(foehn_stats, 
+      digits = 2, 
+      col.names = c("yearly average", "yearly sd", "daily average", "daily sd", "percentage no-foehn", "percentage foehn score", "years [n]")
+      # 
+)
+
+
+```
+
+
+
+*Figure 2: daily mean temperature distribution of the whole temperature series (left) and the average of the daily mean temperature for every day (right).*
+
+<br>
+
+*Table 2: descriptive statistics for the yearly averages of temperature in general and per station.*
+
+
+```{r temp stats5, echo = FALSE}
+# per station and for all
+temp_stats =  data.frame(yearly_average    = as.numeric(rep(NA,9)),
+                          yearly_sd = as.numeric(rep(NA,9)),
+                          maxi     = as.numeric(rep(NA,9)),
+                          mini  = as.numeric(rep(NA,9)),
+                          row.names = c("all", as.vector(unique(data$station))))
+
+
+
+    # yearly mean data all
+subs_y_all = data %>%
+  group_by(station_year) %>%
+  summarize(mittel = mean(temp, na.rm = TRUE),
+            stand = sd(temp, na.rm = TRUE),
+            summe = sum(temp, na.rm = TRUE)) 
+  
+temp_stats$yearly_average[1] = mean(subs_y_all$mittel, na.rm = TRUE)
+temp_stats$yearly_sd[1]     = sd(subs_y_all$mittel, na.rm = TRUE)
+temp_stats$maxi[1]          = max(subs_y_all$mittel, na.rm = TRUE)
+temp_stats$mini[1]          = min(subs_y_all$mittel, na.rm = TRUE)
+  
+for(i in 1:8){
+
+  # extract station
+  subs = data[data$station == unique(data$station)[i],]
+
+  subs_y = subs %>%
+    mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
+    group_by(year) %>%
+    summarize(mittel = mean(temp, na.rm = TRUE),
+            stand = sd(temp, na.rm = TRUE),
+            summe = sum(temp, na.rm = TRUE))
+  
+  temp_stats$yearly_average[i+1] = mean(subs_y$mittel, na.rm = TRUE)
+  temp_stats$yearly_sd[i+1]      = sd(subs_y$mittel, na.rm = TRUE)
+  temp_stats$maxi[i+1]          = max(subs_y$mittel, na.rm = TRUE)
+  temp_stats$mini[i+1]          = min(subs_y$mittel, na.rm = TRUE)
+  
+
+}
+
+kable(temp_stats, 
+      digits = 2, 
+      col.names = c("yearly mean", "yearly sd", "maximum", "minimum")
+      # 
+)
+
+
+```
+
+
+<br>
+
+
+
+#### hospitalization table
+
+
+
+
+
+```{r hosp stats7, echo = FALSE}
+# per station and for all
+hosp_stats =  data.frame(yearly_average    = as.numeric(rep(NA,9)),
+                          yearly_sd = as.numeric(rep(NA,9)),
+                          daily_average     = as.numeric(rep(NA,9)),
+                          daily_sd  = as.numeric(rep(NA,9)),
+                          perc_of_hosp = as.numeric(rep(NA,9)),
+                          row.names = c("all", as.vector(unique(data$station))))
+
+
+
+    # yearly mean data all
+subs_y_all = data %>%
+  group_by(station_year) %>%
+  summarize(mittel = mean(all, na.rm = TRUE),
+            stand = sd(all, na.rm = TRUE),
+            summe = sum(all, na.rm = TRUE)) 
+  
+hosp_stats$yearly_average[1] = mean(subs_y_all$summe, na.rm = TRUE)
+hosp_stats$yearly_sd[1]     = sd(subs_y_all$summe, na.rm = TRUE)
+hosp_stats$daily_average[1] = mean(subs_y_all$mittel, na.rm = TRUE)
+hosp_stats$daily_sd[1]      = sd(subs_y_all$mittel, na.rm = TRUE)
+hosp_stats$perc_of_hosp[1]  = (sum(data$all) / sum(data$all)) *100
+  
+for(i in 1:8){
+
+  # extract station
+  subs = data[data$station == unique(data$station)[i],]
+
+  subs_y = subs %>%
+    mutate(year = as.Date(paste0(format(date, "%Y"), "-01-01"))) %>%  # Convert year to Date
+    group_by(year) %>%
+    summarize(mittel = mean(all, na.rm = TRUE),
+            stand = sd(all, na.rm = TRUE),
+            summe = sum(all, na.rm = TRUE))
+  
+  hosp_stats$yearly_average[i+1] = mean(subs_y$summe, na.rm = TRUE)
+  hosp_stats$yearly_sd[i+1]     = sd(subs_y$summe, na.rm = TRUE)
+  hosp_stats$daily_average[i+1] = mean(subs_y$mittel, na.rm = TRUE)
+  hosp_stats$daily_sd[i+1]      = sd(subs_y$mittel, na.rm = TRUE)
+  
+  hosp_stats$perc_of_hosp[i+1] = ( sum(data$all[data$station == unique(data$station)[i]]) / sum(data$all) ) *100
+    
+
+
+}
+
+kable(hosp_stats, 
+      digits = 2, 
+      col.names = c("yearly mean", "yearly sd", "daily mean", "daily sd", "hosp percentage")
+      # 
+)
+
+
+```
+
+
+```{r hosp stats 26, echo = FALSE}
+# per station and for all
+hosp_stats_2 =  data.frame(y64  = as.numeric(rep(NA,9)),
+                         o64  = as.numeric(rep(NA,9)),
+                         male  = as.numeric(rep(NA,9)),
+                         fema = as.numeric(rep(NA,9)),
+                         cvd  = as.numeric(rep(NA,9)),
+                         resp  = as.numeric(rep(NA,9)),
+                         uri  = as.numeric(rep(NA,9)),
+                         inf  = as.numeric(rep(NA,9)),
+                         ment = as.numeric(rep(NA,9)),
+                        row.names = c("all", as.vector(unique(data$station))))
+
+
+hosp_stats_2$y64[1] = sum(data$y64[data$y64 > 0]) / sum(data$all) *100
+hosp_stats_2$o64[1] = sum(data$o64[data$o64 > 0]) / sum(data$all) *100
+hosp_stats_2$male[1] = sum(data$mal[data$mal > 0]) / sum(data$all) *100
+hosp_stats_2$fema[1] = sum(data$fem[data$fem > 0]) / sum(data$all) *100
+hosp_stats_2$cvd[1] = sum(data$cvd[data$cvd > 0]) / sum(data$all) *100
+hosp_stats_2$resp[1] = sum(data$resp[data$resp > 0]) / sum(data$all) *100
+hosp_stats_2$uri[1] = sum(data$uri[data$uri > 0]) / sum(data$all) *100
+hosp_stats_2$inf[1] = sum(data$inf[data$inf > 0]) / sum(data$all) *100
+hosp_stats_2$ment[1] = sum(data$ment[data$ment > 0]) / sum(data$all) *100
+  
+for(i in 1:8){
+
+  # extract station
+  subs = data[data$station == unique(data$station)[i],]
+  
+  hosp_stats_2$y64[i+1] = sum(subs$y64[subs$y64 > 0]) / sum(subs$all)  *100
+  hosp_stats_2$o64[i+1] = sum(subs$o64[subs$o64 > 0]) / sum(subs$all) *100
+  hosp_stats_2$male[i+1] = sum(subs$mal[subs$mal > 0]) / sum(subs$all) *100 
+  hosp_stats_2$fema[i+1] = sum(subs$fem[subs$fem > 0]) / sum(subs$all) *100
+  hosp_stats_2$cvd[i+1] = sum(subs$cvd[subs$cvd > 0]) / sum(subs$all) *100
+  hosp_stats_2$resp[i+1] = sum(subs$resp[subs$resp > 0]) / sum(subs$all) *100
+  hosp_stats_2$uri[i+1] = sum(subs$uri[subs$uri > 0]) / sum(subs$all) *100
+  hosp_stats_2$inf[i+1] = sum(subs$inf[subs$inf > 0]) / sum(subs$all) *100
+  hosp_stats_2$ment[i+1] = sum(subs$ment[subs$ment > 0]) / sum(subs$all) *100
+
+
+
+}
+
+kable(hosp_stats_2, 
+      digits = 2, 
+      col.names = c("y64", "o64", "male", "female", "cvd", "resp", "uri", "inf", "ment")
+      # 
+)
+
+
+```
+ 
+<br>
+
 
 #### appendix
