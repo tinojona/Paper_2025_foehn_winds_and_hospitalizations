@@ -32,6 +32,9 @@ data <- data %>%
 # define the maximum lag distance we account for
 maxlago <- 3
 
+# ONLY 2008 ONWARDS
+# data <- data[data$date >= "2008-01-01", ]
+
 # mmt function
 source("functions/findmin.R")
 

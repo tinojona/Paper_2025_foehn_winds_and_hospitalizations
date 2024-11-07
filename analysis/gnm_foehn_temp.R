@@ -71,6 +71,9 @@ data <- data %>%
   mutate(o64 = a6574y + a7584y + a85plusy)
 #####
 
+# ONLY 2008 ONWARDS
+data <- data[data$date >= "2008-01-01", ]
+
 ### CROSSBASIS TEMPERATURE ####
 
 cb.temp <- crossbasis(data$temp,
@@ -176,7 +179,7 @@ cat("Lag function:", opt_lag, "\n")
 
 # crossbasis
 cb.foehn <- crossbasis(data$f_id,lag = 3,
-                       argvar = eval(parse(text = opt_var)), # list(fun="lin"), #
+                       argvar = list(fun="lin"), #eval(parse(text = opt_var)), # list(fun="lin"), #
                        arglag = list(fun="integer"), #eval(parse(text = opt_lag)), # list(fun="integer"), #
                        group = data$station)
 # model
