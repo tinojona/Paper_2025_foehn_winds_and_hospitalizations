@@ -395,23 +395,23 @@ regions by the Swiss Federal Office for Statistics.</em></p>
 hospitalization characteristics based on annual sums.</em></p>
 <table>
 <colgroup>
-<col width="10%" />
-<col width="13%" />
+<col width="6%" />
+<col width="9%" />
+<col width="14%" />
 <col width="12%" />
-<col width="11%" />
-<col width="13%" />
+<col width="14%" />
 <col width="10%" />
-<col width="11%" />
+<col width="12%" />
 <col width="9%" />
 <col width="9%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th align="right">years [n]</th>
-<th align="right">stations [n]</th>
-<th align="left">start date</th>
-<th align="left">end date</th>
-<th align="left">missing days</th>
+<th align="right">years</th>
+<th align="right">stations</th>
+<th align="right">start date</th>
+<th align="right">end date</th>
+<th align="right">missing days</th>
 <th align="right">mean hosp</th>
 <th align="right">sd of hosp</th>
 <th align="right">max hosp</th>
@@ -422,9 +422,9 @@ hospitalization characteristics based on annual sums.</em></p>
 <tr class="odd">
 <td align="right">141</td>
 <td align="right">8</td>
-<td align="left">1998-01-01*</td>
-<td align="left">2019-12-31</td>
-<td align="left">0.5%</td>
+<td align="right">1998-01-01 ^</td>
+<td align="right">2019-12-31</td>
+<td align="right">0.63 %</td>
 <td align="right">1152.18</td>
 <td align="right">1304.16</td>
 <td align="right">5371</td>
@@ -432,28 +432,30 @@ hospitalization characteristics based on annual sums.</em></p>
 </tr>
 </tbody>
 </table>
+<p><em>^ for multiple stations the datasets started after this date (see
+appendix table 3 or figure 2)</em></p>
 </div>
 <div id="weather-table" class="section level4">
 <h4>weather table</h4>
-<p><em>Table 2: Temperature statistics based on annual means and foehn
-statistics based on annual sums.</em></p>
+<p><em>Table 2: Temperature statistics in °C based on annual means and
+foehn statistics based on annual sums.</em></p>
 <table>
 <colgroup>
-<col width="15%" />
 <col width="13%" />
-<col width="14%" />
+<col width="10%" />
+<col width="11%" />
+<col width="11%" />
 <col width="14%" />
 <col width="11%" />
-<col width="9%" />
-<col width="10%" />
-<col width="10%" />
+<col width="13%" />
+<col width="13%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th align="right">mean temp [°C]</th>
-<th align="right">sd temp [°C]</th>
-<th align="right">max temp [°C]</th>
-<th align="right">min temp [°C]</th>
+<th align="right">mean temp</th>
+<th align="right">sd temp</th>
+<th align="right">max temp</th>
+<th align="right">min temp</th>
 <th align="right">mean foehn</th>
 <th align="right">sd foehn</th>
 <th align="right">max foehn</th>
@@ -476,765 +478,254 @@ statistics based on annual sums.</em></p>
 </div>
 <div id="appendix" class="section level4">
 <h4>Appendix</h4>
-<p><em>Figure 2: daily mean temperature distribution of the whole
-temperature series (left) and the average of the daily mean temperature
-for every day (right).</em></p>
-<p><br></p>
-<p><em>Table 2: descriptive statistics for the yearly averages of
-temperature in general and per station.</em></p>
-<table>
-<thead>
-<tr class="header">
-<th align="left"></th>
-<th align="right">yearly mean</th>
-<th align="right">yearly sd</th>
-<th align="right">maximum</th>
-<th align="right">minimum</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">all</td>
-<td align="right">8.99</td>
-<td align="right">3.12</td>
-<td align="right">13.94</td>
-<td align="right">-1.81</td>
-</tr>
-<tr class="even">
-<td align="left">Altdorf</td>
-<td align="right">10.50</td>
-<td align="right">0.52</td>
-<td align="right">11.66</td>
-<td align="right">9.62</td>
-</tr>
-<tr class="odd">
-<td align="left">Chur</td>
-<td align="right">10.51</td>
-<td align="right">0.61</td>
-<td align="right">11.95</td>
-<td align="right">9.44</td>
-</tr>
-<tr class="even">
-<td align="left">Davos</td>
-<td align="right">4.11</td>
-<td align="right">0.60</td>
-<td align="right">5.06</td>
-<td align="right">2.76</td>
-</tr>
-<tr class="odd">
-<td align="left">Lugano</td>
-<td align="right">13.08</td>
-<td align="right">1.10</td>
-<td align="right">13.94</td>
-<td align="right">9.69</td>
-</tr>
-<tr class="even">
-<td align="left">Magadino</td>
-<td align="right">12.31</td>
-<td align="right">0.57</td>
-<td align="right">13.58</td>
-<td align="right">11.44</td>
-</tr>
-<tr class="odd">
-<td align="left">Montana</td>
-<td align="right">6.43</td>
-<td align="right">0.65</td>
-<td align="right">7.54</td>
-<td align="right">5.12</td>
-</tr>
-<tr class="even">
-<td align="left">Poschiavo</td>
-<td align="right">8.01</td>
-<td align="right">0.50</td>
-<td align="right">8.56</td>
-<td align="right">6.79</td>
-</tr>
-<tr class="odd">
-<td align="left">Visp</td>
-<td align="right">9.40</td>
-<td align="right">3.41</td>
-<td align="right">11.32</td>
-<td align="right">-1.81</td>
-</tr>
-</tbody>
-</table>
-<p><br></p>
-</div>
-<div id="hospitalization-table-1" class="section level4">
-<h4>hospitalization table</h4>
+<p><em>Table 3: General information per station and hospitalization
+characteristics per station based on annual sums.</em></p>
 <table>
 <colgroup>
-<col width="14%" />
-<col width="17%" />
-<col width="14%" />
-<col width="16%" />
+<col width="10%" />
+<col width="6%" />
+<col width="11%" />
 <col width="13%" />
-<col width="23%" />
+<col width="15%" />
+<col width="10%" />
+<col width="11%" />
+<col width="9%" />
+<col width="9%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="right">yearly mean</th>
-<th align="right">yearly sd</th>
-<th align="right">daily mean</th>
-<th align="right">daily sd</th>
-<th align="right">hosp percentage</th>
+<th align="right">years</th>
+<th align="right">start date</th>
+<th align="right">missing days</th>
+<th align="right">% of tot hosp</th>
+<th align="right">mean hosp</th>
+<th align="right">sd of hosp</th>
+<th align="right">max hosp</th>
+<th align="right">min hosp</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">all</td>
-<td align="right">1152.18</td>
-<td align="right">1304.16</td>
-<td align="right">3.18</td>
-<td align="right">3.60</td>
-<td align="right">100.00</td>
-</tr>
-<tr class="even">
 <td align="left">Altdorf</td>
+<td align="right">22</td>
+<td align="right">1998-01-01</td>
+<td align="right">0.51 %</td>
+<td align="right">8 %</td>
 <td align="right">593.50</td>
 <td align="right">154.92</td>
-<td align="right">1.63</td>
-<td align="right">0.43</td>
-<td align="right">8.04</td>
+<td align="right">855</td>
+<td align="right">395</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Chur</td>
+<td align="right">22</td>
+<td align="right">1998-01-01</td>
+<td align="right">0.52 %</td>
+<td align="right">23 %</td>
 <td align="right">1709.73</td>
 <td align="right">423.66</td>
-<td align="right">4.70</td>
-<td align="right">1.15</td>
-<td align="right">23.15</td>
+<td align="right">2365</td>
+<td align="right">1065</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Davos</td>
+<td align="right">22</td>
+<td align="right">1998-01-07</td>
+<td align="right">0.52 %</td>
+<td align="right">2 %</td>
 <td align="right">175.95</td>
 <td align="right">109.88</td>
-<td align="right">0.49</td>
-<td align="right">0.30</td>
-<td align="right">2.38</td>
+<td align="right">300</td>
+<td align="right">2</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Lugano</td>
+<td align="right">14</td>
+<td align="right">2006-10-04</td>
+<td align="right">0.83 %</td>
+<td align="right">36 %</td>
 <td align="right">4124.43</td>
 <td align="right">1755.77</td>
-<td align="right">11.39</td>
-<td align="right">4.84</td>
-<td align="right">35.54</td>
+<td align="right">5371</td>
+<td align="right">1</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Magadino</td>
+<td align="right">14</td>
+<td align="right">2006-02-15</td>
+<td align="right">0.79 %</td>
+<td align="right">14 %</td>
 <td align="right">1626.50</td>
 <td align="right">265.53</td>
-<td align="right">4.53</td>
-<td align="right">0.71</td>
-<td align="right">14.02</td>
+<td align="right">1986</td>
+<td align="right">1154</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Montana</td>
+<td align="right">22</td>
+<td align="right">1998-01-07</td>
+<td align="right">0.5 %</td>
+<td align="right">12 %</td>
 <td align="right">897.09</td>
 <td align="right">709.38</td>
-<td align="right">2.48</td>
-<td align="right">1.96</td>
-<td align="right">12.15</td>
+<td align="right">1772</td>
+<td align="right">112</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Poschiavo</td>
+<td align="right">12</td>
+<td align="right">2008-01-23</td>
+<td align="right">0.92 %</td>
+<td align="right">1 %</td>
 <td align="right">106.17</td>
 <td align="right">20.64</td>
-<td align="right">0.29</td>
-<td align="right">0.05</td>
-<td align="right">0.78</td>
+<td align="right">135</td>
+<td align="right">79</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Visp</td>
+<td align="right">13</td>
+<td align="right">2007-11-30</td>
+<td align="right">1.13 %</td>
+<td align="right">4 %</td>
 <td align="right">491.77</td>
 <td align="right">156.68</td>
-<td align="right">1.38</td>
-<td align="right">0.37</td>
-<td align="right">3.94</td>
-</tr>
-</tbody>
-</table>
-<table>
-<colgroup>
-<col width="15%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="10%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left"></th>
-<th align="right">y64</th>
-<th align="right">o64</th>
-<th align="right">male</th>
-<th align="right">female</th>
-<th align="right">cvd</th>
-<th align="right">resp</th>
-<th align="right">uri</th>
-<th align="right">inf</th>
-<th align="right">ment</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">all</td>
-<td align="right">47.60</td>
-<td align="right">52.40</td>
-<td align="right">53.92</td>
-<td align="right">46.08</td>
-<td align="right">33.91</td>
-<td align="right">22.11</td>
-<td align="right">15.04</td>
-<td align="right">12.08</td>
-<td align="right">16.87</td>
-</tr>
-<tr class="even">
-<td align="left">Altdorf</td>
-<td align="right">46.89</td>
-<td align="right">53.11</td>
-<td align="right">55.75</td>
-<td align="right">44.25</td>
-<td align="right">40.19</td>
-<td align="right">18.15</td>
-<td align="right">12.64</td>
-<td align="right">14.78</td>
-<td align="right">14.24</td>
-</tr>
-<tr class="odd">
-<td align="left">Chur</td>
-<td align="right">57.48</td>
-<td align="right">42.52</td>
-<td align="right">53.96</td>
-<td align="right">46.04</td>
-<td align="right">31.18</td>
-<td align="right">21.71</td>
-<td align="right">14.69</td>
-<td align="right">12.90</td>
-<td align="right">19.53</td>
-</tr>
-<tr class="even">
-<td align="left">Davos</td>
-<td align="right">51.92</td>
-<td align="right">48.08</td>
-<td align="right">51.69</td>
-<td align="right">48.31</td>
-<td align="right">33.27</td>
-<td align="right">21.80</td>
-<td align="right">13.98</td>
-<td align="right">15.53</td>
-<td align="right">15.42</td>
-</tr>
-<tr class="odd">
-<td align="left">Lugano</td>
-<td align="right">40.11</td>
-<td align="right">59.89</td>
-<td align="right">53.20</td>
-<td align="right">46.80</td>
-<td align="right">35.89</td>
-<td align="right">23.11</td>
-<td align="right">16.40</td>
-<td align="right">11.03</td>
-<td align="right">13.58</td>
-</tr>
-<tr class="even">
-<td align="left">Magadino</td>
-<td align="right">44.64</td>
-<td align="right">55.36</td>
-<td align="right">54.53</td>
-<td align="right">45.47</td>
-<td align="right">33.79</td>
-<td align="right">23.74</td>
-<td align="right">16.28</td>
-<td align="right">11.83</td>
-<td align="right">14.36</td>
-</tr>
-<tr class="odd">
-<td align="left">Montana</td>
-<td align="right">52.11</td>
-<td align="right">47.89</td>
-<td align="right">54.13</td>
-<td align="right">45.87</td>
-<td align="right">30.84</td>
-<td align="right">20.28</td>
-<td align="right">11.86</td>
-<td align="right">9.91</td>
-<td align="right">27.10</td>
-</tr>
-<tr class="even">
-<td align="left">Poschiavo</td>
-<td align="right">40.66</td>
-<td align="right">59.34</td>
-<td align="right">53.77</td>
-<td align="right">46.23</td>
-<td align="right">34.77</td>
-<td align="right">23.08</td>
-<td align="right">14.44</td>
-<td align="right">8.71</td>
-<td align="right">19.00</td>
-</tr>
-<tr class="odd">
-<td align="left">Visp</td>
-<td align="right">53.87</td>
-<td align="right">46.13</td>
-<td align="right">55.00</td>
-<td align="right">45.00</td>
-<td align="right">29.34</td>
-<td align="right">23.24</td>
-<td align="right">15.88</td>
-<td align="right">17.41</td>
-<td align="right">14.12</td>
+<td align="right">616</td>
+<td align="right">9</td>
 </tr>
 </tbody>
 </table>
 <p><br></p>
-<p><em>Table 1: Statistical information about the foehn data in general
-and per station.</em></p>
+<p><em>Table 4: Temperature statistics in °C per station based on annual
+means and foehn statistics per station based on annual sums.</em></p>
 <table style="width:100%;">
 <colgroup>
 <col width="9%" />
-<col width="13%" />
 <col width="9%" />
-<col width="12%" />
+<col width="7%" />
 <col width="8%" />
-<col width="18%" />
-<col width="20%" />
+<col width="8%" />
+<col width="14%" />
+<col width="10%" />
+<col width="8%" />
+<col width="9%" />
 <col width="9%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
-<th align="right">yearly average</th>
-<th align="right">yearly sd</th>
-<th align="right">daily average</th>
-<th align="right">daily sd</th>
-<th align="right">percentage no-foehn</th>
-<th align="right">percentage foehn score</th>
-<th align="right">years [n]</th>
+<th align="right">mean temp</th>
+<th align="right">sd temp</th>
+<th align="right">max temp</th>
+<th align="right">min temp</th>
+<th align="right">% of tot foehn</th>
+<th align="right">mean foehn</th>
+<th align="right">sd foehn</th>
+<th align="right">max foehn</th>
+<th align="right">min foehn</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">all</td>
-<td align="right">6625.51</td>
-<td align="right">2814.43</td>
-<td align="right">18.34</td>
-<td align="right">7.67</td>
-<td align="right">76.7</td>
-<td align="right">100.00</td>
-<td align="right">141</td>
-</tr>
-<tr class="even">
-<td align="left">Altdorf</td>
-<td align="right">5791.32</td>
-<td align="right">1373.51</td>
-<td align="right">15.97</td>
-<td align="right">14.24</td>
-<td align="right">84.4</td>
-<td align="right">13.64</td>
-<td align="right">22</td>
-</tr>
-<tr class="odd">
-<td align="left">Chur</td>
-<td align="right">6623.50</td>
-<td align="right">1429.21</td>
-<td align="right">18.26</td>
-<td align="right">14.37</td>
-<td align="right">74.9</td>
-<td align="right">15.60</td>
-<td align="right">22</td>
-</tr>
-<tr class="even">
-<td align="left">Davos</td>
-<td align="right">5207.32</td>
-<td align="right">1442.08</td>
-<td align="right">14.37</td>
-<td align="right">11.55</td>
-<td align="right">76.2</td>
-<td align="right">12.26</td>
-<td align="right">22</td>
-</tr>
-<tr class="odd">
-<td align="left">Lugano</td>
-<td align="right">5283.36</td>
-<td align="right">1873.88</td>
-<td align="right">15.40</td>
-<td align="right">13.49</td>
-<td align="right">82.6</td>
-<td align="right">7.92</td>
-<td align="right">14</td>
-</tr>
-<tr class="even">
-<td align="left">Magadino</td>
-<td align="right">6192.00</td>
-<td align="right">1383.05</td>
-<td align="right">17.20</td>
-<td align="right">14.19</td>
-<td align="right">77.5</td>
-<td align="right">9.28</td>
-<td align="right">14</td>
-</tr>
-<tr class="odd">
-<td align="left">Montana</td>
-<td align="right">6356.32</td>
-<td align="right">2521.34</td>
-<td align="right">17.46</td>
-<td align="right">13.99</td>
-<td align="right">72.1</td>
-<td align="right">14.97</td>
-<td align="right">22</td>
-</tr>
-<tr class="even">
-<td align="left">Poschiavo</td>
-<td align="right">13473.33</td>
-<td align="right">2455.41</td>
-<td align="right">37.54</td>
-<td align="right">24.57</td>
-<td align="right">68.3</td>
-<td align="right">17.31</td>
-<td align="right">12</td>
-</tr>
-<tr class="odd">
-<td align="left">Visp</td>
-<td align="right">6487.38</td>
-<td align="right">2244.62</td>
-<td align="right">19.32</td>
-<td align="right">17.38</td>
-<td align="right">76.6</td>
-<td align="right">9.03</td>
-<td align="right">13</td>
-</tr>
-</tbody>
-</table>
-<p><em>Figure 2: daily mean temperature distribution of the whole
-temperature series (left) and the average of the daily mean temperature
-for every day (right).</em></p>
-<p><br></p>
-<p><em>Table 2: descriptive statistics for the yearly averages of
-temperature in general and per station.</em></p>
-<table>
-<thead>
-<tr class="header">
-<th align="left"></th>
-<th align="right">yearly mean</th>
-<th align="right">yearly sd</th>
-<th align="right">maximum</th>
-<th align="right">minimum</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">all</td>
-<td align="right">8.99</td>
-<td align="right">3.12</td>
-<td align="right">13.94</td>
-<td align="right">-1.81</td>
-</tr>
-<tr class="even">
 <td align="left">Altdorf</td>
 <td align="right">10.50</td>
 <td align="right">0.52</td>
 <td align="right">11.66</td>
 <td align="right">9.62</td>
+<td align="right">14 %</td>
+<td align="right">5791.32</td>
+<td align="right">1373.51</td>
+<td align="right">8483</td>
+<td align="right">3689</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Chur</td>
 <td align="right">10.51</td>
 <td align="right">0.61</td>
 <td align="right">11.95</td>
 <td align="right">9.44</td>
+<td align="right">16 %</td>
+<td align="right">6623.50</td>
+<td align="right">1429.21</td>
+<td align="right">9092</td>
+<td align="right">4260</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Davos</td>
 <td align="right">4.11</td>
 <td align="right">0.60</td>
 <td align="right">5.06</td>
 <td align="right">2.76</td>
+<td align="right">12 %</td>
+<td align="right">5207.32</td>
+<td align="right">1442.08</td>
+<td align="right">8751</td>
+<td align="right">2720</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Lugano</td>
 <td align="right">13.08</td>
 <td align="right">1.10</td>
 <td align="right">13.94</td>
 <td align="right">9.69</td>
+<td align="right">8 %</td>
+<td align="right">5283.36</td>
+<td align="right">1873.88</td>
+<td align="right">7781</td>
+<td align="right">666</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Magadino</td>
 <td align="right">12.31</td>
 <td align="right">0.57</td>
 <td align="right">13.58</td>
 <td align="right">11.44</td>
+<td align="right">9 %</td>
+<td align="right">6192.00</td>
+<td align="right">1383.05</td>
+<td align="right">8843</td>
+<td align="right">3964</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Montana</td>
 <td align="right">6.43</td>
 <td align="right">0.65</td>
 <td align="right">7.54</td>
 <td align="right">5.12</td>
+<td align="right">15 %</td>
+<td align="right">6356.32</td>
+<td align="right">2521.34</td>
+<td align="right">11690</td>
+<td align="right">3142</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="left">Poschiavo</td>
 <td align="right">8.01</td>
 <td align="right">0.50</td>
 <td align="right">8.56</td>
 <td align="right">6.79</td>
+<td align="right">17 %</td>
+<td align="right">13473.33</td>
+<td align="right">2455.41</td>
+<td align="right">17294</td>
+<td align="right">9804</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="left">Visp</td>
 <td align="right">9.40</td>
 <td align="right">3.41</td>
 <td align="right">11.32</td>
 <td align="right">-1.81</td>
+<td align="right">9 %</td>
+<td align="right">6487.38</td>
+<td align="right">2244.62</td>
+<td align="right">8831</td>
+<td align="right">48</td>
 </tr>
 </tbody>
 </table>
 <p><br></p>
-</div>
-<div id="hospitalization-table-2" class="section level4">
-<h4>hospitalization table</h4>
-<table>
-<colgroup>
-<col width="14%" />
-<col width="17%" />
-<col width="14%" />
-<col width="16%" />
-<col width="13%" />
-<col width="23%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left"></th>
-<th align="right">yearly mean</th>
-<th align="right">yearly sd</th>
-<th align="right">daily mean</th>
-<th align="right">daily sd</th>
-<th align="right">hosp percentage</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">all</td>
-<td align="right">1152.18</td>
-<td align="right">1304.16</td>
-<td align="right">3.18</td>
-<td align="right">3.60</td>
-<td align="right">100.00</td>
-</tr>
-<tr class="even">
-<td align="left">Altdorf</td>
-<td align="right">593.50</td>
-<td align="right">154.92</td>
-<td align="right">1.63</td>
-<td align="right">0.43</td>
-<td align="right">8.04</td>
-</tr>
-<tr class="odd">
-<td align="left">Chur</td>
-<td align="right">1709.73</td>
-<td align="right">423.66</td>
-<td align="right">4.70</td>
-<td align="right">1.15</td>
-<td align="right">23.15</td>
-</tr>
-<tr class="even">
-<td align="left">Davos</td>
-<td align="right">175.95</td>
-<td align="right">109.88</td>
-<td align="right">0.49</td>
-<td align="right">0.30</td>
-<td align="right">2.38</td>
-</tr>
-<tr class="odd">
-<td align="left">Lugano</td>
-<td align="right">4124.43</td>
-<td align="right">1755.77</td>
-<td align="right">11.39</td>
-<td align="right">4.84</td>
-<td align="right">35.54</td>
-</tr>
-<tr class="even">
-<td align="left">Magadino</td>
-<td align="right">1626.50</td>
-<td align="right">265.53</td>
-<td align="right">4.53</td>
-<td align="right">0.71</td>
-<td align="right">14.02</td>
-</tr>
-<tr class="odd">
-<td align="left">Montana</td>
-<td align="right">897.09</td>
-<td align="right">709.38</td>
-<td align="right">2.48</td>
-<td align="right">1.96</td>
-<td align="right">12.15</td>
-</tr>
-<tr class="even">
-<td align="left">Poschiavo</td>
-<td align="right">106.17</td>
-<td align="right">20.64</td>
-<td align="right">0.29</td>
-<td align="right">0.05</td>
-<td align="right">0.78</td>
-</tr>
-<tr class="odd">
-<td align="left">Visp</td>
-<td align="right">491.77</td>
-<td align="right">156.68</td>
-<td align="right">1.38</td>
-<td align="right">0.37</td>
-<td align="right">3.94</td>
-</tr>
-</tbody>
-</table>
-<table>
-<colgroup>
-<col width="15%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="10%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left"></th>
-<th align="right">y64</th>
-<th align="right">o64</th>
-<th align="right">male</th>
-<th align="right">female</th>
-<th align="right">cvd</th>
-<th align="right">resp</th>
-<th align="right">uri</th>
-<th align="right">inf</th>
-<th align="right">ment</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">all</td>
-<td align="right">47.60</td>
-<td align="right">52.40</td>
-<td align="right">53.92</td>
-<td align="right">46.08</td>
-<td align="right">33.91</td>
-<td align="right">22.11</td>
-<td align="right">15.04</td>
-<td align="right">12.08</td>
-<td align="right">16.87</td>
-</tr>
-<tr class="even">
-<td align="left">Altdorf</td>
-<td align="right">46.89</td>
-<td align="right">53.11</td>
-<td align="right">55.75</td>
-<td align="right">44.25</td>
-<td align="right">40.19</td>
-<td align="right">18.15</td>
-<td align="right">12.64</td>
-<td align="right">14.78</td>
-<td align="right">14.24</td>
-</tr>
-<tr class="odd">
-<td align="left">Chur</td>
-<td align="right">57.48</td>
-<td align="right">42.52</td>
-<td align="right">53.96</td>
-<td align="right">46.04</td>
-<td align="right">31.18</td>
-<td align="right">21.71</td>
-<td align="right">14.69</td>
-<td align="right">12.90</td>
-<td align="right">19.53</td>
-</tr>
-<tr class="even">
-<td align="left">Davos</td>
-<td align="right">51.92</td>
-<td align="right">48.08</td>
-<td align="right">51.69</td>
-<td align="right">48.31</td>
-<td align="right">33.27</td>
-<td align="right">21.80</td>
-<td align="right">13.98</td>
-<td align="right">15.53</td>
-<td align="right">15.42</td>
-</tr>
-<tr class="odd">
-<td align="left">Lugano</td>
-<td align="right">40.11</td>
-<td align="right">59.89</td>
-<td align="right">53.20</td>
-<td align="right">46.80</td>
-<td align="right">35.89</td>
-<td align="right">23.11</td>
-<td align="right">16.40</td>
-<td align="right">11.03</td>
-<td align="right">13.58</td>
-</tr>
-<tr class="even">
-<td align="left">Magadino</td>
-<td align="right">44.64</td>
-<td align="right">55.36</td>
-<td align="right">54.53</td>
-<td align="right">45.47</td>
-<td align="right">33.79</td>
-<td align="right">23.74</td>
-<td align="right">16.28</td>
-<td align="right">11.83</td>
-<td align="right">14.36</td>
-</tr>
-<tr class="odd">
-<td align="left">Montana</td>
-<td align="right">52.11</td>
-<td align="right">47.89</td>
-<td align="right">54.13</td>
-<td align="right">45.87</td>
-<td align="right">30.84</td>
-<td align="right">20.28</td>
-<td align="right">11.86</td>
-<td align="right">9.91</td>
-<td align="right">27.10</td>
-</tr>
-<tr class="even">
-<td align="left">Poschiavo</td>
-<td align="right">40.66</td>
-<td align="right">59.34</td>
-<td align="right">53.77</td>
-<td align="right">46.23</td>
-<td align="right">34.77</td>
-<td align="right">23.08</td>
-<td align="right">14.44</td>
-<td align="right">8.71</td>
-<td align="right">19.00</td>
-</tr>
-<tr class="odd">
-<td align="left">Visp</td>
-<td align="right">53.87</td>
-<td align="right">46.13</td>
-<td align="right">55.00</td>
-<td align="right">45.00</td>
-<td align="right">29.34</td>
-<td align="right">23.24</td>
-<td align="right">15.88</td>
-<td align="right">17.41</td>
-<td align="right">14.12</td>
-</tr>
-</tbody>
-</table>
-<p><br></p>
-</div>
-<div id="appendix-1" class="section level4">
-<h4>appendix</h4>
 </div>
 
 
