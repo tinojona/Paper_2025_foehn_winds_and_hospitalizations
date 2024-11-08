@@ -102,20 +102,21 @@ This Markdown document presents some descriptive statistics about the key variab
 
 <br>
 
-#### distribution and annual cycle
+#### figures
 
 
-```{r plot_foehn, echo=FALSE, fig.width= 10, fig.height=12}
+```{r plot_foehn, echo=FALSE, fig.width= 6, fig.height=6, fig.align = 'center'}
 
 par(mfrow=c(3,2), 
-    mar = c(4,4,.5,1))
+    mar = c(4,4,.5,1),
+    mgp = c(2, .5, 0))
 
 
 hist(data$f_id[data$f_id!=0], 
      breaks = 40,
      col = colors[2], 
      xlim = c(0,300),
-     xlab = "daily foehn score", 
+     xlab = "foehn", 
      main = "", 
      # cex.axis = 0.6,
      ylab = "frequency")
@@ -126,10 +127,11 @@ plot(data_daily_mean$daymonth,
      xaxt = "n", col = colors[2],
      type = "p",
      xlab = "month", 
-     ylab = "daily foehn score", 
+     ylab = "foehn", 
      main = "",
      ylim = c(0,140), 
      pch = 16, 
+     cex = .6,
      # cex.axis = 0.6, 
      # lwd = 2,
      bty = "n")
@@ -144,9 +146,9 @@ lines(data_daily_mean$daymonth, data_daily_mean$MA75, col = 1, lwd = 2, lty = 2)
 lines(data_daily_mean$daymonth, data_daily_mean$MA90, col = 1, lwd = 2, lty = 3)
 # lines(data_daily_mean$daymonth, data_daily_mean$MA95, col = 5, lwd = 2, lty = 1)
 
-legend(monthly_ticks[6]+15, 120,
+legend(monthly_ticks[5]+15, 120,
        legend = c("p50", "p75","p90"), bty = "n",
-       col = c(1,1,1),lwd = 1, lty = c(1,2,3), #cex = 0.7, 
+       col = c(1,1,1),lwd = 1, lty = c(1,2,3), cex = 0.8, 
        ncol = 4)
 
 text(monthly_ticks[12], 135, 
@@ -156,7 +158,7 @@ hist(data$temp,
      breaks = 30,
      col = colors[1], 
      # xlim = c(0,300),
-     xlab = "daily mean temperature [\u00B0C]", 
+     xlab = "temperature [\u00B0C]", 
      main = "", 
      # cex.axis = 0.6,
      ylab = "frequency")
@@ -167,10 +169,11 @@ plot(data_daily_mean$daymonth,
      xaxt = "n", col = colors[1],
      type = "p",
      xlab = "month", 
-     ylab = "daily mean temperature [\u00B0C]", 
+     ylab = "temperature [\u00B0C]", 
      main = "",
      ylim = c(-5,25),
      pch = 16, 
+     cex = .6,
      # cex.axis = 0.6, 
      bty = "n")
 
@@ -183,9 +186,9 @@ lines(data_daily_mean$daymonth, data_daily_mean$MA25_temp, col = 1, lwd = 2, lty
 lines(data_daily_mean$daymonth, data_daily_mean$MA50_temp, col = 1, lwd = 2, lty = 1)
 lines(data_daily_mean$daymonth, data_daily_mean$MA75_temp, col = 1, lwd = 2, lty = 2)
 
-legend(monthly_ticks[4]+15, 3,  
+legend(monthly_ticks[3]+15, 3,  
        legend = c("p25", "p50","p75"), bty = "n",
-       col = c(1,1,1),lwd = 1, lty = c(3,1,2),# cex = 0.7, 
+       col = c(1,1,1),lwd = 1, lty = c(3,1,2), cex = 0.8, 
        ncol = 3)
 
 text(monthly_ticks[12], 23, labels = "(d)", pos = 2)
@@ -195,7 +198,7 @@ hist(data$all,
      breaks = 50,
      col = colors[3], 
      xlim = c(0,20),
-     xlab = "daily all-cause hospitalizations", 
+     xlab = "hospitalizations", 
      main = "", 
      # cex.axis = 0.6,
      ylab = "frequency")
@@ -206,10 +209,11 @@ plot(data_daily_mean$daymonth,
      xaxt = "n", col = colors[3],
      type = "p",
      xlab = "month", 
-     ylab = "daily all-cause hospitalizations", 
+     ylab = "hospitalizations", 
      main = "",
      ylim = c(0,6),
      pch = 16, 
+     cex = .6,
      # cex.axis = 0.6, 
      bty = "n")
 
@@ -222,9 +226,9 @@ lines(data_daily_mean$daymonth, data_daily_mean$MA25_all, col = 1, lwd = 2, lty 
 lines(data_daily_mean$daymonth, data_daily_mean$MA50_all, col = 1, lwd = 2, lty = 1)
 lines(data_daily_mean$daymonth, data_daily_mean$MA75_all, col = 1, lwd = 2, lty = 2)
 
-legend(monthly_ticks[4]+15, 5.75,  
+legend(monthly_ticks[3]+5, 5.75,  
        legend = c("p25", "p50","p75"), bty = "n",
-       col = c(1,1,1),lwd = 1, lty = c(3,1,2), #cex = 0.7, 
+       col = c(1,1,1),lwd = 1, lty = c(3,1,2), cex = 0.8, 
        ncol = 3)
 
 text(monthly_ticks[12], 5.4, labels = "(f)", pos = 2)
@@ -234,20 +238,20 @@ text(monthly_ticks[12], 5.4, labels = "(f)", pos = 2)
 
 <br>
 
-#### time series
 
-```{r timeseriesplot, echo=FALSE, fig.width= 10, fig.height=9}
+```{r timeseriesplot, echo=FALSE, fig.width= 5, fig.height=4.5, fig.align = 'center'}
 
 # margins
 par(mfrow = c(3, 1), 
     mar = c(0, 4, 0, 0.5),  # Top two plots have zero bottom margin
-    oma = c(4, 0, 0, 0))      # Outer bottom margin for x-axis label
+    oma = c(4, 0, 0, 0),
+    mgp = c(2, .5, 0))      # Outer bottom margin for x-axis label
 
 # foehn plot
 plot(data_time_serie$date, data_time_serie$MA_f_id,
      type = "n",
      xlab = "",
-     ylab = "daily foehn score",
+     ylab = "foehn",
      xaxt = "n"
      )
 
@@ -266,7 +270,7 @@ text(data_time_serie$date[nrow(data_time_serie)], 78, labels = "(a)", pos = 2)
 plot(data_time_serie$date, data_time_serie$MA_temp,
      type = "n",
      xlab = "",
-     ylab = "daily mean temperature [\u00B0C]",
+     ylab = "temperature [\u00B0C]",
      xaxt = "n"
      )
 
@@ -285,7 +289,7 @@ text(data_time_serie$date[nrow(data_time_serie)], -2, labels = "(b)", pos = 2)
 plot(data_time_serie$date, data_time_serie$MA_all,
      type = "n",
      xlab = "",
-     ylab = "daily all-cause hospitalizations",
+     ylab = "hospitalizations",
      )
 
 mtext("time", side = 1, line = 2, outer = TRUE, cex = 0.8)
@@ -301,22 +305,22 @@ lines(data_time_serie$date, data_time_serie$MA_all,
 
 text(data_time_serie$date[nrow(data_time_serie)], 1.8, labels = "(c)", pos = 2)
 
-text(start_dates$date[1]+20, 4.8, labels = "(1)", pos = 2)
-text(start_dates$date[4]-20, 4.8, labels = "(3)", pos = 4)
-text(start_dates$date[5]+20, 4.8, labels = "(2)", pos = 2)
-text(start_dates$date[7]-20, 4.8, labels = "(5)", pos = 4)
-text(start_dates$date[8]+20, 4.8, labels = "(4)", pos = 2)
-text(as.Date("2008-01-01")+10, 5.2, labels = "(x)", pos = 4, col = "brown1")
+text(start_dates$date[1]+85, 4.8, labels = "(1)", pos = 2, cex = .8)
+text(start_dates$date[4]+125, 4.8, labels = "(3)", pos = 2, cex = .8)
+text(start_dates$date[5]+85, 4.8, labels = "(2)", pos = 2, cex = .8)
+text(start_dates$date[7]-70, 4.8, labels = "(5)", pos = 4, cex = .8)
+text(start_dates$date[8]+85, 4.8, labels = "(4)", pos = 2, cex = .8)
+text(as.Date("2008-01-01")+85, 5.2, labels = "(x)", pos = 2, col = "brown1", cex = .8)
   
 ```
 
-*Figure 2: (a) 30-day moving average time series of mean daily foehn, (b) 30-day moving average time series of average daily mean temperature, (c) 30-day moving average of mean daily hospitalization. (1) start of data from Altdorf, Chur, Davos, Montana, (2) start of data from Magadino, (3) start of data from Lugano, (4) start of data from Visp, (5) start of data from Poschiavo. (x) redefinition of the MedStat regions by the Swiss Federal Office for Statistics.*
+*Figure 2: (a) 30-day moving average time series of mean daily foehn, (b) 30-day moving average time series of average daily mean temperature, (c) 30-day moving average of mean daily all-cause hospitalization. (1) start of data from Altdorf, Chur, Davos, Montana, (2) start of data from Magadino, (3) start of data from Lugano, (4) start of data from Visp, (5) start of data from Poschiavo. (x) redefinition of the MedStat regions by the Swiss Federal Office for Statistics.*
 
 <br>
 
-#### hospitalization table
+#### tables
 
-*Table 1: General information about the whole data set and hospitalization characteristics based on annual sums.*
+*Table 1: (top) General information about the whole data set and hospitalization characteristics based on annual sums, (center) contribution in percent of different subgroups to all-cause hospitalizations counts. Brackets indicate which columns sum up to 100 %, (bottom) temperature statistics in °C based on annual means and foehn statistics based on annual sums.*
 
 
 ```{r gen_table, echo=FALSE}
@@ -367,18 +371,36 @@ gen_stats$min_hosp = min(subs_y_all$summe, na.rm = TRUE)
 
 kable(gen_stats, 
       digits = 2, 
-      col.names = c("years", "stations", "start date", "end date", "missing days", "mean hosp", "sd of hosp", "max hosp", "min hosp"),
+      col.names = c("years", "stations", "start date", "end date", "missing days", "mean hosp", "sd hosp", "max hosp", "min hosp"),
       align = rep("r", ncol(gen_stats))
 )
 
 ```
 
-*^ for multiple stations the datasets started after this date (see appendix table 3 or figure 2)*
+```{r subgroubs_table, echo=FALSE}
 
+subgroups = data.frame(mal = NA)
 
-#### weather table
+subgroups$mal = paste( round( sum(data$mal) / sum(data$all), digits = 4) *100, " %")
+subgroups$fem = paste( round( sum(data$fem) / sum(data$all), digits = 4) *100, " %")
 
-*Table 2: Temperature statistics in °C based on annual means and foehn statistics based on annual sums.*
+subgroups$y64 = paste( round( sum(data$y64) / sum(data$all), digits = 4) *100, " %")
+subgroups$o64 = paste( round( sum(data$o64) / sum(data$all), digits = 4) *100, " %")
+
+subgroups$cvd = paste( round( sum(data$cvd) / sum(data$all), digits = 4) *100, " %")
+subgroups$resp = paste( round( sum(data$resp) / sum(data$all), digits = 4) *100, " %")
+subgroups$inf = paste( round( sum(data$inf) / sum(data$all), digits = 4) *100, " %")
+subgroups$uri = paste( round( sum(data$uri) / sum(data$all), digits = 4) *100, " %")
+subgroups$ment = paste( round( sum(data$ment) / sum(data$all), digits = 4) *100, " %")
+
+kable(subgroups, 
+      digits = 2, 
+      col.names = c("(male", "female)", "(age <= 64", "age > 64)", "(cvd", "resp", "inf", "uri", "ment)"),
+      align = rep("r", ncol(subgroups))
+      
+)
+
+```
 
 ```{r weather_stats, echo = FALSE}
 weather_stats = data.frame(mean_temp = NA)
@@ -413,10 +435,13 @@ kable(weather_stats,
 
 ```
 
+*^ for multiple stations the datasets started after this date (see figure 2 or appendix table 3)*
+
+<br>
 
 #### Appendix
 
-*Table 3: General information per station and hospitalization characteristics per station based on annual sums.*
+*Table 2: General information per station and hospitalization characteristics per station based on annual sums.*
 
 ```{r gen_table_station, echo=FALSE}
 stations = as.vector(unique(data$station)) 
@@ -442,7 +467,7 @@ for (i in 1:length(stations)) {
   gen_stats$n_NA[i] <- paste0( round((length(missing_dates) / length(full_dates)), digits = 4) * 100, " %")
   
   # hosp stats
-  gen_stats$perc_of_tot_hosp[i] = paste0(round( (sum(subs_y_all$summe) / sum(data$all) ), digits = 2)*100, " %")
+  gen_stats$perc_of_tot_hosp[i] = paste0(round( (sum(subs_y_all$summe) / sum(data$all) ), digits = 4)*100, " %")
   gen_stats$hosp_annual_mean[i] = mean(subs_y_all$summe, na.rm = TRUE)
   gen_stats$hosp_annual_sd[i] = sd(subs_y_all$summe, na.rm = TRUE)
   gen_stats$max_hosp[i] = max(subs_y_all$summe, na.rm = TRUE)
@@ -456,8 +481,48 @@ for (i in 1:length(stations)) {
 
 kable(gen_stats, 
       digits = 2, 
-      col.names = c("years", "start date", "missing days", "% of tot hosp" ,"mean hosp", "sd of hosp", "max hosp", "min hosp"      ),
+      col.names = c("years", "start date", "missing days", "% of tot hosp" ,"mean hosp", "sd hosp", "max hosp", "min hosp"      ),
       align = rep("r", ncol(gen_stats))
+      
+)
+
+```
+
+<br>
+
+*Table 3: Contribution in percent of different subgroups to all-cause hospitalizations counts per station. Brackets indicate which columns sum up to 100 % per station*
+
+
+
+```{r subgroubs_table_stations, echo=FALSE}
+
+subgroups = data.frame(mal = rep(NA, 8), 
+                       row.names = stations) 
+
+
+for (i in 1:length(unique(data$station))) {
+  subs = data[data$station == unique(data$station)[i],]
+  
+  subgroups$mal[i] = paste( round( sum(subs$mal) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$fem[i] = paste( round( sum(subs$fem) / sum(subs$all), digits = 4) *100, " %")
+
+  subgroups$y64[i] = paste( round( sum(subs$y64) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$o64[i] = paste( round( sum(subs$o64) / sum(subs$all), digits = 4) *100, " %")
+
+  subgroups$cvd[i] = paste( round( sum(subs$cvd) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$resp[i] = paste( round( sum(subs$resp) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$inf[i] = paste( round( sum(subs$inf) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$uri[i] = paste( round( sum(subs$uri) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$ment[i] = paste( round( sum(subs$ment) / sum(subs$all), digits = 4) *100, " %")
+  
+  
+}                       
+
+
+kable(subgroups, 
+      digits = 2, 
+      col.names = c("(male", "female)", "(age <= 64", "age > 64)", "(cvd", "resp", "inf", "uri", "ment)"),
+      align = rep("r", ncol(subgroups))
       
 )
 
@@ -491,7 +556,7 @@ for (i in 1:length(stations)) {
   weather_stats$min_temp[i] = round(min(subs_y_all$mittel_temp, na.rm = TRUE), digits = 2)
   
   # foehn stats
-  weather_stats$tot_foehn_per[i] = paste0(  round( (sum(data$f_id[data$station == sta]) / sum(data$f_id) ), digits = 2) *100, " %")
+  weather_stats$tot_foehn_per[i] = paste0(  round( (sum(data$f_id[data$station == sta]) / sum(data$f_id) ), digits = 4) *100, " %")
   weather_stats$mean_f[i] = mean(subs_y_all$summe_foehn, na.rm = TRUE)
   weather_stats$sd_f[i] = sd(subs_y_all$summe_foehn, na.rm = TRUE)
   weather_stats$max_f[i] = max(subs_y_all$summe_foehn, na.rm = TRUE)
@@ -516,4 +581,3 @@ kable(weather_stats,
 ```
 
 
-<br>
