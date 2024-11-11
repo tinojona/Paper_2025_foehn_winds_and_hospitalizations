@@ -102,6 +102,86 @@ legend("topright", legend = c("foehn days", "non foehn d."), col = c(2,4), lwd =
 
 
 
+# different model types
+
+
+# gnm without eliminate stratum
+par(mfrow=c(2,2))
+for( i in c(10,35,80,140)){ #c(0,5,60,120
+
+  # binary foehn
+  foehn_bin <- ifelse(data$f_id > i, 0, 1)
+  foehn_bin_rev <- ifelse(foehn_bin == 1, 0, 1)
+
+  modif <- cb.temp * foehn_bin
+  modif_rev <- cb.temp *foehn_bin_rev
+
+  # model with and without foehn
+  mod_modif <- gnm(inf ~  cb.temp + modif, data = data,  family=quasipoisson())
+  mod_modif_rev <- gnm(inf ~  cb.temp + modif_rev, data = data,  family=quasipoisson())
+
+  pred_modif_new     <- crosspred(cb.temp, mod_modif, cen = 17, cumul=FALSE) # min1
+  pred_modif_rev_new <- crosspred(cb.temp, mod_modif_rev, cen = 17, cumul=FALSE) # min2
+
+
+  plot(pred_modif_new,              ## cumulative exposure
+       "overall",
+       col = 2,
+       ci.arg = list(density = 20, col = 2 ,angle = -45),
+       lwd = 2,
+       main = paste0("Overall, binary thr.=",i, ", ", as.character(mod_modif$formula[2])),
+       ylim = c(0.3,3))
+
+  lines(pred_modif_rev_new,           ## cumulative exposure
+        "overall",
+        col = 4,
+        ci = "area",
+        ci.arg = list(density = 20, col = 4 ,angle = 45),
+        lwd = 2)
+
+  legend("topleft", legend = c("foehn days", "non foehn d."), col = c(2,4), lwd = 2)
+}
+
+
+# glm without eliminate
+for( i in c(10,35,80,140)){ #c(0,5,60,120
+
+  # binary foehn
+  foehn_bin <- ifelse(data$f_id > i, 0, 1)
+  foehn_bin_rev <- ifelse(foehn_bin == 1, 0, 1)
+
+
+  modif <- cb.temp * foehn_bin
+  modif_rev <- cb.temp *foehn_bin_rev
+
+  # model with and without foehn
+  mod_modif <- glm(inf ~  cb.temp + modif, data = data,  family=quasipoisson())
+  mod_modif_rev <- glm(inf ~  cb.temp + modif_rev, data = data,  family=quasipoisson())
+
+  pred_modif_new     <- crosspred(cb.temp, mod_modif, cen = 17, cumul=FALSE) # min1
+  pred_modif_rev_new <- crosspred(cb.temp, mod_modif_rev, cen = 17, cumul=FALSE) # min2
+
+
+  plot(pred_modif_new,              ## cumulative exposure
+       "overall",
+       col = 2,
+       ci.arg = list(density = 20, col = 2 ,angle = -45),
+       lwd = 2,
+       main = paste0("Overall, binary thr.=",i, ", ", as.character(mod_modif$formula[2])),
+       ylim = c(0.3,3))
+
+  lines(pred_modif_rev_new,           ## cumulative exposure
+        "overall",
+        col = 4,
+        ci = "area",
+        ci.arg = list(density = 20, col = 4 ,angle = 45),
+        lwd = 2)
+
+  legend("topleft", legend = c("foehn days", "non foehn d."), col = c(2,4), lwd = 2)
+}
+
+
+
 #####
 
 dev.off()
