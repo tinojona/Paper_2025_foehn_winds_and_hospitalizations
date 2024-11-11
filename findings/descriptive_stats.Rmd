@@ -320,8 +320,7 @@ text(as.Date("2008-01-01")+85, 5.2, labels = "(x)", pos = 2, col = "brown1", cex
 
 #### tables
 
-*Table 1: (top) General information about the whole data set and hospitalization characteristics based on annual sums, (center) contribution in percent of different subgroups to all-cause hospitalizations counts. Brackets indicate which columns sum up to 100 %, (bottom) temperature statistics in °C based on annual means and foehn statistics based on annual sums.*
-
+*Table 1: General information about the whole data set and hospitalization characteristics based on annual sums, ^ for multiple stations the data sets started after this date (see figure 2 or appendix table 3).*
 
 ```{r gen_table, echo=FALSE}
 data$station_year = paste0(data$station, data$year)
@@ -377,30 +376,7 @@ kable(gen_stats,
 
 ```
 
-```{r subgroubs_table, echo=FALSE}
-
-subgroups = data.frame(mal = NA)
-
-subgroups$mal = paste( round( sum(data$mal) / sum(data$all), digits = 4) *100, " %")
-subgroups$fem = paste( round( sum(data$fem) / sum(data$all), digits = 4) *100, " %")
-
-subgroups$y64 = paste( round( sum(data$y64) / sum(data$all), digits = 4) *100, " %")
-subgroups$o64 = paste( round( sum(data$o64) / sum(data$all), digits = 4) *100, " %")
-
-subgroups$cvd = paste( round( sum(data$cvd) / sum(data$all), digits = 4) *100, " %")
-subgroups$resp = paste( round( sum(data$resp) / sum(data$all), digits = 4) *100, " %")
-subgroups$inf = paste( round( sum(data$inf) / sum(data$all), digits = 4) *100, " %")
-subgroups$uri = paste( round( sum(data$uri) / sum(data$all), digits = 4) *100, " %")
-subgroups$ment = paste( round( sum(data$ment) / sum(data$all), digits = 4) *100, " %")
-
-kable(subgroups, 
-      digits = 2, 
-      col.names = c("(male", "female)", "(age <= 64", "age > 64)", "(cvd", "resp", "inf", "uri", "ment)"),
-      align = rep("r", ncol(subgroups))
-      
-)
-
-```
+*Table 2: Temperature statistics in °C based on annual means and foehn statistics based on annual sums.*
 
 ```{r weather_stats, echo = FALSE}
 weather_stats = data.frame(mean_temp = NA)
@@ -435,13 +411,12 @@ kable(weather_stats,
 
 ```
 
-*^ for multiple stations the datasets started after this date (see figure 2 or appendix table 3)*
 
 <br>
 
 #### Appendix
 
-*Table 2: General information per station and hospitalization characteristics per station based on annual sums.*
+*Table 3: General information per station and hospitalization characteristics per station based on annual sums.*
 
 ```{r gen_table_station, echo=FALSE}
 stations = as.vector(unique(data$station)) 
@@ -490,30 +465,43 @@ kable(gen_stats,
 
 <br>
 
-*Table 3: Contribution in percent of different subgroups to all-cause hospitalizations counts per station. Brackets indicate which columns sum up to 100 % per station*
+*Table 4: Contribution in percent of different subgroups to all-cause hospitalizations counts across all stations and per station. Brackets indicate which columns sum up to 100 % per station*
 
 
 
 ```{r subgroubs_table_stations, echo=FALSE}
 
-subgroups = data.frame(mal = rep(NA, 8), 
-                       row.names = stations) 
+subgroups = data.frame(mal = rep(NA, 9), 
+                       row.names = c("all", stations)) 
+
+
+subgroups$mal[1] = paste( round( sum(data$mal) / sum(data$all), digits = 4) *100, " %")
+subgroups$fem[1] = paste( round( sum(data$fem) / sum(data$all), digits = 4) *100, " %")
+
+subgroups$y64[1] = paste( round( sum(data$y64) / sum(data$all), digits = 4) *100, " %")
+subgroups$o64[1] = paste( round( sum(data$o64) / sum(data$all), digits = 4) *100, " %")
+
+subgroups$cvd[1] = paste( round( sum(data$cvd) / sum(data$all), digits = 4) *100, " %")
+subgroups$resp[1] = paste( round( sum(data$resp) / sum(data$all), digits = 4) *100, " %")
+subgroups$inf[1] = paste( round( sum(data$inf) / sum(data$all), digits = 4) *100, " %")
+subgroups$uri[1] = paste( round( sum(data$uri) / sum(data$all), digits = 4) *100, " %")
+subgroups$ment[1] = paste( round( sum(data$ment) / sum(data$all), digits = 4) *100, " %")
 
 
 for (i in 1:length(unique(data$station))) {
   subs = data[data$station == unique(data$station)[i],]
   
-  subgroups$mal[i] = paste( round( sum(subs$mal) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$fem[i] = paste( round( sum(subs$fem) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$mal[i+1] = paste( round( sum(subs$mal) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$fem[i+1] = paste( round( sum(subs$fem) / sum(subs$all), digits = 4) *100, " %")
 
-  subgroups$y64[i] = paste( round( sum(subs$y64) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$o64[i] = paste( round( sum(subs$o64) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$y64[i+1] = paste( round( sum(subs$y64) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$o64[i+1] = paste( round( sum(subs$o64) / sum(subs$all), digits = 4) *100, " %")
 
-  subgroups$cvd[i] = paste( round( sum(subs$cvd) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$resp[i] = paste( round( sum(subs$resp) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$inf[i] = paste( round( sum(subs$inf) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$uri[i] = paste( round( sum(subs$uri) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$ment[i] = paste( round( sum(subs$ment) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$cvd[i+1] = paste( round( sum(subs$cvd) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$resp[i+1] = paste( round( sum(subs$resp) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$inf[i+1] = paste( round( sum(subs$inf) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$uri[i+1] = paste( round( sum(subs$uri) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$ment[i+1] = paste( round( sum(subs$ment) / sum(subs$all), digits = 4) *100, " %")
   
   
 }                       
@@ -532,7 +520,7 @@ kable(subgroups,
 
 <br>
 
-*Table 4: Temperature statistics in °C per station based on annual means and foehn statistics per station based on annual sums.*
+*Table 5: Temperature statistics in °C per station based on annual means and foehn statistics per station based on annual sums.*
 
 ```{r weather_stats_station, echo = FALSE}
 weather_stats = data.frame(mean_temp = rep(NA, 8),
