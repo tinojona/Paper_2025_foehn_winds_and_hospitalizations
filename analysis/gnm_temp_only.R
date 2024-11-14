@@ -75,3 +75,65 @@ plot(prednew,              ## cumulative exposure
      ylab = "Cumulative Response",
      lwd = 2,
      main = "")
+
+
+
+
+
+# winter vs summer
+
+# winter data
+data_winter = data[data$month %in% c(12,1,2),]
+# grouping index
+data_winter$station_year = paste(data_winter$station, ifelse(data_winter$month %in% 1:11, data_winter$year, data_winter$year+1))
+
+
+# Filter out groups with fewer than 22 observations
+# one group has only 13 observations
+group_counts <- table(data_winter$station_year)
+valid_groups <- names(group_counts[group_counts >= 21])
+data_winter <- subset(data_winter, station_year %in% valid_groups)
+
+# crossbasis temp
+cb.temp.winter <- crossbasis(data_winter$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data_winter$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data_winter$station_year)
+
+mod_winter <- gnm(all ~  cb.temp.winter, data = data_winter,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+pred_winter  <- crosspred(cb.temp.winter, mod_winter, cen = 5, cumul=FALSE)
+mod_summer <- gnm(all ~  cb.temp.summer, data = data_summer,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+pred_summer  <- crosspred(cb.temp.summer, mod_summer, cen = 5, cumul=FALSE)
+
+
+# summer data
+data_summer = data[data$month %in% c(6:8),]
+# grouping index
+data_summer$station_year = paste0(data_summer$station, data_summer$year)
+# crossbasis temp
+cb.temp.summer <- crossbasis(data_summer$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data_summer$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data_summer$station_year)
+
+
+
+
+plot(pred_summer,              ## cumulative exposure
+     "overall",
+     col = 2,
+     ci.arg = list(density = 20, col = 2 ,angle = -45),
+     lwd = 2,
+     main = paste0("Overall, binary thr.=",i, ", ", as.character(mod_modif$formula[2])),
+     ylim = c(0.7,3), xlim = c(-10,25))
+lines(pred_winter,           ## cumulative exposure
+      "overall",
+      col = 4,
+      ci = "area",
+      ci.arg = list(density = 20, col = 4 ,angle = 45),
+      lwd = 2)
+legend("topright", legend = c("summer", "winter"), col = c(2,4), lwd = 2)
+
+
