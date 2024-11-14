@@ -49,6 +49,9 @@ rm(list=ls())
 # buffer size for data file read
 buffer = 8000
 
+# mmt function
+source("functions/findmin.R")
+
 ### DATA ####
 data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv"))
 
@@ -72,13 +75,13 @@ data <- data %>%
 #####
 
 # ONLY 2008 ONWARDS
-data <- data[data$date >= "2008-01-01", ]
+# data <- data[data$date >= "2008-01-01", ]
 
 ### CROSSBASIS TEMPERATURE ####
 
 cb.temp <- crossbasis(data$temp,
                       lag=21,
-                      argvar=list(fun="ns", knots = quantile(data$temp, c(.1,.75,.9), na.rm=TRUE)),
+                      argvar=list(fun="ns", knots = quantile(data$temp, c(.5,.9), na.rm=TRUE)),
                       arglag=list(fun="ns", knots = logknots(21,3)),
                       group = data$station)
 
@@ -391,6 +394,61 @@ plot(pred_nm,              ## cumulative exposure
 
 
 
+
+#####
+
+#### Results table
+cb.temp <- crossbasis(data$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data$station)
+
+cb.foehn <- crossbasis(data$f_id,
+                       lag = 3,
+                       argvar = list(fun="lin"),
+                       arglag = list(fun="integer"),
+                       group = data$station)
+
+
+groups_id = colnames(data)[c(3,9,10,24,25, 13, 14, 11, 15, 12)]
+
+table_estimates = data.frame(all = rep(NA, 3),
+                             mal = rep(NA, 3),
+                             fem = rep(NA, 3),
+                             y64 = rep(NA, 3),
+                             o64  = rep(NA, 3),
+                             cvd = rep(NA, 3),
+                             resp = rep(NA, 3),
+                             inf = rep(NA, 3),
+                             uri = rep(NA, 3),
+                             ment = rep(NA, 3),
+                             row.names = c("prediction", "p.025", "p.975"))
+
+for (i in 1:length(groups_id)) {
+
+  colvar = groups_id[i]
+
+  formula <- as.formula(paste(colvar, "~ cb.foehn + cb.temp"))
+
+  # model
+  mod_nm <- gnm(formula, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction
+  pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
+
+  # extract prediction for value 72 and save it
+  table_estimates[1,i] = pred_nm$allRRfit["72"]
+  table_estimates[2,i] = pred_nm$allRRlow["72"]
+  table_estimates[3,i] = pred_nm$allRRhigh["72"]
+
+
+}
+
+
+kable(table_estimates, digits = 3)
+
+####
 
 
 # dev.off()
