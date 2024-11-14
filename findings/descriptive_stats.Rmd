@@ -94,6 +94,17 @@ monthly_ticks <- data_daily_mean$daymonth[!duplicated(format(data_daily_mean$day
 # colors
 colors <- viridis(3, option = "viridis")
 
+station_MedStat = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/per_station/MDSTID_MetRegions_8000_per_station.csv", header = TRUE)
+
+station_MedStat_full <- rbind(c("ALT","CHU","DAV","LUG","MAG","MVE","ROB","VIS"), #Abbreviation
+                              c(46.887042,46.870622,46.812956,46.003833,46.160019,46.298772,46.347194,46.302875),  #x coord
+                              c(8.621806,9.530814,9.843492,8.960117,8.933608,7.460761,10.062964,7.842903),  #y coord
+                              station_MedStat)
+
+rownames(station_MedStat_full) <- c("Abbreviation", "X Coordinate", "Y Coordinate", "1 MedStat regions", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+
+
+
 ```
 
 <br>
@@ -310,7 +321,7 @@ text(start_dates$date[4]+125, 4.8, labels = "(3)", pos = 2, cex = .8)
 text(start_dates$date[5]+85, 4.8, labels = "(2)", pos = 2, cex = .8)
 text(start_dates$date[7]-70, 4.8, labels = "(5)", pos = 4, cex = .8)
 text(start_dates$date[8]+85, 4.8, labels = "(4)", pos = 2, cex = .8)
-text(as.Date("2008-01-01")+85, 5.2, labels = "(x)", pos = 2, col = "brown1", cex = .8)
+text(as.Date("2008-01-01")+70, 5.2, labels = "(x)", pos = 2, col = "brown1", cex = .8)
   
 ```
 
@@ -568,4 +579,20 @@ kable(weather_stats,
 
 ```
 
+<br>
 
+*Table 6: Abbreviation and location of meteorological measurement stations and their assigned MedStat regions within an 8 km buffer.*
+
+
+```{r station_stats, echo=FALSE}
+
+
+kable(station_MedStat_full, 
+      # digits = 2, 
+      # col.names = c("mean temp", "sd temp", "max temp", "min temp","% of tot foehn" ,"mean foehn", "sd foehn", "max foehn", "min foehn"),
+      align = rep("r", ncol(station_MedStat_full))
+      # 
+)
+```
+
+<br>
