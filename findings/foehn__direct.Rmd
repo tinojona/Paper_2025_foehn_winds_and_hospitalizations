@@ -9,31 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-<br>
-
-This Markdown document presents and summarizes the findings of an analysis concerning the following research question.
-
-<br>
-
-#### *Research questions: are hospitalizations affected by foehn in Switzerland? are certain subgroups (hospitalization cause/sex/age) a differentiating factor of this effect?*
-
-<br>
-
-Through an iterative process, we found that the **buffer radius** of 8km around the measurement station showed the greatest effect of foehn on hospitalizations. The following results originate from this buffer radius. 
-
-We chose a **generalized non linear model** as our model type due to data characteristics. We determined the modeling parameters for the crossbasis of foehn by comparing the model performance using the quasi Akaike information criterion. The maximum lag period of 3 was fixed, because we assumed foehn to have a similar effect than regular heatwaves. For modeling the exposure response relationship, a linear model performed best. The lag response association was best modeled by a strata function with one knot at lag 1, with the consequence of all lags having the same relationship. We chose to implement the second best option of using an integer function to allow for some variation. Integer is an appropriate choice for lag periods as short as ours.
-
-We chose a stratum function due to the data structure which consists of the station, year, month and day of the week.
-
-We recentred the prediction to the minimum hospitalization foehn score using a function extracted from the GitHub repository 2017_tobias_Epidem_Rcodedata owned by Antonio Gasparrini, which can be found in this repository in the folder functions.
-
-This Analysis was repeated below with accounting for the influence of temperature on hospitalizations.
-
-<br>
-
 
 ```{r data, echo=FALSE, warning=FALSE, message=FALSE}
-library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr)
+library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr);library(knitr)
 
 buffer = 8000 # buffer size
 
@@ -53,6 +31,98 @@ data <- data %>%
 source("../functions/findmin.R")
 
 ```
+
+<br>
+
+This Markdown document presents and summarizes the findings of an analysis concerning the following research question.
+
+<br>
+
+#### *Results for RQ1+RQ3: are hospitalizations independently affected by foehn in Switzerland? are certain subgroups (hospitalization cause/sex/age) a differentiating factor of this effect?*
+
+<br>
+
+*Table 1: Response ration for all-cause hospitalizations and subgroups at foehn value of 72 which corresponds to 6 h of full foehn. *
+
+```{r resultss, echo=FALSE}
+
+#### Results table
+cb.temp <- crossbasis(data$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data$station)
+
+cb.foehn <- crossbasis(data$f_id,
+                       lag = 3,
+                       argvar = list(fun="lin"),
+                       arglag = list(fun="integer"),
+                       group = data$station)
+
+
+groups_id = colnames(data)[c(3,9,10,24,25, 13, 14, 11, 15, 12)]
+
+table_estimates = data.frame(all = rep(NA, 3),
+                             mal = rep(NA, 3),
+                             fem = rep(NA, 3),
+                             y64 = rep(NA, 3),
+                             o64  = rep(NA, 3),
+                             cvd = rep(NA, 3),
+                             resp = rep(NA, 3),
+                             inf = rep(NA, 3),
+                             uri = rep(NA, 3),
+                             ment = rep(NA, 3),
+                             row.names = c("RR", "p.025", "p.975"))
+
+for (i in 1:length(groups_id)) {
+
+  colvar = groups_id[i]
+
+  formula <- as.formula(paste(colvar, "~ cb.foehn + cb.temp"))
+
+  # model
+  mod_nm <- gnm(formula, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction
+  pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
+
+  # extract prediction for value 72 and save it
+  table_estimates[1,i] = pred_nm$allRRfit["72"]
+  table_estimates[2,i] = pred_nm$allRRlow["72"]
+  table_estimates[3,i] = pred_nm$allRRhigh["72"]
+
+
+}
+
+kable(table_estimates,
+      digits = 3,
+      col.names = c("all-cause", "male", "female", "y64" ,"o64", "cvd", "resp", "inf", "uri", "ment"      ),
+      align = rep("r", ncol(table_estimates) ))
+
+
+
+```
+
+
+
+<br>
+
+### ALL BELOW IS FOR DOCUMENTATION PURPOSES ONLY 
+
+<br>
+
+Through an iterative process, we found that the **buffer radius** of 8km around the measurement station showed the greatest effect of foehn on hospitalizations. The following results originate from this buffer radius. 
+
+We chose a **generalized non linear model** as our model type due to data characteristics. We determined the modeling parameters for the crossbasis of foehn by comparing the model performance using the quasi Akaike information criterion. The maximum lag period of 3 was fixed, because we assumed foehn to have a similar effect than regular heatwaves. For modeling the exposure response relationship, a linear model performed best. The lag response association was best modeled by a strata function with one knot at lag 1, with the consequence of all lags having the same relationship. We chose to implement the second best option of using an integer function to allow for some variation. Integer is an appropriate choice for lag periods as short as ours.
+
+We chose a stratum function due to the data structure which consists of the station, year, month and day of the week.
+
+We recentred the prediction to the minimum hospitalization foehn score using a function extracted from the GitHub repository 2017_tobias_Epidem_Rcodedata owned by Antonio Gasparrini, which can be found in this repository in the folder functions.
+
+This Analysis was repeated below with accounting for the influence of temperature on hospitalizations.
+
+<br>
+
 
 ```{r qAiC}
 # q-AIC computation

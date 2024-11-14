@@ -11,7 +11,7 @@
 
 <meta name="author" content="Tino Schneidewind" />
 
-<meta name="date" content="2024-10-30" />
+<meta name="date" content="2024-11-14" />
 
 <title>the direct effect of foehn on hospitalizations</title>
 
@@ -353,7 +353,7 @@ display: none;
 <h1 class="title toc-ignore">the direct effect of foehn on
 hospitalizations</h1>
 <h4 class="author">Tino Schneidewind</h4>
-<h4 class="date">2024-10-30</h4>
+<h4 class="date">2024-11-14</h4>
 
 </div>
 
@@ -362,10 +362,89 @@ hospitalizations</h1>
 <p>This Markdown document presents and summarizes the findings of an
 analysis concerning the following research question.</p>
 <p><br></p>
-<div id="research-questions-are-hospitalizations-affected-by-foehn-in-switzerland-are-certain-subgroups-hospitalization-causesexage-a-differentiating-factor-of-this-effect" class="section level4">
-<h4><em>Research questions: are hospitalizations affected by foehn in
-Switzerland? are certain subgroups (hospitalization cause/sex/age) a
-differentiating factor of this effect?</em></h4>
+<div id="results-for-rq1rq3-are-hospitalizations-independently-affected-by-foehn-in-switzerland-are-certain-subgroups-hospitalization-causesexage-a-differentiating-factor-of-this-effect" class="section level4">
+<h4><em>Results for RQ1+RQ3: are hospitalizations independently affected
+by foehn in Switzerland? are certain subgroups (hospitalization
+cause/sex/age) a differentiating factor of this effect?</em></h4>
+<p><br></p>
+<p><em>Table 1: Response ration for all-cause hospitalizations and
+subgroups at foehn value of 72 which corresponds to 6 h of full foehn.
+</em></p>
+<table>
+<colgroup>
+<col width="8%" />
+<col width="14%" />
+<col width="8%" />
+<col width="9%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">all-cause</th>
+<th align="right">male</th>
+<th align="right">female</th>
+<th align="right">y64</th>
+<th align="right">o64</th>
+<th align="right">cvd</th>
+<th align="right">resp</th>
+<th align="right">inf</th>
+<th align="right">uri</th>
+<th align="right">ment</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RR</td>
+<td align="right">1.004</td>
+<td align="right">1.002</td>
+<td align="right">1.005</td>
+<td align="right">0.998</td>
+<td align="right">1.009</td>
+<td align="right">1.002</td>
+<td align="right">1.003</td>
+<td align="right">1.030</td>
+<td align="right">0.989</td>
+<td align="right">0.997</td>
+</tr>
+<tr class="even">
+<td align="left">p.025</td>
+<td align="right">0.989</td>
+<td align="right">0.984</td>
+<td align="right">0.985</td>
+<td align="right">0.979</td>
+<td align="right">0.990</td>
+<td align="right">0.980</td>
+<td align="right">0.978</td>
+<td align="right">0.997</td>
+<td align="right">0.959</td>
+<td align="right">0.969</td>
+</tr>
+<tr class="odd">
+<td align="left">p.975</td>
+<td align="right">1.018</td>
+<td align="right">1.021</td>
+<td align="right">1.025</td>
+<td align="right">1.018</td>
+<td align="right">1.028</td>
+<td align="right">1.025</td>
+<td align="right">1.030</td>
+<td align="right">1.064</td>
+<td align="right">1.019</td>
+<td align="right">1.026</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+</div>
+<div id="all-below-is-for-documentation-purposes-only" class="section level3">
+<h3>ALL BELOW IS FOR DOCUMENTATION PURPOSES ONLY</h3>
 <p><br></p>
 <p>Through an iterative process, we found that the <strong>buffer
 radius</strong> of 8km around the measurement station showed the
@@ -418,7 +497,6 @@ mini &lt;- findmin(cb.foehn,predprel,from=quantile(data$f_id, .1),to=quantile(da
 # final prediction
 predfin &lt;- crosspred(cb.foehn, mod, at=0:288, cumul=FALSE, cen = mini)</code></pre>
 <p><br></p>
-</div>
 <div id="figures-of-the-overall-cumulative-response-of-different-affected-subgroups" class="section level4">
 <h4>figures of the overall cumulative response of different affected
 subgroups</h4>
@@ -469,6 +547,7 @@ especially when accounting for temperature. This holds for all
 investigated subgroups that cover age, sex, and the cause of
 hospitalization.</p>
 <p><br></p>
+</div>
 </div>
 
 
