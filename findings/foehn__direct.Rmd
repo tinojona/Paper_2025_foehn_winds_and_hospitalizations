@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r data, echo=FALSE, warning=FALSE, message=FALSE}
-library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr);library(knitr)
+library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr);library(knitr);library(kableExtra);library(webshot2); library(magick)
 
 buffer = 8000 # buffer size
 
@@ -97,7 +97,14 @@ for (i in 1:length(groups_id)) {
 kable(table_estimates,
       digits = 3,
       col.names = c("all-cause", "male", "female", "y64" ,"o64", "cvd", "resp", "inf", "uri", "ment"      ),
-      align = rep("r", ncol(table_estimates) ))
+      align = rep("r", ncol(table_estimates) )) %>%
+   kable_styling() %>%
+save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.html")
+webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.html",
+        "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.png",
+        vwidth = 1000,   # increase width
+        vheight = 150,  # increase height
+        zoom = 3)        # increase zoom level for higher resolution
 
 
 
