@@ -85,6 +85,8 @@ This Markdown document presents and summarizes the findings of an analysis conce
 
 
 ```{r results_all, echo=FALSE, fig.width=3.3, fig.height=3.3, fig.align='center'}
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_all_plot.png", width = 1000, height =800, res = 300)
+
 par(mfrow=c(1,1), 
     mar = c(3,3,.5,.5),
     mgp = c(1.3, .5, 0))
@@ -137,12 +139,17 @@ for (i in 1:length(groups_id[1])) {
      ci.arg = list(col = alpha(colour = temp_col, .15)),
      lwd = 2)
   
-  text(25, 3 , labels = paste0("(", letters[i], ")"), pos = 2, cex = 0.7)}
+  # text(25, 3 , labels = paste0("(", letters[i], ")"), pos = 2, cex = 0.7)
+  }
 # max(pred_modif_new$allRRhigh)
+
+dev.off()
 ```
 
 
 ```{r results_subgroups, echo=FALSE, fig.width=9, fig.height=9, fig.align='center'}
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_plot.png", width = 1800, height =1800, res = 300)
+
 par(mfrow=c(3,3), 
     mar = c(3,3,.5,.5),
     mgp = c(1.8, .5, 0))
@@ -190,8 +197,10 @@ for (i in 1:length(groups_id[2:10])) {
      ci.arg = list(col = alpha(colour = temp_col, .2)),
      lwd = 2)
   
-  text(25, 3, labels = paste0("(", letters[i+1], ")"), pos = 2)}
+  text(25, 3, labels = paste0("(", letters[i], ")"), pos = 2)}
 # max(pred_modif_new$allRRhigh)
+
+dev.off()
 ```
 
 
