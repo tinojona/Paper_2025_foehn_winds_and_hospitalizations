@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 
 # packages
-library(dplyr); library(tidyr); library(plotly);library(zoo); library(viridis); library(knitr)
+library(dplyr); library(tidyr); library(plotly);library(zoo); library(viridis); library(knitr);library(kableExtra);library(webshot2); library(magick)
 
 data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_8000.csv") # data
 
@@ -140,7 +140,9 @@ gen_stats = data.frame(period = rep(NA,9),
                        # years = rep(NA,9),
                        # years = rep(NA,9),
                        # years = rep(NA,9),
-                       row.names = c("all stations",stations))
+                       row.names = c("all stations",stations)
+                       # row.names = c("ALL","ALT", "CHU", "DAV", "LUG", "MAG", "MVE", "ROB", "VIS")
+                       )
 
 tot_foehn = sum(data$f_id)
 tot_hosp = sum(data$all)
@@ -163,10 +165,10 @@ gen_stats$period[1] = as.character(min(data$date))
 gen_stats$years[1] = length(unique(data$station_year))
 gen_stats$temp[1] = paste0( round(mean(subs_y_all_weather$mittel_temp),digits=1), " [", round(sd(subs_y_all_weather$mittel_temp), digits= 1), "]")
 gen_stats$foehn[1] = paste0( round(mean(subs_y_all_weather$summe_foehn),digits=0), " [", round(sd(subs_y_all_weather$summe_foehn), digits= 0), "]")
-gen_stats$per_tot_foehn[1] = "100%"
-gen_stats$foehn_bin_perc[1] = paste0(round(length(which(data$f_id_binary>0))/nrow(data), digits = 3) *100, "%")
+gen_stats$per_tot_foehn[1] = "100 %"
+gen_stats$foehn_bin_perc[1] = paste0(round(length(which(data$f_id_binary>0))/nrow(data), digits = 3) *100, " %")
 gen_stats$hosp[1] = paste0( round(mean(subs_y_all_hosp$summe),digits=0), " [", round(sd(subs_y_all_hosp$summe), digits= 0), "]")
-gen_stats$per_tot_hosp[1] = "100%"
+gen_stats$per_tot_hosp[1] = "100 %"
 
 
 # missing days
@@ -182,7 +184,7 @@ for(i in as.vector(unique(data$station_year))){
   
 }
 
-gen_stats$missing_data[1] = paste0( round(counter_mis/counter_tot, digits = 3) *100, "%")
+gen_stats$missing_data[1] = paste0( round(counter_mis/counter_tot, digits = 3) *100, " %")
 
 for (i in 1:length(stations)) {
   sta = stations[i]
@@ -205,26 +207,28 @@ for (i in 1:length(stations)) {
   gen_stats$years[i+1] = length(unique(subs$station_year))
   gen_stats$temp[i+1] = paste0( round(mean(subs_y_all_weather$mittel_temp),digits=1), " [", round(sd(subs_y_all_weather$mittel_temp), digits= 1), "]")
   gen_stats$foehn[i+1] = paste0( round(mean(subs_y_all_weather$summe_foehn),digits=0), " [", round(sd(subs_y_all_weather$summe_foehn), digits= 0), "]")
-  gen_stats$per_tot_foehn[i+1] =  paste0( round( sum(subs$f_id) / tot_foehn, digits=3) *100, "%")
-  gen_stats$foehn_bin_perc[i+1] = paste0(round(length(which(subs$f_id_binary>0))/nrow(subs), digits = 3) *100, "%")
+  gen_stats$per_tot_foehn[i+1] =  paste0( round( sum(subs$f_id) / tot_foehn, digits=3) *100, " %")
+  gen_stats$foehn_bin_perc[i+1] = paste0(round(length(which(subs$f_id_binary>0))/nrow(subs), digits = 3) *100, " %")
   gen_stats$hosp[i+1] = paste0( round(mean(subs_y_all_hosp$summe),digits=0), " [", round(sd(subs_y_all_hosp$summe), digits= 0), "]")
-  gen_stats$per_tot_hosp[i+1] = paste0(round(sum(subs$all) / tot_hosp, digits=3) *100, "%")
+  gen_stats$per_tot_hosp[i+1] = paste0(round(sum(subs$all) / tot_hosp, digits=3) *100, " %")
 
 
   full_dates = seq(min(subs$date), max(subs$date), by = "day")
-  gen_stats$missing_data[i+1] = paste0( round(  length(full_dates) / nrow(subs) *100 - 100 , digits = 1), "%")
+  gen_stats$missing_data[i+1] = paste0( round(  length(full_dates) / nrow(subs) *100 - 100 , digits = 1), " %")
 
   }
 
 
 kable(gen_stats,
-      # digits = 2,
       col.names = c("start date", "years", "temp", "foehn" ,"%-foehn", "bin-foehn-%", "hosp", "%-hosp", "NA"      ),
-      align = c("c", rep("r", ncol(gen_stats) -2), "c"),
-                  pading =0)
-
-
-
+      align = c("c", rep("r", ncol(gen_stats) -2), "c"))  #%>%
+#    kable_styling() %>%
+# save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.html")
+# webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.html",
+#         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.png",
+#         vwidth = 1000,   # increase width
+#         vheight = 400,  # increase height
+#         zoom = 3)        # increase zoom level for higher resolution
 ```
 
 <br>
@@ -233,6 +237,8 @@ kable(gen_stats,
 
 
 ```{r plot_foehn, echo=FALSE, fig.width= 6, fig.height=6, fig.align = 'center'}
+
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/distribution_plot.png", width = 1800, height = 2000, res = 300)
 
 par(mfrow=c(3,2), 
     mar = c(4,4,.5,1),
@@ -273,10 +279,10 @@ lines(data_daily_mean$daymonth, data_daily_mean$MA75, col = 1, lwd = 2, lty = 2)
 lines(data_daily_mean$daymonth, data_daily_mean$MA90, col = 1, lwd = 2, lty = 3)
 # lines(data_daily_mean$daymonth, data_daily_mean$MA95, col = 5, lwd = 2, lty = 1)
 
-legend(monthly_ticks[5]+15, 120,
+legend(monthly_ticks[6]+15, 120,
        legend = c("p50", "p75","p90"), bty = "n",
-       col = c(1,1,1),lwd = 1, lty = c(1,2,3), cex = 0.8, 
-       ncol = 4)
+       col = c(1,1,1) ,lwd = 1, lty = c(1,2,3), cex = 0.8, 
+       ncol = 2)
 
 text(monthly_ticks[12], 135, 
      labels = "(b)", pos = 2)
@@ -313,7 +319,7 @@ lines(data_daily_mean$daymonth, data_daily_mean$MA25_temp, col = 1, lwd = 2, lty
 lines(data_daily_mean$daymonth, data_daily_mean$MA50_temp, col = 1, lwd = 2, lty = 1)
 lines(data_daily_mean$daymonth, data_daily_mean$MA75_temp, col = 1, lwd = 2, lty = 2)
 
-legend(monthly_ticks[3]+15, 3,  
+legend(monthly_ticks[2]+15, -2,  
        legend = c("p25", "p50","p75"), bty = "n",
        col = c(1,1,1),lwd = 1, lty = c(3,1,2), cex = 0.8, 
        ncol = 3)
@@ -358,7 +364,9 @@ legend(monthly_ticks[3]+5, 5.75,
        col = c(1,1,1),lwd = 1, lty = c(3,1,2), cex = 0.8, 
        ncol = 3)
 
-text(monthly_ticks[12], 5.4, labels = "(f)", pos = 2)
+text(monthly_ticks[12], 6, labels = "(f)", pos = 2)
+
+dev.off()
 ```
 
 *Figure 1: (a) daily foehn score distribution excluding 0-foehn days, (b) daily mean foehn score with 30-day moving averages of the 50th, 75th, 90th percentile, (c) daily mean temperature distribution, (d) daily averages of daily mean temperature with 30-day moving averages of the 25th, 50th, 75th percentile, (e) daily all-cause hospitalization distribution, (f) daily mean all-cause hospitalizations with 30-day moving averages of the 25th, 50th, 75th percentile.*
@@ -367,6 +375,7 @@ text(monthly_ticks[12], 5.4, labels = "(f)", pos = 2)
 
 
 ```{r timeseriesplot, echo=FALSE, fig.width= 5, fig.height=4.5, fig.align = 'center'}
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/timeseries_plot.png", width = 1600, height = 1400, res = 300)
 
 # margins
 par(mfrow = c(3, 1), 
@@ -438,6 +447,8 @@ text(start_dates$date[5]+85, 4.8, labels = "(2)", pos = 2, cex = .8)
 text(start_dates$date[7]-70, 4.8, labels = "(5)", pos = 4, cex = .8)
 text(start_dates$date[8]+85, 4.8, labels = "(4)", pos = 2, cex = .8)
 text(as.Date("2008-01-01")+70, 5.2, labels = "(x)", pos = 2, col = "brown1", cex = .8)
+
+dev.off()
   
 ```
 
@@ -452,7 +463,7 @@ text(as.Date("2008-01-01")+70, 5.2, labels = "(x)", pos = 2, col = "brown1", cex
 ```{r subgroubs_table_stations, echo=FALSE}
 
 subgroups = data.frame(mal = rep(NA, 9), 
-                       row.names = c("all", stations)) 
+                       row.names = c("all stations", stations)) 
 
 
 subgroups$mal[1] = paste( round( sum(data$mal) / sum(data$all), digits = 4) *100, " %")
@@ -490,9 +501,14 @@ for (i in 1:length(unique(data$station))) {
 kable(subgroups, 
       digits = 2, 
       col.names = c("male", "female", "age <= 64", "age > 64", "cvd", "resp", "inf", "uri", "ment"),
-      align = rep("r", ncol(subgroups))
-      
-)
+      align = rep("r", ncol(subgroups))) #%>%
+#    kable_styling() %>%
+# save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html")
+# webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html",
+#         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups_table.png",
+#         vwidth = 1000,   # increase width
+#         vheight = 400,  # increase height
+#         zoom = 3)        # increase zoom level for higher resolution
 
 ```
 
@@ -506,12 +522,15 @@ kable(subgroups,
 ```{r station_stats, echo=FALSE}
 
 
-kable(station_MedStat_full, 
-      # digits = 2, 
-      # col.names = c("mean temp", "sd temp", "max temp", "min temp","% of tot foehn" ,"mean foehn", "sd foehn", "max foehn", "min foehn"),
-      align = rep("r", ncol(station_MedStat_full))
-      # 
-)
+kable(station_MedStat_full,
+      align = rep("r", ncol(station_MedStat_full))) # %>%
+#    kable_styling() %>%
+# save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/medstat_table.html")
+# webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/medstat_table.html",
+#         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/medstat_table.png",
+#         vwidth = 1000,   # increase width
+#         vheight = 400,  # increase height
+#         zoom = 3)        # increase zoom level for higher resolution
 ```
 
 <br>
