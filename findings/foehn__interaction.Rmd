@@ -70,6 +70,23 @@ colors <- viridis(3, option = "viridis")
 
 foehn_col = colors[2]
 temp_col = colors[3]
+
+
+# seasonal data
+## determine months for both warm and cold season 
+monthly_means = data %>% 
+  group_by(month) %>%
+  summarize(mean_temp = mean(temp, na.rm=TRUE))
+
+index_s = which(monthly_means$mean_temp > median(monthly_means$mean_temp))
+index_w = which(monthly_means$mean_temp < median(monthly_means$mean_temp))
+
+data_summer = data[data$month %in% index_s,]
+data_winter = data[data$month %in% index_w, ]
+
+data_summer$station_year = paste0(data_summer$station, data_summer$year)
+data_winter$station_year = paste(data_winter$station, ifelse(data_winter$month %in% 1:10, data_winter$year, data_winter$year+1))
+
 #####
 ```
 
@@ -85,11 +102,11 @@ This Markdown document presents and summarizes the findings of an analysis conce
 
 
 ```{r results_all, echo=FALSE, fig.width=3.3, fig.height=3.3, fig.align='center'}
-png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_all_plot.png", width = 1000, height =800, res = 300)
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_all_plot.png", width = 1800, height =600, res = 300)
 
-par(mfrow=c(1,1), 
+par(mfrow=c(1,3), 
     mar = c(3,3,.5,.5),
-    mgp = c(1.3, .5, 0))
+    mgp = c(1.8, .5, 0))
 
 foehn_col = "green4"
 # temp_col = "purple"
@@ -139,9 +156,124 @@ for (i in 1:length(groups_id[1])) {
      ci.arg = list(col = alpha(colour = temp_col, .15)),
      lwd = 2)
   
-  # text(25, 3 , labels = paste0("(", letters[i], ")"), pos = 2, cex = 0.7)
+  text(25, 3 , labels = "(a)", pos = 2, cex = 0.7)
   }
-# max(pred_modif_new$allRRhigh)
+
+
+# summer plot
+# binary foehn
+foehn_bin_sum <- ifelse(data_summer$f_id > 72, 0, 1)
+foehn_bin_rev_sum <- ifelse(foehn_bin_sum == 1, 0, 1)
+
+# crossbasis temp
+cb.temp_sum <- crossbasis(data_summer$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data_summer$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data_summer$station_year)
+
+# modifier functions
+modif_sum <- cb.temp_sum * foehn_bin_sum
+modif_rev_sum <- cb.temp_sum * foehn_bin_rev_sum
+
+
+
+mod_modif_sum     <-gnm(all ~ cb.temp_sum + modif_sum, data = data_summer,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+mod_modif_rev_sum <- gnm(all ~ cb.temp_sum + modif_rev_sum, data = data_summer,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prediction with and without foehn
+pred_modif_sum   <- crosspred(cb.temp_sum, mod_modif_sum, cen = 20, cumul=FALSE)
+pred_modif2_sum  <- crosspred(cb.temp_sum, mod_modif_rev_sum, cen = 20, cumul=FALSE)
+
+  
+# get min value of both predictions and use for centering
+min1_sum <- findmin(cb.temp_sum, pred_modif_sum,from=quantile(data_summer$temp, .1),to=quantile(data_summer$temp, .9))
+
+
+# predict with new min values
+pred_modif_new_sum     <- crosspred(cb.temp_sum, mod_modif_sum, cen = min1_sum, cumul=FALSE, by = .2)
+pred_modif_rev_new_sum <- crosspred(cb.temp_sum, mod_modif_rev_sum, cen = min1_sum, cumul=FALSE, by = .2)
+  
+plot(pred_modif_new_sum,              ## cumulative exposure
+     "overall",
+     ylab = "cumulative RR",
+     xlab = "temperature [\u00B0C]",
+     col = foehn_col,
+     ci.arg = list(col = alpha(colour = foehn_col, .15)),
+     lwd = 2,
+     main ="",
+     ylim = c(0.7,3),
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+
+  
+  lines(pred_modif_rev_new_sum,           ## cumulative exposure
+     "overall",
+     col = temp_col,
+     ci = "area",
+     ci.arg = list(col = alpha(colour = temp_col, .15)),
+     lwd = 2)
+
+text(25, 3 , labels = "(b)", pos = 2, cex = 0.7)
+
+
+# winter plot
+# binary foehn
+foehn_bin_win <- ifelse(data_winter$f_id > 72, 0, 1)
+foehn_bin_rev_win <- ifelse(foehn_bin_win == 1, 0, 1)
+
+# crossbasis temp
+cb.temp_win <- crossbasis(data_winter$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data_winter$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data_winter$station_year)
+
+# modifier functions
+modif_win <- cb.temp_win * foehn_bin_win
+modif_rev_win <- cb.temp_win * foehn_bin_rev_win
+
+
+
+mod_modif_win     <-gnm(all ~ cb.temp_win + modif_win, data = data_winter,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+mod_modif_rev_win <- gnm(all ~ cb.temp_win + modif_rev_win, data = data_winter,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prediction with and without foehn
+pred_modif_win   <- crosspred(cb.temp_win, mod_modif_win, cen = 20, cumul=FALSE)
+pred_modif2_win  <- crosspred(cb.temp_win, mod_modif_rev_win, cen = 20, cumul=FALSE)
+
+  
+# get min value of both predictions and use for centering
+min1_win <- findmin(cb.temp_win, pred_modif_win,from=quantile(data_winter$temp, .1),to=quantile(data_winter$temp, .9))
+
+
+# predict with new min values
+pred_modif_new_win     <- crosspred(cb.temp_win, mod_modif_win, cen = min1_win, cumul=FALSE, by = .2)
+pred_modif_rev_new_win <- crosspred(cb.temp_win, mod_modif_rev_win, cen = min1_win, cumul=FALSE, by = .2)
+  
+plot(pred_modif_new_win,              ## cumulative exposure
+     "overall",
+     ylab = "cumulative RR",
+     xlab = "temperature [\u00B0C]",
+     col = foehn_col,
+     ci.arg = list(col = alpha(colour = foehn_col, .15)),
+     lwd = 2,
+     main ="",
+     ylim = c(0.7,3),
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+
+  
+  lines(pred_modif_rev_new_win,           ## cumulative exposure
+     "overall",
+     col = temp_col,
+     ci = "area",
+     ci.arg = list(col = alpha(colour = temp_col, .15)),
+     lwd = 2)
+
+text(25, 3 , labels = "(c)", pos = 2, cex = 0.7)
+
+
 
 dev.off()
 ```
