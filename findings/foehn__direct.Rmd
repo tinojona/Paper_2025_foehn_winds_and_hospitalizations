@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r data, echo=FALSE, warning=FALSE, message=FALSE}
 library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr);library(knitr);library(kableExtra);library(webshot2); library(magick)
 
+rm(list=ls())
 buffer = 8000 # buffer size
 
 data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv")) # data
@@ -62,48 +63,72 @@ cb.foehn <- crossbasis(data$f_id,
 
 groups_id = colnames(data)[c(3,9,10,24,25, 13, 14, 11, 15, 12)]
 
-table_estimates = data.frame(all = rep(NA, 3),
-                             mal = rep(NA, 3),
-                             fem = rep(NA, 3),
-                             y64 = rep(NA, 3),
-                             o64  = rep(NA, 3),
-                             cvd = rep(NA, 3),
-                             resp = rep(NA, 3),
-                             inf = rep(NA, 3),
-                             uri = rep(NA, 3),
-                             ment = rep(NA, 3),
-                             row.names = c("RR", "p.025", "p.975"))
+table_estimates = data.frame(all = rep(NA, 2),
+                             mal = rep(NA, 2),
+                             fem = rep(NA, 2),
+                             y64 = rep(NA, 2),
+                             o64  = rep(NA, 2),
+                             cvd = rep(NA, 2),
+                             resp = rep(NA, 2),
+                             inf = rep(NA, 2),
+                             uri = rep(NA, 2),
+                             ment = rep(NA, 2),
+                             row.names = c("RR foehn [CI]", "RR foehn + temp [CI]"))
 
 for (i in 1:length(groups_id)) {
 
   colvar = groups_id[i]
-
-  formula <- as.formula(paste(colvar, "~ cb.foehn + cb.temp"))
+  
+  # formula, only foehn
+  formula1 <- as.formula(paste(colvar, "~ cb.foehn"))
 
   # model
-  mod_nm <- gnm(formula, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  mod_nm1 <- gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
   # prediction
-  pred_nm <- crosspred(cb.foehn, mod_nm, at=0:288, cumul=FALSE, cen = 0)
+  pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
 
   # extract prediction for value 72 and save it
-  table_estimates[1,i] = pred_nm$allRRfit["72"]
-  table_estimates[2,i] = pred_nm$allRRlow["72"]
-  table_estimates[3,i] = pred_nm$allRRhigh["72"]
+  table_estimates[1,i] = paste0( sprintf("%.3f",round(pred_nm1$allRRfit["72"],digits=3)), 
+                                         " [", 
+                                         sprintf("%.3f",round(pred_nm1$allRRlow["72"], digits=3)),
+                                         "-", 
+                                         sprintf("%.3f",round(pred_nm1$allRRhigh["72"], digits = 3)), "]")
+  
+  
+  
+  # formula, foehn + temp
+  formula2 <- as.formula(paste(colvar, "~ cb.foehn + cb.temp"))
+
+  # model
+  mod_nm2 <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction
+  pred_nm2 <- crosspred(cb.foehn, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
+
+  # extract prediction for value 72 and save it
+  table_estimates[2,i] = paste0( sprintf("%.3f",round(pred_nm2$allRRfit["72"],digits = 3)),
+                                 " [", 
+                                 sprintf("%.3f",round(pred_nm2$allRRlow["72"],digits=3)),
+                                 "-", 
+                                 sprintf("%.3f",round(pred_nm2$allRRhigh["72"], digits = 3)), "]")
+  
 
 
 }
 
-kable(table_estimates,
-      digits = 3,
-      col.names = c("all-cause", "male", "female", "y64" ,"o64", "cvd", "resp", "inf", "uri", "ment"      ),
-      align = rep("r", ncol(table_estimates) )) %>%
-   kable_styling() %>%
+table_estimates_transposed = t(table_estimates)
+
+kable(table_estimates_transposed,
+      # digits = 3,
+      col.names = c("RR foehn [CI]", "RR foehn + temp [CI]"),
+      align = rep("r", ncol(table_estimates_transposed) )) %>%
+   kable_styling(full_width = FALSE) %>%
 save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.html")
 webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.html",
         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.png",
-        vwidth = 1000,   # increase width
-        vheight = 150,  # increase height
+        vwidth = 450,   # increase width
+        vheight = 400,  # increase height
         zoom = 3)        # increase zoom level for higher resolution
 
 
