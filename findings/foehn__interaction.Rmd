@@ -363,5 +363,173 @@ dev.off()
 <br>
 
 
+```{r results_subgroups_table, echo=FALSE}
+table_estimates = data.frame(all = rep(NA, 2),
+                             mal = rep(NA, 2),
+                             fem = rep(NA, 2),
+                             y64 = rep(NA, 2),
+                             o64  = rep(NA, 2),
+                             cvd = rep(NA, 2),
+                             resp = rep(NA, 2),
+                             inf = rep(NA, 2),
+                             uri = rep(NA, 2),
+                             ment = rep(NA, 2),
+                             row.names = c("RR temp + foehn [CI]", "RR temp - foehn [CI]"))
+
+
+print(quantile(data$temp, .99))
+
+for (i in 1:length(groups_id[2:10])) {
+
+  colvar  =  groups_id[i]
+  
+  
+
+  formula1  <- as.formula(paste0(colvar, "~ cb.temp + modif"))
+  formula2 <- as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
+
+  # model with and without foehn
+  mod_modif     <-gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  mod_modif_rev <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction with and without foehn
+  pred_modif   <- crosspred(cb.temp, mod_modif, cen = 20, cumul=FALSE)
+  pred_modif2  <- crosspred(cb.temp, mod_modif_rev, cen = 20, cumul=FALSE)
+
+  
+  # get min value of both predictions and use for centering
+  min1 <- findmin(cb.temp,pred_modif,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
+  min2 <- findmin(cb.temp,pred_modif2,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
+
+  # predict with new min values
+  pred_modif_new     <- crosspred(cb.temp, mod_modif, cen = min1, cumul=FALSE, by = .1)
+  pred_modif_rev_new <- crosspred(cb.temp, mod_modif_rev, cen = min1, cumul=FALSE, by = .1)
+ 
+  # extract prediction for value 24.7 and save it
+  table_estimates[1,i] = paste0( sprintf("%.3f",round(pred_modif_new$allRRfit["24.7"],digits=3)), 
+                                         " [", 
+                                         sprintf("%.3f",round(pred_modif_new$allRRlow["24.7"], digits=3)),
+                                         "-", 
+                                         sprintf("%.3f",round(pred_modif_new$allRRhigh["24.7"], digits = 3)), "]")
+  
+  table_estimates[2,i] = paste0( sprintf("%.3f",round(pred_modif_rev_new$allRRfit["24.7"],digits=3)), 
+                                         " [", 
+                                         sprintf("%.3f",round(pred_modif_rev_new$allRRlow["24.7"], digits=3)),
+                                         "-", 
+                                         sprintf("%.3f",round(pred_modif_rev_new$allRRhigh["24.7"], digits = 3)), "]")
+  
+  
+   
+}
+
+table_estimates_transposed = t(table_estimates)
+
+kable(table_estimates_transposed,
+      # digits = 3,
+      col.names = c("RR temp + foehn [CI]", "RR temp - foehn [CI]"),
+      align = rep("r", ncol(table_estimates_transposed) )) #%>%
+#    kable_styling(full_width = FALSE) %>%
+# save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_table.html")
+# webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_table.html",
+#         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_table.png",
+#         vwidth = 450,   # increase width
+#         vheight = 400,  # increase height
+#         zoom = 3)        # increase zoom level for higher resolution
+# 
+
+
+
+```
+
+```{r results_subgroups_lollipop_figure, echo=FALSE}
+table_estimates = data.frame(categories = c("all","all", "mal", "mal","fem","fem","y64","y64","o64","o64",
+                                            "cvd","cvd","resp","resp","inf","inf","uri","uri","ment","ment"),
+                             model = rep(c("temp + foehn", "temp - foehn"), 10),
+                             pred = rep(NA, 20),
+                             CI_low = rep(NA, 20),
+                             CI_high = rep(NA, 20))
+
+foehn_col = "green4"
+# temp_col = "purple"
+temp_col = "gold2"
+
+for (i in 1:nrow(table_estimates)) {
+
+  colvar  =  table_estimates$categories[i]
+  
+  if( i %% 2 != 0) {
+    formula1 = as.formula(paste0(colvar, "~ cb.temp + modif"))
+  } else {
+    formula1 = as.formula(paste0(colvar, "~ cb.temp + modif_rev")) 
+  }
+    
+  
+  
+  # model with and without foehn
+  mod_modif     <-gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction with and without foehn
+  pred_modif   <- crosspred(cb.temp, mod_modif, cen = 20, cumul=FALSE)
+
+  # get min value of both predictions and use for centering
+  min1 <- findmin(cb.temp,pred_modif,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
+
+  # predict with new min values
+  pred_modif_new  <- crosspred(cb.temp, mod_modif, cen = min1, cumul=FALSE, by = .1)
+  
+  
+  table_estimates$pred[i]    = pred_modif_new$allRRfit["24.7"]
+  table_estimates$CI_low[i]  = pred_modif_new$allRRlow["24.7"]
+  table_estimates$CI_high[i] = pred_modif_new$allRRhigh["24.7"]
+
+
+}
+table_estimates$categories[7:8] = "age <= 64"
+table_estimates$categories[9:10] = "age > 64"
+
+
+table_estimates$categories <- factor(table_estimates$categories, 
+                                     levels = rev(unique(table_estimates$categories)))
+
+table_estimates$model <- factor(table_estimates$model, 
+                                levels = c("temp + foehn", "temp - foehn"))
+
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_lolli.png", 
+    width = 1200, height =1400, res = 300)
+
+ggplot(table_estimates, aes(y = categories, x = pred, color = model)) +
+  geom_pointrange(aes(xmin = CI_low, xmax = CI_high), 
+                  position = position_dodge(width = 0.4)) +
+  labs(title = "",
+       x = "RR", y = "") +
+  theme_minimal() +
+  scale_color_manual(
+    values = c("temp + foehn" = foehn_col, "temp - foehn" = temp_col), 
+    labels = c("temp + foehn" = "temp with foehn", "temp - foehn" = "temp without foehn"),  # Map the levels to custom labels
+    name = "Model Type:"  # Custom legend title
+  ) +
+  theme(
+    legend.position = c(1,1), # Position the legend at the top
+    legend.justification = c("right", "top"),
+    legend.title = element_text(size = 10),  # Font size for the legend title
+    legend.text = element_text(size = 8),    # Font size for the legend text
+    axis.text.x = element_text(size = 8),    # Font size for x-axis labels
+    axis.text.y = element_text(size = 8),    # Font size for y-axis labels
+    axis.title.x = element_text(size = 10),  # Font size for x-axis title
+    plot.margin = unit(c(0, 1, 0, 0), "cm"), # Adjust plot margins
+    axis.line = element_line(color = "black"), # Add axis lines
+    panel.grid.minor = element_blank(),  # Remove minor grid lines
+    legend.margin = margin(.5, .5, .5, .5),
+    legend.background = element_rect(fill = "white", color = "white"),
+  ) +
+  guides(color = guide_legend(ncol = 1))  # Set legend to one column
+
+dev.off()
+
+
+
+
+```
+
 
 
