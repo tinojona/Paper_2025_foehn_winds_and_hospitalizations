@@ -6,10 +6,7 @@
 # - calculate the centroid per shapefile
 
 
-library(sf)
-library(raster)
-library(ggplot2)
-library(gridExtra)
+library(sf); library(raster); library(ggplot2); library(gridExtra); library(viridis); library(terra)
 
 ### DATA #####
 rm(list=ls())
@@ -114,6 +111,90 @@ for(i in buffer_size_list){
 #####
 
 
+
+# PLOT FOR THE PAPER
+
+
+# colors
+colors <- viridis(8, option = "viridis")
+
+# station locations
+station_loc <- st_as_sf(df_stations[,2:3], coords = c("x", "y"), crs = 2056)
+
+# raster data from Swisstopo https://www.swisstopo.admin.ch/en/height-model-dhm25-200m#Additional-information
+raster_data <- rast("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/elevation/DHM200.asc")
+crs(raster_data) <- "EPSG:21781" # assign projection based on LV03 LN02
+
+
+# reproject shapefiles based on raster
+crs_raster <- crs(raster_data)
+
+# print(crs_raster)
+
+mesh$geometry <- st_transform(mesh$geometry, crs = crs_raster)
+station_loc$geometry <- st_transform(station_loc$geometry, crs = crs_raster)
+
+# print(crs(mesh$geometry))
+# print(crs(station_loc$geometry))
+
+# crop the raster to the extend of the shapefile
+mesh_spatvector <- terra::vect(mesh$geometry)
+raster_cropped <- terra::mask(raster_data, mesh_spatvector)
+
+# convert to data frame for plotting
+raster_df <- as.data.frame(raster_cropped, xy = TRUE, na.rm = TRUE); colnames(raster_df) <- c("x", "y", "elevation")
+
+
+
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/map_plot.png", width = 1800, height = 1400, res = 300)
+
+
+ggplot() +
+  geom_raster(data = raster_df, aes(x = x, y = y, fill = elevation)) +
+  # scale_fill_viridis_c() +
+  scale_fill_gradient(
+    low = "white", high = "black", # Set the color range for the elevation
+    name = "Elevation [m]",           # Title for the color legend
+    limits = c(0, 4500), # Set limits for the legend
+    na.value = "transparent"      # Set how NA values are represented
+  ) +
+  coord_fixed() +
+  theme_minimal() +
+  xlab("") +
+  ylab("") +
+
+  geom_sf(data = mesh$geometry, fill = NA, color = "white") +
+  geom_sf(data = mesh$geometry[index_regions[1:3]], fill = colors[1], alpha = 0.6, color = "black") +
+  geom_sf(data = mesh$geometry[index_regions[4:6]], fill = colors[6], alpha = 0.6, color = "black") +
+  geom_sf(data = mesh$geometry[index_regions[7]], fill = colors[4], alpha = 0.6, color = "black") +
+  geom_sf(data = mesh$geometry[index_regions[8]], fill = colors[2], alpha = 0.6, color = "black") +
+  geom_sf(data = mesh$geometry[index_regions[9:13]], fill = colors[8], alpha = 0.6, color = "black") +
+  geom_sf(data = mesh$geometry[index_regions[14:25]], fill = colors[5], alpha = 0.6, color = "black") +
+  geom_sf(data = mesh$geometry[index_regions[26:27]], fill = colors[3], alpha = 0.6, color = "black") +
+  geom_sf(data = mesh$geometry[index_regions[28:32]], fill = colors[7], alpha = 0.6, color = "black") +
+  geom_sf(data = station_loc, alpha = 1, fill = "black", stroke = .2) +
+
+  # # Set the color scale for the elevation data (fill based on elevation)
+
+  #
+  theme(legend.position = "top",    # Position the legend on the right side
+        legend.title = element_text(size = 10),  # Font size for the legend title
+        legend.text = element_text(size = 8),
+        axis.text.x = element_text(size = 8),
+        axis.text.y = element_text(size = 8),
+        plot.margin = unit(c(0,0,0,0), "cm")) +
+
+# Customize legend appearance (optional)
+  guides(fill = guide_colorbar(barwidth = 10, barheight = .5, title.position = "top", title.hjust = 0.5)) #+
+
+
+
+dev.off()
+
+
+
+
+
 ### CONCLUSIONS #####
 ## for buffer size....:
 
@@ -141,52 +222,54 @@ for(i in buffer_size_list){
 
 
 
-# ### FOR TESTING MEDSTAT #####
+# # ### FOR TESTING MEDSTAT #####
+# #
+# # map_plot2 <- ggplot() +
+# #   geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +
+# #   geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.7) +
+# #   geom_sf(data = centroids$geometry[index_regions], alpha = 0.7) +
+# #   geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
+# #
+# #   # geom_sf(data = mesh$geometry[mesh$MDST04 == "SZ05" ], fill = "green", alpha = 0.7) +
+# #   # geom_sf(data = mesh$geometry[mesh$MDST04 == "SG24" ], fill = "blue", alpha = 0.7) +
+# #   # geom_sf(data = mesh$geometry[mesh$MDST04 == "TI01" ], fill = "orange", alpha = 0.7) +
+# #
+# #   geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) +
+# #   geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
+# #   geom_sf(data = buffer_list[[3]], fill = "brown1", alpha = 0.4) +
+# #   geom_sf(data = buffer_list[[4]], fill = "brown1", alpha = 0.4) +
+# #   geom_sf(data = buffer_list[[5]], fill = "brown1", alpha = 0.4) +
+# #   geom_sf(data = buffer_list[[6]], fill = "brown1", alpha = 0.4) +
+# #   geom_sf(data = buffer_list[[7]], fill = "brown1", alpha = 0.4) +
+# #   geom_sf(data = buffer_list[[8]], fill = "brown1", alpha = 0.4) +
+# #   theme_minimal() +
+# #   labs(title = paste0("selected regions with buffer: ", buffer_size))
+# # print(map_plot2)
 #
 # map_plot2 <- ggplot() +
 #   geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +
 #   geom_sf(data = mesh$geometry[index_regions], fill = "skyblue1", alpha = 0.7) +
-#   geom_sf(data = centroids$geometry[index_regions], alpha = 0.7) +
+#   geom_sf(data = centroids$geometry, alpha = 0.7, cex = 0.5) +
 #   geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
 #
 #   # geom_sf(data = mesh$geometry[mesh$MDST04 == "SZ05" ], fill = "green", alpha = 0.7) +
 #   # geom_sf(data = mesh$geometry[mesh$MDST04 == "SG24" ], fill = "blue", alpha = 0.7) +
 #   # geom_sf(data = mesh$geometry[mesh$MDST04 == "TI01" ], fill = "orange", alpha = 0.7) +
 #
-#   geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) +
-#   geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
-#   geom_sf(data = buffer_list[[3]], fill = "brown1", alpha = 0.4) +
-#   geom_sf(data = buffer_list[[4]], fill = "brown1", alpha = 0.4) +
-#   geom_sf(data = buffer_list[[5]], fill = "brown1", alpha = 0.4) +
-#   geom_sf(data = buffer_list[[6]], fill = "brown1", alpha = 0.4) +
-#   geom_sf(data = buffer_list[[7]], fill = "brown1", alpha = 0.4) +
-#   geom_sf(data = buffer_list[[8]], fill = "brown1", alpha = 0.4) +
+#   # geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) +
+#   # geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
+#   # geom_sf(data = buffer_list[[3]], fill = "brown1", alpha = 0.4) +
+#   # geom_sf(data = buffer_list[[4]], fill = "brown1", alpha = 0.4) +
+#   # geom_sf(data = buffer_list[[5]], fill = "brown1", alpha = 0.4) +
+#   # geom_sf(data = buffer_list[[6]], fill = "brown1", alpha = 0.4) +
+#   # geom_sf(data = buffer_list[[7]], fill = "brown1", alpha = 0.4) +
+#   # geom_sf(data = buffer_list[[8]], fill = "brown1", alpha = 0.4) +
 #   theme_minimal() +
-#   labs(title = paste0("selected regions with buffer: ", buffer_size))
+#   # labs(title = paste0("selected regions with buffer: ", buffer_size))
 # print(map_plot2)
-
-map_plot2 <- ggplot() +
-  geom_sf(data = mesh$geometry, fill = "grey", alpha = 0.5) +
-  geom_sf(data = mesh$geometry, fill = "skyblue1", alpha = 0.7) +
-  geom_sf(data = centroids$geometry, alpha = 0.7, cex = 0.5) +
-  geom_sf(data = mesh$geometry[index_stations], fill = "brown1", alpha = 0.5) +
-
-  # geom_sf(data = mesh$geometry[mesh$MDST04 == "SZ05" ], fill = "green", alpha = 0.7) +
-  # geom_sf(data = mesh$geometry[mesh$MDST04 == "SG24" ], fill = "blue", alpha = 0.7) +
-  # geom_sf(data = mesh$geometry[mesh$MDST04 == "TI01" ], fill = "orange", alpha = 0.7) +
-
-  # geom_sf(data = buffer_list[[1]], fill = "brown1", alpha = 0.4) +
-  # geom_sf(data = buffer_list[[2]], fill = "brown1", alpha = 0.4) +
-  # geom_sf(data = buffer_list[[3]], fill = "brown1", alpha = 0.4) +
-  # geom_sf(data = buffer_list[[4]], fill = "brown1", alpha = 0.4) +
-  # geom_sf(data = buffer_list[[5]], fill = "brown1", alpha = 0.4) +
-  # geom_sf(data = buffer_list[[6]], fill = "brown1", alpha = 0.4) +
-  # geom_sf(data = buffer_list[[7]], fill = "brown1", alpha = 0.4) +
-  # geom_sf(data = buffer_list[[8]], fill = "brown1", alpha = 0.4) +
-  theme_minimal() +
-  labs(title = paste0("selected regions with buffer: ", buffer_size))
-print(map_plot2)
-
-grid.arrange(map_plot2, map_plot, ncol = 2)
+#
+# grid.arrange(map_plot2, map_plot, ncol = 2)
 #
 # #####
+
+
