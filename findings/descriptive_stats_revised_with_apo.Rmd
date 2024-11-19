@@ -136,7 +136,7 @@ gen_stats = data.frame(period = rep(NA,9),
                        foehn_bin_perc = rep(NA,9),
                        hosp = rep(NA,9),
                        per_tot_hosp = rep(NA,9),
-                       missing_data = rep(NA,9),
+                       # missing_data = rep(NA,9),
                        # years = rep(NA,9),
                        # years = rep(NA,9),
                        # years = rep(NA,9),
@@ -163,28 +163,28 @@ subs_y_all_hosp = data %>%
 # gen_stats$period[1] = paste0(min(data$date), " - ", max(data$date))
 gen_stats$period[1] = as.character(min(data$date))
 gen_stats$years[1] = length(unique(data$station_year))
-gen_stats$temp[1] = paste0( round(mean(subs_y_all_weather$mittel_temp),digits=1), " [", round(sd(subs_y_all_weather$mittel_temp), digits= 1), "]")
-gen_stats$foehn[1] = paste0( round(mean(subs_y_all_weather$summe_foehn),digits=0), " [", round(sd(subs_y_all_weather$summe_foehn), digits= 0), "]")
+gen_stats$temp[1] = paste0( sprintf("%.1f",round(mean(subs_y_all_weather$mittel_temp),digits=1)), " [", sprintf("%.1f",round(sd(subs_y_all_weather$mittel_temp), digits= 1)), "]")
+gen_stats$foehn[1] = paste0( round(mean(subs_y_all_weather$summe_foehn)/12,digits=0), " [", round(sd(subs_y_all_weather$summe_foehn)/12, digits= 0), "]")
 gen_stats$per_tot_foehn[1] = "100 %"
-gen_stats$foehn_bin_perc[1] = paste0(round(length(which(data$f_id_binary>0))/nrow(data), digits = 3) *100, " %")
+gen_stats$foehn_bin_perc[1] = paste0(sprintf("%.1f",round(length(which(data$f_id_binary>0))/nrow(data)*100, digits = 3)), " %")
 gen_stats$hosp[1] = paste0( round(mean(subs_y_all_hosp$summe),digits=0), " [", round(sd(subs_y_all_hosp$summe), digits= 0), "]")
 gen_stats$per_tot_hosp[1] = "100 %"
 
 
 # missing days
-counter_mis = 0
-counter_tot = 0
+# counter_mis = 0
+# counter_tot = 0
+# 
+# for(i in as.vector(unique(data$station_year))){
+#   subs = data[data$station_year == i,]
+#   
+#   full_dates = seq(min(subs$date), max(subs$date), by = "day")
+#   counter_tot = counter_tot + length(full_dates)
+#   counter_mis = counter_mis + ( length(full_dates) - nrow(subs) )
+#   
+# }
 
-for(i in as.vector(unique(data$station_year))){
-  subs = data[data$station_year == i,]
-  
-  full_dates = seq(min(subs$date), max(subs$date), by = "day")
-  counter_tot = counter_tot + length(full_dates)
-  counter_mis = counter_mis + ( length(full_dates) - nrow(subs) )
-  
-}
-
-gen_stats$missing_data[1] = paste0( round(counter_mis/counter_tot, digits = 3) *100, " %")
+# gen_stats$missing_data[1] = paste0( round(counter_mis/counter_tot, digits = 3) *100, " %")
 
 for (i in 1:length(stations)) {
   sta = stations[i]
@@ -205,30 +205,30 @@ for (i in 1:length(stations)) {
   # gen_stats$period[i+1] = paste0(min(subs$date), " - ", max(subs$date))
   gen_stats$period[i+1] = as.character(min(subs$date))
   gen_stats$years[i+1] = length(unique(subs$station_year))
-  gen_stats$temp[i+1] = paste0( round(mean(subs_y_all_weather$mittel_temp),digits=1), " [", round(sd(subs_y_all_weather$mittel_temp), digits= 1), "]")
-  gen_stats$foehn[i+1] = paste0( round(mean(subs_y_all_weather$summe_foehn),digits=0), " [", round(sd(subs_y_all_weather$summe_foehn), digits= 0), "]")
-  gen_stats$per_tot_foehn[i+1] =  paste0( round( sum(subs$f_id) / tot_foehn, digits=3) *100, " %")
-  gen_stats$foehn_bin_perc[i+1] = paste0(round(length(which(subs$f_id_binary>0))/nrow(subs), digits = 3) *100, " %")
+  gen_stats$temp[i+1] = paste0( sprintf("%.1f",round(mean(subs_y_all_weather$mittel_temp),digits=1)), " [", sprintf("%.1f",round(sd(subs_y_all_weather$mittel_temp), digits= 1)), "]")
+  gen_stats$foehn[i+1] = paste0( round(mean(subs_y_all_weather$summe_foehn)/12,digits=0), " [", round(sd(subs_y_all_weather$summe_foehn)/12, digits= 0), "]")
+  gen_stats$per_tot_foehn[i+1] =  paste0( sprintf("%.1f",round( sum(subs$f_id) / tot_foehn*100, digits=1)), " %")
+  gen_stats$foehn_bin_perc[i+1] = paste0( sprintf("%.1f",round(length(which(subs$f_id_binary>0))/nrow(subs)*100, digits = 1)) , " %")
   gen_stats$hosp[i+1] = paste0( round(mean(subs_y_all_hosp$summe),digits=0), " [", round(sd(subs_y_all_hosp$summe), digits= 0), "]")
-  gen_stats$per_tot_hosp[i+1] = paste0(round(sum(subs$all) / tot_hosp, digits=3) *100, " %")
-
-
-  full_dates = seq(min(subs$date), max(subs$date), by = "day")
-  gen_stats$missing_data[i+1] = paste0( round(  length(full_dates) / nrow(subs) *100 - 100 , digits = 1), " %")
+  gen_stats$per_tot_hosp[i+1] = paste0(sprintf("%.1f",round(sum(subs$all) / tot_hosp *100, digits=1)) , " %")
+  # 
+  # 
+  # # full_dates = seq(min(subs$date), max(subs$date), by = "day")
+  # # gen_stats$missing_data[i+1] = paste0( round(  length(full_dates) / nrow(subs) *100 - 100 , digits = 1), " %")
 
   }
 
 
 kable(gen_stats,
-      col.names = c("start date", "years", "temp", "foehn" ,"%-foehn", "bin-foehn-%", "hosp", "%-hosp", "NA"      ),
-      align = c("c", rep("r", ncol(gen_stats) -2), "c"))  #%>%
-#    kable_styling() %>%
-# save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.html")
-# webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.html",
-#         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.png",
-#         vwidth = 1000,   # increase width
-#         vheight = 400,  # increase height
-#         zoom = 3)        # increase zoom level for higher resolution
+      col.names = c("start date *", "years", "mean_temp[sd]", "annual_foehn[sd]" ,"%-foehn", "bin-foehn-%", "annual_hosp[sd]", "%-hosp"     ),
+      align = c("c", rep("r", ncol(gen_stats) -2), "c"))  %>%
+   kable_styling(full_width = FALSE) %>%
+save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.html")
+webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.html",
+        "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.png",
+        vwidth = 1050,   # increase width
+        vheight = 400,  # increase height
+        zoom = 3)        # increase zoom level for higher resolution
 ```
 
 <br>
@@ -462,37 +462,40 @@ dev.off()
 
 ```{r subgroubs_table_stations, echo=FALSE}
 
-subgroups = data.frame(mal = rep(NA, 9), 
+subgroups = data.frame(total = rep(NA,9),
+                       mal = rep(NA, 9), 
                        row.names = c("all stations", stations)) 
 
+subgroups$total[1] = sum(data$all)
+subgroups$mal[1] = paste( sprintf("%.1f",round( sum(data$mal) / sum(data$all)*100, digits = 1)) , " %")
+subgroups$fem[1] = paste( sprintf("%.1f",round( sum(data$fem) / sum(data$all)*100, digits = 1)), " %")
 
-subgroups$mal[1] = paste( round( sum(data$mal) / sum(data$all), digits = 4) *100, " %")
-subgroups$fem[1] = paste( round( sum(data$fem) / sum(data$all), digits = 4) *100, " %")
+subgroups$y64[1] = paste( sprintf("%.1f",round( sum(data$y64) / sum(data$all)*100, digits = 1)), " %")
+subgroups$o64[1] = paste( sprintf("%.1f",round( sum(data$o64) / sum(data$all)*100, digits = 1)), " %")
 
-subgroups$y64[1] = paste( round( sum(data$y64) / sum(data$all), digits = 4) *100, " %")
-subgroups$o64[1] = paste( round( sum(data$o64) / sum(data$all), digits = 4) *100, " %")
-
-subgroups$cvd[1] = paste( round( sum(data$cvd) / sum(data$all), digits = 4) *100, " %")
-subgroups$resp[1] = paste( round( sum(data$resp) / sum(data$all), digits = 4) *100, " %")
-subgroups$inf[1] = paste( round( sum(data$inf) / sum(data$all), digits = 4) *100, " %")
-subgroups$uri[1] = paste( round( sum(data$uri) / sum(data$all), digits = 4) *100, " %")
-subgroups$ment[1] = paste( round( sum(data$ment) / sum(data$all), digits = 4) *100, " %")
+subgroups$cvd[1] = paste( sprintf("%.1f",round( sum(data$cvd) / sum(data$all)*100, digits = 1) ), " %")
+subgroups$resp[1] = paste( sprintf("%.1f",round( sum(data$resp) / sum(data$all)*100, digits =1)), " %")
+subgroups$inf[1] = paste( sprintf("%.1f",round( sum(data$inf) / sum(data$all)*100, digits = 1) ), " %")
+subgroups$uri[1] = paste( sprintf("%.1f",round( sum(data$uri) / sum(data$all)*100, digits = 1) ), " %")
+subgroups$ment[1] = paste( sprintf("%.1f",round( sum(data$ment) / sum(data$all)*100, digits = 1)), " %")
 
 
 for (i in 1:length(unique(data$station))) {
   subs = data[data$station == unique(data$station)[i],]
   
-  subgroups$mal[i+1] = paste( round( sum(subs$mal) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$fem[i+1] = paste( round( sum(subs$fem) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$total[i+1] = sum(subs$all)
+  
+  subgroups$mal[i+1] = paste( sprintf("%.1f",round( sum(subs$mal) / sum(subs$all)*100, digits =1)) , " %")
+  subgroups$fem[i+1] = paste( sprintf("%.1f",round( sum(subs$fem) / sum(subs$all)*100, digits = 1)) , " %")
 
-  subgroups$y64[i+1] = paste( round( sum(subs$y64) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$o64[i+1] = paste( round( sum(subs$o64) / sum(subs$all), digits = 4) *100, " %")
-
-  subgroups$cvd[i+1] = paste( round( sum(subs$cvd) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$resp[i+1] = paste( round( sum(subs$resp) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$inf[i+1] = paste( round( sum(subs$inf) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$uri[i+1] = paste( round( sum(subs$uri) / sum(subs$all), digits = 4) *100, " %")
-  subgroups$ment[i+1] = paste( round( sum(subs$ment) / sum(subs$all), digits = 4) *100, " %")
+  subgroups$y64[i+1] = paste( sprintf("%.1f",round( sum(subs$y64) / sum(subs$all)*100, digits = 1)) , " %")
+  subgroups$o64[i+1] = paste( sprintf("%.1f",round( sum(subs$o64) / sum(subs$all)*100, digits = 1)) , " %")
+  
+  subgroups$cvd[i+1] = paste( sprintf("%.1f",round( sum(subs$cvd) / sum(subs$all)*100, digits = 1)) , " %")
+  subgroups$resp[i+1] = paste( sprintf("%.1f",round( sum(subs$resp) / sum(subs$all)*100, digits =1)), " %")
+  subgroups$inf[i+1] = paste( sprintf("%.1f",round( sum(subs$inf) / sum(subs$all)*100, digits = 1) ), " %")
+  subgroups$uri[i+1] = paste( sprintf("%.1f",round( sum(subs$uri) / sum(subs$all)*100, digits = 1) ), " %")
+  subgroups$ment[i+1] = paste( sprintf("%.1f",round( sum(subs$ment) / sum(subs$all)*100, digits = 1)), " %")
   
   
 }                       
@@ -500,15 +503,15 @@ for (i in 1:length(unique(data$station))) {
 
 kable(subgroups, 
       digits = 2, 
-      col.names = c("male", "female", "age <= 64", "age > 64", "cvd", "resp", "inf", "uri", "ment"),
-      align = rep("r", ncol(subgroups))) #%>%
-#    kable_styling() %>%
-# save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html")
-# webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html",
-#         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups_table.png",
-#         vwidth = 1000,   # increase width
-#         vheight = 400,  # increase height
-#         zoom = 3)        # increase zoom level for higher resolution
+      col.names = c("total", "male", "female", "age <= 64", "age > 64", "cvd", "resp", "inf", "uri", "ment"),
+      align = rep("r", ncol(subgroups))) %>%
+   kable_styling(full_width = FALSE) %>%
+save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html")
+webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html",
+        "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups_table.png",
+        vwidth = 900,   # increase width
+        vheight = 400,  # increase height
+        zoom = 3)        # increase zoom level for higher resolution
 
 ```
 
