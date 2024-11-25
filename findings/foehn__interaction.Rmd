@@ -170,7 +170,7 @@ for (i in 1:length(groups_id[1])) {
 
 ```{r seasonal, echo=FALSE}
 
-png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_all_season.png", width = 1700, height =1000, res = 300)
+# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_all_season.png", width = 1700, height =1000, res = 300)
 
 
 par(mfrow=c(1,2), 
@@ -292,14 +292,14 @@ plot(pred_modif_new_win,              ## cumulative exposure
 
 text(25, 2.5 , labels = "(b)", pos = 2, cex = 0.7)
 
-dev.off()
+# dev.off()
 
 
 ```
 
 
 ```{r results_subgroups, echo=FALSE, fig.width=9, fig.height=9, fig.align='center'}
-png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_plot.png", width = 1800, height =1800, res = 300)
+# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_plot.png", width = 1800, height =1800, res = 300)
 
 # foehn_col = "green4"
 # # temp_col = "purple"
@@ -356,7 +356,7 @@ for (i in 1:length(groups_id[2:10])) {
   text(25, 3, labels = paste0("(", letters[i], ")"), pos = 2)}
 # max(pred_modif_new$allRRhigh)
 
-dev.off()
+# dev.off()
 ```
 
 
@@ -536,5 +536,62 @@ ggplot(table_estimates, aes(y = categories, x = pred, color = model)) +
 
 ```
 
+
+
+```{r results_subgroups_interaction, fig.width=9, fig.height=9, fig.align='center'}
+# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_plot_interaction_term.png", width = 1800, height =1800, res = 300)
+
+# foehn_col = "green4"
+# # temp_col = "purple"
+# temp_col = "gold2"
+
+par(mfrow=c(3,3), 
+    mar = c(3,3,.5,.5),
+    mgp = c(1.8, .5, 0))
+
+# for (i in 1:length(groups_id[2:10])) {
+for (i in 1:length(groups_id[2:10])) {
+
+  colvar  =  groups_id[i+1]
+
+  formula1  <- as.formula(paste0(colvar, "~ cb.temp + modif"))
+  formula2 <- as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
+
+  # model with and without foehn
+  mod_modif     <-gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  mod_modif_rev <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction with and without foehn
+  pred_modif   <- crosspred(modif, mod_modif, cen = 0, at = c(0,1), cumul=FALSE)
+  pred_modif_rev <- crosspred(modif_rev, mod_modif_rev, cen = 0, at = c(0,1), cumul=FALSE)
+  
+  plot(pred_modif,              ## cumulative exposure
+     "overall",
+     ylab = "cumulative RR",
+     xlab = "temperature [\u00B0C]",
+     col = foehn_col,
+     ci.arg = list(col = alpha(colour = foehn_col, .2)),
+     lwd = 2,
+     main ="",
+     ylim = c(.99,1.02)
+     )
+
+  
+  lines(pred_modif_rev,           ## cumulative exposure
+     "overall",
+     col = temp_col,
+     ci = "area",
+     ci.arg = list(col = alpha(colour = temp_col, .2)),
+     lwd = 2)
+  
+  text("topleft", labels = paste0("(", letters[i], ")"), pos = 2)}
+# max(pred_modif_new$allRRhigh)
+
+# dev.off()
+```
+
+
+
+*Figure 1: Subgroups interaction term*
 
 
