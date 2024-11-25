@@ -9,6 +9,8 @@ output: html_document
 
 In 2008, the Medstat-regions were redefined. The redefinition led to sever increases of hospitalizations (200-fold for Lugano). 
 
+**CAREFUL**: without specifying *at = c(0,1)* in my *crosspred()* function, I do not get a binary prediction but one of the variable (foehn or temp).
+
 ```{r load data, echo=FALSE, warning=FALSE, message=FALSE}
 ### PACKAGES ####
 library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr);library(knitr)
@@ -160,8 +162,8 @@ mod_nm2 <- gnm(all ~ cb.foehn + modif_rev,
                data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
 # prediction based on binary variable for only foehn
-pred_nm1 <- crosspred(modif, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
-pred_nm2 <- crosspred(modif_rev, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
+pred_nm1 <- crosspred(modif, mod_nm1, at=c(0,1), cumul=FALSE, cen = 0)
+pred_nm2 <- crosspred(modif_rev, mod_nm2, at=c(0,1), cumul=FALSE, cen = 0)
 ```
 
 
@@ -177,9 +179,9 @@ plot(pred_nm1,              ## cumulative exposure
      ylab = "cumulative RR",
      lwd = 2,
      main = "model = foehn",
-     ylim = c(0.8,1.3),
      cex.axis = 0.7,
-     cex.lab = 0.7)
+     cex.lab = 0.7,
+     ylim = c(.99,1.01))
 
 
 lines(pred_nm2,           ## cumulative exposure
@@ -198,8 +200,8 @@ mod_nm1 <- gnm(all ~ cb.foehn + cb.temp + modif, data = data,  family=quasipoiss
 mod_nm2 <- gnm(all ~ cb.foehn + cb.temp + modif_rev, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
 
-pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
-pred_nm2 <- crosspred(cb.foehn, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
+pred_nm1 <- crosspred(modif, mod_nm1, at=c(0,1), cumul=FALSE, cen = 0)
+pred_nm2 <- crosspred(modif_rev, mod_nm2, at=c(0,1), cumul=FALSE, cen = 0)
 
 
 
@@ -213,7 +215,8 @@ plot(pred_nm1,              ## cumulative exposure
      lwd = 2,
      main = "model = foehn + temp",
      cex.axis = 0.7,
-     cex.lab = 0.7)
+     cex.lab = 0.7,
+     ylim = c(.99,1.01))
 
 
 lines(pred_nm2,           ## cumulative exposure
@@ -232,10 +235,12 @@ legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(col
 
 - prediction of the temperature association
 
+- combining both foehn index and date index into one gives weird results (see below), that why I decided to split the dataset, and then apply only the foehn index.
+
 ```{r rq2 prediction of temp}
 # before after index
-thresh_2008 = ifelse(data$date <"2008-01-01" & data$f_id>= 72, 0, 1)
-thresh_2008_rev = ifelse(data$date <"2008-01-01" & data$f_id  < 72, 0, 1)
+thresh_2008 = ifelse(data$date < "2008-01-01" & data$f_id >= 72, 0, 1)
+thresh_2008_rev = ifelse(data$date < "2008-01-01" & data$f_id  < 72, 0, 1)
 
 
 # new modifier functions
@@ -251,7 +256,7 @@ mod_nm2 <- gnm(all ~ cb.temp + modif_rev,
                data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
 # prediction based on binary variable for only foehn
-pred_nm1 <- crosspred(cb.temp, mod_nm1,  cumul=FALSE, cen = 15)
+pred_nm1 <- crosspred(cb.temp, mod_nm1, cumul=FALSE, cen = 15)
 pred_nm2 <- crosspred(cb.temp, mod_nm2,  cumul=FALSE, cen = 15)
 
 
@@ -271,7 +276,6 @@ plot(pred_nm1,              ## cumulative exposure
      ylab = "cumulative RR",
      lwd = 2,
      main = "before 2008",
-     ylim = c(0.8,1.3),
      cex.axis = 0.7,
      cex.lab = 0.7)
 
@@ -331,6 +335,127 @@ legend("topleft", ncol = 1, legend = c("with foehn", "without foehn"), col = c(c
 
 ```
 
+
+```{r rq2 prediction of temp proper}
+
+# split data
+data_before = data[data$date < "2008-01-01", ]
+data_after = data[data$date >= "2008-01-01",]
+
+# temperature crossbasis
+cb.temp.before <- crossbasis(data_before$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data_before$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)))
+                      # group = data_before$station I am not grouping because this lead to issues,
+                      # but for after 2008 I am grouping again
+
+
+# before after index
+thresh_2008 = ifelse(data_before$f_id >= 72, 0, 1)
+thresh_2008_rev = ifelse(data_before$f_id  < 72, 0, 1)
+
+
+# new modifier functions
+modif           <- cb.temp.before * thresh_2008
+modif_rev       <- cb.temp.before * thresh_2008_rev
+
+
+# models for before
+mod_nm1 <- gnm(all ~ cb.temp.before + modif, 
+               data = data_before,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# model for after
+mod_nm2 <- gnm(all ~ cb.temp.before + modif_rev,  
+               data = data_before,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prediction based on binary variable for only foehn
+pred_nm1 <- crosspred(modif, mod_nm1, at = c(0,1), cumul=FALSE, cen = 0)
+pred_nm2 <- crosspred(modif_rev, mod_nm2, at = c(0,1), cumul=FALSE, cen = 0)
+
+
+
+```
+
+
+```{r rq2 prediction of temp_plot proper, echo=FALSE}
+par(mfrow=c(1,2))
+
+plot(pred_nm1,              ## cumulative exposure
+     "overall",
+     col = colors[2],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[2], 0.25)), 
+     xlab = "temperature",
+     ylab = "cumulative RR",
+     lwd = 2,
+     main = "before 2008",
+     cex.axis = 0.7,
+     cex.lab = 0.7,
+     ylim = c(.99,1.01))
+
+
+lines(pred_nm2,           ## cumulative exposure
+     "overall",
+     col = colors[3],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[3], .15)),
+     lwd = 2)
+  
+legend("topleft", ncol = 1, legend = c("with foehn", "without foehn"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+
+
+# temperature crossbasis
+cb.temp.after <- crossbasis(data_after$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data_before$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data_after$station) 
+
+# before after index
+thresh_2008 = ifelse(data_after$f_id >= 72, 0, 1)
+thresh_2008_rev = ifelse(data_after$f_id  < 72, 0, 1)
+
+
+# new modifier functions
+modif           <- cb.temp.after * thresh_2008
+modif_rev       <- cb.temp.after * thresh_2008_rev
+
+# models for before
+mod_nm1 <- gnm(all ~ cb.temp.after + modif, 
+               data = data_after,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# model for after
+mod_nm2 <- gnm(all ~ cb.temp.after + modif_rev,  
+               data = data_after,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+
+pred_nm1 <- crosspred(modif, mod_nm1, cumul=FALSE, cen = 0, at = c(0,1))
+pred_nm2 <- crosspred(modif_rev, mod_nm2, cumul=FALSE, cen = 0, at = c(0,1))
+
+plot(pred_nm1,              ## cumulative exposure
+     "overall",
+     col = colors[2],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[2], 0.25)), 
+     xlab = "temperature",
+     ylab = "cumulative RR",
+     lwd = 2,
+     main = "after 2008",
+     ylim = c(0.99,1.01),
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+
+
+lines(pred_nm2,           ## cumulative exposure
+     "overall",
+     col = colors[3],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[3], .15)),
+     lwd = 2)
+  
+legend("topleft", ncol = 1, legend = c("with foehn", "without foehn"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+
+
+```
 
 
 
