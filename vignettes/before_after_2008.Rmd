@@ -1,0 +1,345 @@
+---
+title: "Station Selection"
+author: "Tino Schneidewind"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+#### Here I investigate whether there is a difference between the datasets before and after 2008.
+
+In 2008, the Medstat-regions were redefined. The redefinition led to sever increases of hospitalizations (200-fold for Lugano). 
+
+```{r load data, echo=FALSE, warning=FALSE, message=FALSE}
+### PACKAGES ####
+library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr);library(knitr)
+
+rm(list=ls())
+
+
+### DATA ####
+
+# buffer size for data file read
+buffer = 8000
+data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv"))
+
+data$date = as.Date(data$date);data$station <- as.factor(data$station)
+
+# index to include only stratum that have hosp counts
+data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$stratum)
+ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
+
+
+# create larger age groups
+data <- data %>%  mutate(y64 = a014y + a1564y) %>% mutate(o64 = a6574y + a7584y + a85plusy)
+
+# colors
+colors <- viridis(3, option = "viridis")
+
+# mmt function
+source("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/master_thesis/functions/findmin.R")
+
+# crossbasis temp
+cb.temp <- crossbasis(data$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data$station)
+
+# crossbasis foehn
+cb.foehn <- crossbasis(data$f_id,
+                       lag = 3,
+                       argvar = list(fun="lin"),
+                       arglag = list(fun="integer"),
+                       group = data$station)
+
+```
+
+<br>
+
+#### RQ1: the independent effect of foehn
+
+- prediction of the foehn hospitalization association 
+
+```{r RQ1, echo=FALSE}
+print(paste0("the percentage of data before 2008 vs all data: ", round(length(which(data$date < "2008-01-01")) / nrow(data), digits = 3)*100, " %"))
+```
+
+
+```{r RQ1_model}
+# before after index
+thresh_2008 = ifelse(data$date <"2008-01-01", 0, 1)
+thresh_2008_rev = ifelse(thresh_2008 == 1, 0, 1)
+
+# modifier functions
+modif <- cb.foehn * thresh_2008
+modif_rev <- cb.foehn * thresh_2008_rev
+
+# models for before
+mod_nm1 <- gnm(all ~ cb.foehn + modif, 
+               data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# model for after
+mod_nm2 <- gnm(all ~ cb.foehn + modif_rev, 
+               data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prediction for foehn for only left plot
+pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
+pred_nm2 <- crosspred(cb.foehn, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
+```
+
+
+```{r RQ1_model_plot, echo=FALSE}
+par(mfrow=c(1,2))
+
+plot(pred_nm1,              ## cumulative exposure
+     "overall",
+     col = colors[2],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[2], 0.25)), 
+     xlab = "foehn",
+     ylab = "cumulative RR",
+     lwd = 2,
+     main = "model = foehn",
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+
+
+lines(pred_nm2,           ## cumulative exposure
+     "overall",
+     col = colors[3],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[3], .15)),
+     lwd = 2)
+  
+legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+
+
+
+mod_nm1 <- gnm(all ~ cb.foehn + cb.temp + modif, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+mod_nm2 <- gnm(all ~ cb.foehn + cb.temp + modif_rev, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+
+pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
+pred_nm2 <- crosspred(cb.foehn, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
+
+
+
+plot(pred_nm1,              ## cumulative exposure
+     "overall",
+     col = colors[2],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[2], 0.25)), 
+     xlab = "foehn",
+     ylab = "cumulative RR",
+     lwd = 2,
+     main = "model = foehn + temp",
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+
+
+lines(pred_nm2,           ## cumulative exposure
+     "overall",
+     col = colors[3],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[3], .15)),
+     lwd = 2)
+  
+legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+
+
+```
+
+- prediction of the binary variable coefficient
+
+```{r rq1 prediction of binary variable}
+# models for before
+mod_nm1 <- gnm(all ~ cb.foehn + modif, 
+               data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# model for after
+mod_nm2 <- gnm(all ~ cb.foehn + modif_rev, 
+               data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prediction based on binary variable for only foehn
+pred_nm1 <- crosspred(modif, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
+pred_nm2 <- crosspred(modif_rev, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
+```
+
+
+```{r rq1 prediction of binary variable_plot, echo=FALSE}
+par(mfrow=c(1,2))
+
+plot(pred_nm1,              ## cumulative exposure
+     "overall",
+     col = colors[2],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[2], 0.25)), 
+     xlab = "foehn",
+     ylab = "cumulative RR",
+     lwd = 2,
+     main = "model = foehn",
+     ylim = c(0.8,1.3),
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+
+
+lines(pred_nm2,           ## cumulative exposure
+     "overall",
+     col = colors[3],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[3], .15)),
+     lwd = 2)
+  
+legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+
+
+
+mod_nm1 <- gnm(all ~ cb.foehn + cb.temp + modif, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+mod_nm2 <- gnm(all ~ cb.foehn + cb.temp + modif_rev, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+
+pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
+pred_nm2 <- crosspred(cb.foehn, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
+
+
+
+plot(pred_nm1,              ## cumulative exposure
+     "overall",
+     col = colors[2],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[2], 0.25)), 
+     xlab = "foehn",
+     ylab = "cumulative RR",
+     lwd = 2,
+     main = "model = foehn + temp",
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+
+
+lines(pred_nm2,           ## cumulative exposure
+     "overall",
+     col = colors[3],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[3], .15)),
+     lwd = 2)
+  
+legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+
+
+```
+
+#### RQ2: the modification of temperature
+
+- prediction of the temperature association
+
+```{r rq2 prediction of temp}
+# before after index
+thresh_2008 = ifelse(data$date <"2008-01-01" & data$f_id>= 72, 0, 1)
+thresh_2008_rev = ifelse(data$date <"2008-01-01" & data$f_id  < 72, 0, 1)
+
+
+# new modifier functions
+modif           <- cb.temp * thresh_2008
+modif_rev       <- cb.temp * thresh_2008_rev
+
+
+# models for before
+mod_nm1 <- gnm(all ~ cb.temp + modif, 
+               data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# model for after
+mod_nm2 <- gnm(all ~ cb.temp + modif_rev,  
+               data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prediction based on binary variable for only foehn
+pred_nm1 <- crosspred(cb.temp, mod_nm1,  cumul=FALSE, cen = 15)
+pred_nm2 <- crosspred(cb.temp, mod_nm2,  cumul=FALSE, cen = 15)
+
+
+
+```
+
+
+```{r rq2 prediction of temp_plot, echo=FALSE}
+par(mfrow=c(1,2))
+
+plot(pred_nm1,              ## cumulative exposure
+     "overall",
+     col = colors[2],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[2], 0.25)), 
+     xlab = "temperature",
+     ylab = "cumulative RR",
+     lwd = 2,
+     main = "before 2008",
+     ylim = c(0.8,1.3),
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+
+
+lines(pred_nm2,           ## cumulative exposure
+     "overall",
+     col = colors[3],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[3], .15)),
+     lwd = 2)
+  
+legend("topleft", ncol = 1, legend = c("with foehn", "without foehn"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+
+# before after index
+thresh_2008 = ifelse(data$date >"2008-01-01" & data$f_id>= 72, 0, 1)
+thresh_2008_rev = ifelse(data$date >"2008-01-01" & data$f_id  < 72, 0, 1)
+
+
+# new modifier functions
+modif           <- cb.temp * thresh_2008
+modif_rev       <- cb.temp * thresh_2008_rev
+
+# models for before
+mod_nm1 <- gnm(all ~ cb.temp + modif, 
+               data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# model for after
+mod_nm2 <- gnm(all ~ cb.temp + modif_rev,  
+               data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+
+pred_nm1 <- crosspred(cb.temp, mod_nm1, cumul=FALSE, cen = 15)
+pred_nm2 <- crosspred(cb.temp, mod_nm2, cumul=FALSE, cen = 15)
+
+plot(pred_nm1,              ## cumulative exposure
+     "overall",
+     col = colors[2],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[2], 0.25)), 
+     xlab = "temperature",
+     ylab = "cumulative RR",
+     lwd = 2,
+     main = "after 2008",
+     ylim = c(0.8,1.3),
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+
+
+lines(pred_nm2,           ## cumulative exposure
+     "overall",
+     col = colors[3],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[3], .15)),
+     lwd = 2)
+  
+legend("topleft", ncol = 1, legend = c("with foehn", "without foehn"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
