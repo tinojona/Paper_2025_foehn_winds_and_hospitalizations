@@ -14,6 +14,9 @@ source("functions/findmin.R")
 
 ### DATA ####
 
+# colors
+colors <- viridis(3, option = "viridis")
+
 # buffer size for data file read
 buffer = 8000
 
@@ -66,19 +69,27 @@ min1 <- findmin(cb.temp,pred,from=quantile(data$temp, .1),to=quantile(data$temp,
 prednew <- crosspred(cb.temp, mod, cumul=FALSE, cen = min1)
 
 
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/temp_only_plot.png", width = 1000, height =1000, res = 300)
+
+par(mfrow=c(1,1),
+    mar = c(3,3,.5,.5),
+    mgp = c(1.8, .5, 0))
 
 plot(prednew,              ## cumulative exposure
      "overall",
-     col = 2,
-     ci.arg = list(density = 20, col = 2 ,angle = 45),
-     xlab = "Temperature",
-     ylab = "Cumulative Response",
+     col = colors[1],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[1], 0.25)), # list(col = alpha(colour = foehn_col, .15)),
+     xlab = "temperature [\u00B0C]",
+     ylab = "cumulative RR",
      lwd = 2,
-     main = "")
+     main = "",
+     cex.axis = 0.7,
+     cex.lab = 0.7)
 
 
 
-
+dev.off()
 
 # winter vs summer
 
