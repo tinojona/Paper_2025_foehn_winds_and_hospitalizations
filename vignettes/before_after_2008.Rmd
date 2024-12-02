@@ -1,5 +1,5 @@
 ---
-title: "Station Selection"
+title: ""
 author: "Tino Schneidewind"
 date: "`r Sys.Date()`"
 output: html_document
@@ -60,7 +60,7 @@ cb.foehn <- crossbasis(data$f_id,
 
 #### RQ1: the independent effect of foehn
 
-- prediction of the foehn hospitalization association 
+- **prediction of the foehn hospitalization association **
 
 ```{r RQ1, echo=FALSE}
 print(paste0("the percentage of data before 2008 vs all data: ", round(length(which(data$date < "2008-01-01")) / nrow(data), digits = 3)*100, " %"))
@@ -121,8 +121,8 @@ mod_nm1 <- gnm(all ~ cb.foehn + cb.temp + modif, data = data,  family=quasipoiss
 mod_nm2 <- gnm(all ~ cb.foehn + cb.temp + modif_rev, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
 
-pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
-pred_nm2 <- crosspred(cb.foehn, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
+pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cen = 0)
+pred_nm2 <- crosspred(cb.foehn, mod_nm2, at=0:288, cen = 0)
 
 
 
@@ -151,19 +151,19 @@ legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(col
 
 ```
 
-- prediction of the binary variable coefficient
+- **prediction of the binary variable coefficient**
 
 ```{r rq1 prediction of binary variable}
 # models for before
 mod_nm1 <- gnm(all ~ cb.foehn + modif, 
                data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 # model for after
-mod_nm2 <- gnm(all ~ cb.foehn + modif_rev, 
-               data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# mod_nm2 <- gnm(all ~ cb.foehn + modif_rev, 
+               # data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
 # prediction based on binary variable for only foehn
-pred_nm1 <- crosspred(modif, mod_nm1, at=c(0,1), cumul=FALSE, cen = 0)
-pred_nm2 <- crosspred(modif_rev, mod_nm2, at=c(0,1), cumul=FALSE, cen = 0)
+pred_nm1 <- crosspred(modif, mod_nm1, cen = 15.5)
+# pred_nm2 <- crosspred(modif_rev, mod_nm2, at=c(0,1), cumul=FALSE, cen = 0)
 ```
 
 
@@ -181,27 +181,28 @@ plot(pred_nm1,              ## cumulative exposure
      main = "model = foehn",
      cex.axis = 0.7,
      cex.lab = 0.7,
-     ylim = c(.99,1.01))
+     ylim = c(.8,1.1)
+     )
 
 
-lines(pred_nm2,           ## cumulative exposure
-     "overall",
-     col = colors[3],
-     ci = "area",
-     ci.arg = list(col = alpha(colour = colors[3], .15)),
-     lwd = 2)
+# lines(pred_nm2,           ## cumulative exposure
+#      "overall",
+#      col = colors[3],
+#      ci = "area",
+#      ci.arg = list(col = alpha(colour = colors[3], .15)),
+#      lwd = 2)
   
-legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+# legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
 
 
 
 mod_nm1 <- gnm(all ~ cb.foehn + cb.temp + modif, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
-mod_nm2 <- gnm(all ~ cb.foehn + cb.temp + modif_rev, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# mod_nm2 <- gnm(all ~ cb.foehn + cb.temp + modif_rev, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
 
-pred_nm1 <- crosspred(modif, mod_nm1, at=c(0,1), cumul=FALSE, cen = 0)
-pred_nm2 <- crosspred(modif_rev, mod_nm2, at=c(0,1), cumul=FALSE, cen = 0)
+pred_nm1 <- crosspred(modif, mod_nm1, cen = 15.5)
+# pred_nm2 <- crosspred(modif_rev, mod_nm2, at=c(0,1), cumul=FALSE, cen = 0)
 
 
 
@@ -216,26 +217,30 @@ plot(pred_nm1,              ## cumulative exposure
      main = "model = foehn + temp",
      cex.axis = 0.7,
      cex.lab = 0.7,
-     ylim = c(.99,1.01))
+     ylim = c(.8,1.1)
+     )
 
 
-lines(pred_nm2,           ## cumulative exposure
-     "overall",
-     col = colors[3],
-     ci = "area",
-     ci.arg = list(col = alpha(colour = colors[3], .15)),
-     lwd = 2)
+# lines(pred_nm2,           ## cumulative exposure
+#      "overall",
+#      col = colors[3],
+#      ci = "area",
+#      ci.arg = list(col = alpha(colour = colors[3], .15)),
+#      lwd = 2)
   
-legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+# legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
 
 
 ```
 
+## APOLLINE SAID, ALL BELOW IS NOT NECESSARY AND WAS THEREFORE NOT CORRECTED!
+
+
 #### RQ2: the modification of temperature
 
-- prediction of the temperature association
+- **prediction of the temperature association**
 
-- combining both foehn index and date index into one gives weird results (see below), that why I decided to split the dataset, and then apply only the foehn index.
+- **combining both foehn index and date index into one gives weird results (see below), that why I decided to split the dataset, and then apply only the foehn index.**
 
 ```{r rq2 prediction of temp}
 # before after index
@@ -336,7 +341,7 @@ legend("topleft", ncol = 1, legend = c("with foehn", "without foehn"), col = c(c
 ```
 
 
-```{r rq2 prediction of temp proper}
+```{r rq2 prediction of temp proper, echo=FALSE}
 
 # split data
 data_before = data[data$date < "2008-01-01", ]

@@ -102,7 +102,7 @@ This Markdown document presents and summarizes the findings of an analysis conce
 
 
 ```{r results_all, echo=FALSE, fig.width=3.3, fig.height=3.3, fig.align='center'}
-# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_all_plot.png", width = 1000, height =1000, res = 300)
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_all_plot.png", width = 1000, height =1000, res = 300)
 
 par(mfrow=c(1,1), 
     mar = c(3,3,.5,.5),
@@ -124,17 +124,17 @@ for (i in 1:length(groups_id[1])) {
   mod_modif_rev <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
   # prediction with and without foehn
-  pred_modif   <- crosspred(cb.temp, mod_modif, cen = 20, cumul=FALSE)
-  pred_modif2  <- crosspred(cb.temp, mod_modif_rev, cen = 20, cumul=FALSE)
+  pred_modif   <- crosspred(cb.temp, mod_modif, cen = 20)
+  pred_modif2  <- crosspred(cb.temp, mod_modif_rev, cen = 20)
 
   
   # get min value of both predictions and use for centering
   min1 <- findmin(cb.temp,pred_modif,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
-  min2 <- findmin(cb.temp,pred_modif2,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
+  # min2 <- findmin(cb.temp,pred_modif2,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
 
   # predict with new min values
-  pred_modif_new     <- crosspred(cb.temp, mod_modif, cen = min1, cumul=FALSE, by = .2)
-  pred_modif_rev_new <- crosspred(cb.temp, mod_modif_rev, cen = min1, cumul=FALSE, by = .2)
+  pred_modif_new     <- crosspred(cb.temp, mod_modif, cen = min1, by = .1)
+  pred_modif_rev_new <- crosspred(cb.temp, mod_modif_rev, cen = min1, by = .1)
   
   plot(pred_modif_new,              ## cumulative exposure
      "overall",
@@ -158,14 +158,14 @@ for (i in 1:length(groups_id[1])) {
   
   abline(v =quantile(data$temp, .99), col = "black", lty = 2)
   
-    legend("top", ncol = 1, legend = c("temp with foehn", "temp without foehn"), col = c("green4", "gold2"),
+    legend("top", ncol = 1, legend = c("temp with interaction", "temp without interaction"), col = c("green4", "gold2"),
          bty = "n", lwd=c(2,2), cex = 0.7)
   
   # text(25, 3 , labels = "(a)", pos = 2, cex = 0.7)
   }
 
 
-# dev.off()
+dev.off()
 ```
 
 ```{r seasonal, echo=FALSE}
@@ -230,7 +230,7 @@ plot(pred_modif_new_sum,              ## cumulative exposure
      ci.arg = list(col = alpha(colour = temp_col, .15)),
      lwd = 2)
   
-  legend("topleft", ncol = 1, legend = c("temp with foehn", "temp without foehn"), col = c("green4", "gold2"),
+  legend("topleft", ncol = 1, legend = c("temp with interaction", "temp without interaction"), col = c("green4", "gold2"),
          bty = "n", lwd=c(2,2), cex = 0.7)
 
 text(25, 2.5 , labels = "(a)", pos = 2, cex = 0.7)
@@ -489,8 +489,8 @@ for (i in 1:nrow(table_estimates)) {
 
 
 }
-table_estimates$categories[7:8] = "age <= 64"
-table_estimates$categories[9:10] = "age > 64"
+table_estimates$categories[7:8] = "y64"
+table_estimates$categories[9:10] = "o64"
 
 
 table_estimates$categories <- factor(table_estimates$categories, 
@@ -501,29 +501,36 @@ table_estimates$model <- factor(table_estimates$model,
 
 # png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_lolli.png", 
     # width = 1200, height =1400, res = 300)
+# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_lolli_new.png",
+#     width = 1200, height =1400, res = 300)
 
 ggplot(table_estimates, aes(y = categories, x = pred, color = model)) +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "black") +
   geom_pointrange(aes(xmin = CI_low, xmax = CI_high), 
                   position = position_dodge(width = 0.4)) +
   labs(title = "",
-       x = "RR", y = "") +
+       x = "cumulative RR", y = "") +
   theme_minimal() +
   scale_color_manual(
     values = c("temp + foehn" = foehn_col, "temp - foehn" = temp_col), 
-    labels = c("temp + foehn" = "temp with foehn", "temp - foehn" = "temp without foehn"),  # Map the levels to custom labels
-    name = "Model Type:"  # Custom legend title
+    labels = c("temp + foehn" = "temp with interaction", "temp - foehn" = "temp without interaction"),  # Map the levels to custom labels
+    name = "model:"  # Custom legend title
   ) +
+  
   theme(
-    legend.position = c(1,1), # Position the legend at the top
-    legend.justification = c("right", "top"),
-    legend.title = element_text(size = 10),  # Font size for the legend title
-    legend.text = element_text(size = 8),    # Font size for the legend text
+    legend.position = "none",
+    # legend.position = c(1,1), # Position the legend at the top
+    # legend.justification = c("right", "top"),
+    # legend.title = element_text(size = 10),  # Font size for the legend title
+    # legend.text = element_text(size = 8),    # Font size for the legend text
     axis.text.x = element_text(size = 8),    # Font size for x-axis labels
     axis.text.y = element_text(size = 8),    # Font size for y-axis labels
     axis.title.x = element_text(size = 10),  # Font size for x-axis title
     plot.margin = unit(c(0, 1, 0, 0), "cm"), # Adjust plot margins
     axis.line = element_line(color = "black"), # Add axis lines
-    panel.grid.minor = element_blank(),  # Remove minor grid lines
+    panel.grid.minor = element_blank(),       # Remove minor grid lines
+    panel.grid.major.y = element_blank(),     # Remove horizontal grid lines
+    panel.grid.major.x = element_blank(),  # Remove minor grid lines
     legend.margin = margin(.5, .5, .5, .5),
     legend.background = element_rect(fill = "white", color = "white"),
   ) +
@@ -536,21 +543,23 @@ ggplot(table_estimates, aes(y = categories, x = pred, color = model)) +
 
 ```
 
+**Prediction of the interaction term**
 
-
-```{r results_subgroups_interaction, fig.width=9, fig.height=9, fig.align='center'}
-# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_plot_interaction_term.png", width = 1800, height =1800, res = 300)
-
-# foehn_col = "green4"
-# # temp_col = "purple"
-# temp_col = "gold2"
-
+```{r results_subgroups_interaction, fig.width=9, fig.height=9, fig.align='center', warning=FALSE, message=FALSE}
 par(mfrow=c(3,3), 
     mar = c(3,3,.5,.5),
     mgp = c(1.8, .5, 0))
+dev.off()
+# binary foehn
+foehn_bin <- ifelse(data$f_id > 72, 0, 1)
+foehn_bin_rev <- ifelse(foehn_bin == 1, 0, 1)
 
-# for (i in 1:length(groups_id[2:10])) {
+# modifier functions
+modif <- cb.temp * foehn_bin
+modif_rev <- cb.temp * foehn_bin_rev
+
 for (i in 1:length(groups_id[2:10])) {
+# for (i in 1:length(groups_id[2])) {
 
   colvar  =  groups_id[i+1]
 
@@ -558,12 +567,12 @@ for (i in 1:length(groups_id[2:10])) {
   formula2 <- as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
 
   # model with and without foehn
-  mod_modif     <-gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
-  mod_modif_rev <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  mod_modif     <- gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  # mod_modif_rev <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
   # prediction with and without foehn
-  pred_modif   <- crosspred(modif, mod_modif, cen = 0, at = c(0,1), cumul=FALSE)
-  pred_modif_rev <- crosspred(modif_rev, mod_modif_rev, cen = 0, at = c(0,1), cumul=FALSE)
+  pred_modif   <- crosspred(modif, mod_modif, cen = 15.5, by =0.1)
+  # pred_modif_rev <- crosspred(modif_rev, mod_modif_rev, cen = 15.5,  cumul=FALSE)
   
   plot(pred_modif,              ## cumulative exposure
      "overall",
@@ -573,25 +582,27 @@ for (i in 1:length(groups_id[2:10])) {
      ci.arg = list(col = alpha(colour = foehn_col, .2)),
      lwd = 2,
      main ="",
-     ylim = c(.99,1.02)
+     # ylim = c(.99,1.02)
      )
 
-  
-  lines(pred_modif_rev,           ## cumulative exposure
-     "overall",
-     col = temp_col,
-     ci = "area",
-     ci.arg = list(col = alpha(colour = temp_col, .2)),
-     lwd = 2)
-  
-  text("topleft", labels = paste0("(", letters[i], ")"), pos = 2)}
-# max(pred_modif_new$allRRhigh)
+  print(colvar)
+  print(pred_modif$allRRfit["24.7"])
+  print(pred_modif$allRRlow["24.7"])
+  print(pred_modif$allRRhigh["24.7"])}
 
-# dev.off()
+  # lines(pred_modif_rev,           ## cumulative exposure
+  #    "overall",
+  #    col = temp_col,
+  #    ci = "area",
+  #    ci.arg = list(col = alpha(colour = temp_col, .2)),
+  #    lwd = 2)
+  
+  # text("topleft", labels = paste0("(", letters[i], ")"), pos = 2)}
+
 ```
 
 
 
-*Figure 1: Subgroups interaction term*
-
+*Figure X: Subgroups interaction term*
+ <br>
 

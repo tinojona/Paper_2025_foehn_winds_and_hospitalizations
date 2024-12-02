@@ -146,7 +146,8 @@ raster_df <- as.data.frame(raster_cropped, xy = TRUE, na.rm = TRUE); colnames(ra
 
 
 
-png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/map_plot.png", width = 1800, height = 1400, res = 300)
+# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/map_plot.png", width = 1800, height = 1400, res = 300)
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/map_plot_new.png", width = 1800, height = 1400, res = 300)
 
 
 ggplot() +
@@ -177,11 +178,15 @@ ggplot() +
   # # Set the color scale for the elevation data (fill based on elevation)
 
   #
-  theme(legend.position = "top",    # Position the legend on the right side
-        legend.title = element_text(size = 10),  # Font size for the legend title
-        legend.text = element_text(size = 8),
-        axis.text.x = element_text(size = 8),
-        axis.text.y = element_text(size = 8),
+  theme(legend.position = "none",    # Position the legend on the right side
+        # legend.title = element_text(size = 10),  # Font size for the legend title
+        # legend.text = element_text(size = 8),
+        panel.grid = element_blank(),
+        axis.text.x = element_blank(), # Remove x-axis text
+        axis.text.y = element_blank(), # Remove y-axis text
+        axis.ticks = element_blank(),
+        # axis.text.x = element_text(size = 8),
+        # axis.text.y = element_text(size = 8),
         plot.margin = unit(c(0,0,0,0), "cm")) +
 
 # Customize legend appearance (optional)
