@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r data, echo=FALSE, warning=FALSE, message=FALSE}
 ### PACKAGES ####
-library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr);library(knitr)
+library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr);library(knitr);library(lmtest)
 
 rm(list=ls())
 
@@ -161,7 +161,7 @@ for (i in 1:length(groups_id[1])) {
     legend("top", ncol = 1, legend = c("temp with interaction", "temp without interaction"), col = c("green4", "gold2"),
          bty = "n", lwd=c(2,2), cex = 0.7)
   
-  # text(25, 3 , labels = "(a)", pos = 2, cex = 0.7)
+  text(25, 2.5 , labels = "(a)", pos = 4, cex = 0.7)
   }
 
 
@@ -447,6 +447,7 @@ kable(table_estimates_transposed,
 ```
 
 ```{r results_subgroups_lollipop_figure, echo=FALSE}
+library(ggstance)
 table_estimates = data.frame(categories = c("all","all", "mal", "mal","fem","fem","y64","y64","o64","o64",
                                             "cvd","cvd","resp","resp","inf","inf","uri","uri","ment","ment"),
                              model = rep(c("temp + foehn", "temp - foehn"), 10),
@@ -499,15 +500,17 @@ table_estimates$categories <- factor(table_estimates$categories,
 table_estimates$model <- factor(table_estimates$model, 
                                 levels = c("temp + foehn", "temp - foehn"))
 
+
+
 # png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_lolli.png", 
     # width = 1200, height =1400, res = 300)
-# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_lolli_new.png",
-#     width = 1200, height =1400, res = 300)
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_lolli_new.png",
+    width = 1200, height =1400, res = 300)
 
 ggplot(table_estimates, aes(y = categories, x = pred, color = model)) +
   geom_vline(xintercept = 1, linetype = "dashed", color = "black") +
   geom_pointrange(aes(xmin = CI_low, xmax = CI_high), 
-                  position = position_dodge(width = 0.4)) +
+                  position = position_dodgev(height = 0.4)) +
   labs(title = "",
        x = "cumulative RR", y = "") +
   theme_minimal() +
@@ -516,6 +519,8 @@ ggplot(table_estimates, aes(y = categories, x = pred, color = model)) +
     labels = c("temp + foehn" = "temp with interaction", "temp - foehn" = "temp without interaction"),  # Map the levels to custom labels
     name = "model:"  # Custom legend title
   ) +
+  annotate("text", x = Inf, y = Inf, label = "(b)", 
+           hjust = 1.2, vjust = 1.2, size = 3) +
   
   theme(
     legend.position = "none",
@@ -536,7 +541,7 @@ ggplot(table_estimates, aes(y = categories, x = pred, color = model)) +
   ) +
   guides(color = guide_legend(ncol = 1))  # Set legend to one column
 
-# dev.off()
+dev.off()
 
 
 
@@ -545,11 +550,127 @@ ggplot(table_estimates, aes(y = categories, x = pred, color = model)) +
 
 **Prediction of the interaction term**
 
+for all cause
+
+```{r results_all_interaction, echo=FALSE, fig.width=3.3, fig.height=3.3, fig.align='center'}
+# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq2_all_interaction_plot.png", width = 1000, height =1000, res = 300)
+
+par(mfrow=c(1,1), 
+    mar = c(3,3,.5,.5),
+    mgp = c(1.8, .5, 0))
+
+foehn_col = "green4"
+# temp_col = "purple"
+temp_col = "gold2"
+
+
+for (i in 1:length(groups_id[3])) {
+
+  colvar  =  groups_id[i+9]
+
+  formula1  <- as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
+  formula2 <- as.formula(paste0(colvar, "~ cb.temp")) # for baseline model to get p value
+
+  # model with and without foehn
+  mod_modif     <- gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  model_baseline <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction with and without foehn
+  pred_modif   <- crosspred(modif_rev, mod_modif, cen = 15.5)
+  
+    # p value extraction
+  an <- lrtest(mod_modif, model_baseline)
+
+  plot(pred_modif,              ## cumulative exposure
+     "overall",
+     ylab = "cumulative RR",
+     xlab = "temperature [\u00B0C]",
+     col = foehn_col,
+     ci.arg = list(col = alpha(colour = foehn_col, .15)),
+     lwd = 2,
+     main ="",
+     ylim = c(0.7,2.5),
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+  
+  # p value in plot
+  # text(-22, 1.5, labels = paste0("p-value = " , as.character(p_value)), pos = 4, cex = 0.7, )
+  
+  
+  }
+
+# dev.off()
+```
+
+
+
+
+
+```{r results_subgroups_interaction, echo=FALSE, fig.width=9, fig.height=9, fig.align='center'}
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq2_subgroups_interaction_plot.png", width = 1800, height =1800, res = 300)
+
+par(mfrow=c(3,3), 
+    mar = c(3,3,.5,.5),
+    mgp = c(1.8, .5, 0))
+
+for (i in 1:length(groups_id[1:9])) {
+
+  colvar  =  groups_id[i+1]
+
+  formula1  <- as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
+  formula2 <- as.formula(paste0(colvar, "~ cb.temp"))
+  
+  
+  # model with and without foehn
+  mod_modif     <-gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  model_baseline <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction with and without foehn
+  pred_modif   <- crosspred(modif_rev, mod_modif, cen = 15.5, by = 0.1)
+  
+  
+  
+      
+  # p value extraction
+  an <- anova(mod_modif, model_baseline)
+  
+  # chisq()
+  deviance <- abs(an$Deviance[2])  # Deviance for Model 1 vs. Model 2
+  df <- abs(an$Df[2])             # Degrees of freedom for Model 1 vs. Model 2
+  p_value <- round(pchisq(deviance, df, lower.tail = FALSE), digits = 4)
+                   
+                   
+                   
+                   
+  plot(pred_modif,              ## cumulative exposure
+     "overall",
+     ylab = "cumulative RR",
+     xlab = "temperature [\u00B0C]",
+     col = foehn_col,
+     ci.arg = list(col = alpha(colour = foehn_col, .15)),
+     lwd = 2,
+     main ="",
+     ylim = c(0.7,2.5),
+     cex.axis = 0.7,
+     cex.lab = 0.7)
+  text(-14, 2.4, labels = paste0("(", letters[i], ")"), pos = 2)
+  
+  # p value in plot
+  text(-14, 2, labels = paste0("p-value = " , as.character(p_value)), pos = 4)
+  
+  }
+
+dev.off()
+```
+
+# below is not important
+
 ```{r results_subgroups_interaction, fig.width=9, fig.height=9, fig.align='center', warning=FALSE, message=FALSE}
 par(mfrow=c(3,3), 
     mar = c(3,3,.5,.5),
     mgp = c(1.8, .5, 0))
 dev.off()
+
 # binary foehn
 foehn_bin <- ifelse(data$f_id > 72, 0, 1)
 foehn_bin_rev <- ifelse(foehn_bin == 1, 0, 1)
@@ -558,13 +679,13 @@ foehn_bin_rev <- ifelse(foehn_bin == 1, 0, 1)
 modif <- cb.temp * foehn_bin
 modif_rev <- cb.temp * foehn_bin_rev
 
-for (i in 1:length(groups_id[2:10])) {
-# for (i in 1:length(groups_id[2])) {
+# for (i in 1:length(groups_id[1:10])) {
+for (i in 1:length(groups_id[2])) {
 
-  colvar  =  groups_id[i+1]
+  colvar  =  groups_id[i]
 
   formula1  <- as.formula(paste0(colvar, "~ cb.temp + modif"))
-  formula2 <- as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
+  # formula2 <- as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
 
   # model with and without foehn
   mod_modif     <- gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
@@ -572,7 +693,9 @@ for (i in 1:length(groups_id[2:10])) {
 
   # prediction with and without foehn
   pred_modif   <- crosspred(modif, mod_modif, cen = 15.5, by =0.1)
-  # pred_modif_rev <- crosspred(modif_rev, mod_modif_rev, cen = 15.5,  cumul=FALSE)
+  # pred_modif_rev <- crosspred(modif_rev, mod_modif_rev, cen = 15.5, by = 0.1)
+  # pred_modif   <- crosspred(cb.temp, mod_modif, cen = 15.5, by =0.1)
+  # pred_modif_rev <- crosspred(cb.temp, mod_modif_rev, cen = 15.5, by = 0.1)
   
   plot(pred_modif,              ## cumulative exposure
      "overall",
@@ -585,19 +708,15 @@ for (i in 1:length(groups_id[2:10])) {
      # ylim = c(.99,1.02)
      )
 
-  print(colvar)
+  # print(colvar)
   print(pred_modif$allRRfit["24.7"])
-  print(pred_modif$allRRlow["24.7"])
-  print(pred_modif$allRRhigh["24.7"])}
-
-  # lines(pred_modif_rev,           ## cumulative exposure
-  #    "overall",
-  #    col = temp_col,
-  #    ci = "area",
-  #    ci.arg = list(col = alpha(colour = temp_col, .2)),
-  #    lwd = 2)
+  # print(pred_modif_rev$allRRfit["24.7"])
+  # print(pred_modif$allRRlow["24.7"])
+  # print(pred_modif$allRRhigh["24.7"])}
   
-  # text("topleft", labels = paste0("(", letters[i], ")"), pos = 2)}
+}
+
+
 
 ```
 
