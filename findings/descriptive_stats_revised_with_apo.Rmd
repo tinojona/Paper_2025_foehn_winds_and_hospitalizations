@@ -503,13 +503,13 @@ for (i in 1:length(unique(data$station))) {
 
 kable(subgroups, 
       digits = 2, 
-      col.names = c("total", "male", "female", "age <= 64", "age > 64", "cvd", "resp", "inf", "uri", "ment"),
+      col.names = c("total", "mal", "fem", "y64", "o64", "cvd", "resp", "inf", "uri", "ment"),
       align = rep("r", ncol(subgroups))) %>%
    kable_styling(full_width = FALSE) %>%
 save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html")
 webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html",
         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups_table.png",
-        vwidth = 900,   # increase width
+        vwidth = 800,   # increase width
         vheight = 400,  # increase height
         zoom = 3)        # increase zoom level for higher resolution
 
