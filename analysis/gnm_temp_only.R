@@ -91,6 +91,29 @@ plot(prednew,              ## cumulative exposure
 
 dev.off()
 
+
+
+x="29"
+
+
+prednew$allRRfit[x]
+prednew$allRRlow[x]
+prednew$allRRhigh[x]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # winter vs summer
 
 # winter data

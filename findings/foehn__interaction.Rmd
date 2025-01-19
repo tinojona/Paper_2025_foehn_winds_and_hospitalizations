@@ -102,7 +102,7 @@ This Markdown document presents and summarizes the findings of an analysis conce
 
 
 ```{r results_all, echo=FALSE, fig.width=3.3, fig.height=3.3, fig.align='center'}
-png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_all_plot.png", width = 1000, height =1000, res = 300)
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_all_plot.png", width = 900, height =1200, res = 300)
 
 par(mfrow=c(1,1), 
     mar = c(3,3,.5,.5),
@@ -112,7 +112,7 @@ foehn_col = "green4"
 # temp_col = "purple"
 temp_col = "gold2"
 
-for (i in 1:length(groups_id[1])) {
+for (i in 1:length(groups_id[7])) {
 
   colvar  =  groups_id[i]
 
@@ -163,6 +163,18 @@ for (i in 1:length(groups_id[1])) {
   
   text(25, 2.5 , labels = "(a)", pos = 4, cex = 0.7)
   }
+
+
+x="24.7"
+
+
+pred_modif_new$allRRfit[x]
+pred_modif_new$allRRlow[x]
+pred_modif_new$allRRhigh[x]
+
+pred_modif_rev_new$allRRfit[x]
+pred_modif_rev_new$allRRlow[x]
+pred_modif_rev_new$allRRhigh[x]
 
 
 dev.off()
@@ -505,7 +517,7 @@ table_estimates$model <- factor(table_estimates$model,
 # png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_lolli.png", 
     # width = 1200, height =1400, res = 300)
 png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq3_subgroups_lolli_new.png",
-    width = 1200, height =1400, res = 300)
+    width = 1000, height =1200, res = 300)
 
 ggplot(table_estimates, aes(y = categories, x = pred, color = model)) +
   geom_vline(xintercept = 1, linetype = "dashed", color = "black") +
@@ -553,7 +565,7 @@ dev.off()
 for all cause
 
 ```{r results_all_interaction, echo=FALSE, fig.width=3.3, fig.height=3.3, fig.align='center'}
-# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq2_all_interaction_plot.png", width = 1000, height =1000, res = 300)
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq2_all_interaction_plot.png", width = 1000, height =1000, res = 300)
 
 par(mfrow=c(1,1), 
     mar = c(3,3,.5,.5),
@@ -566,20 +578,23 @@ temp_col = "gold2"
 
 for (i in 1:length(groups_id[3])) {
 
-  colvar  =  groups_id[i+9]
+  colvar  =  groups_id[i]
 
   formula1  <- as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
   formula2 <- as.formula(paste0(colvar, "~ cb.temp")) # for baseline model to get p value
 
   # model with and without foehn
   mod_modif     <- gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
-  model_baseline <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
   # prediction with and without foehn
   pred_modif   <- crosspred(modif_rev, mod_modif, cen = 15.5)
   
-    # p value extraction
-  an <- lrtest(mod_modif, model_baseline)
+  # p value extraction
+  # model_baseline     <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  
+  
+  # anova
+  # anova_result <- anova(mod_modif, model_baseline, test = "LRT")
 
   plot(pred_modif,              ## cumulative exposure
      "overall",
@@ -594,16 +609,15 @@ for (i in 1:length(groups_id[3])) {
      cex.lab = 0.7)
   
   # p value in plot
-  # text(-22, 1.5, labels = paste0("p-value = " , as.character(p_value)), pos = 4, cex = 0.7, )
+  # p_value <- round(anova_result$`Pr(>Chi)`[2], digits = 4)
   
+  # text(-22, 1.5, labels = paste0("p-value = " , as.character(round(p_value, digits=4))), pos = 4, cex = 0.7, )
+
   
   }
 
-# dev.off()
+dev.off()
 ```
-
-
-
 
 
 ```{r results_subgroups_interaction, echo=FALSE, fig.width=9, fig.height=9, fig.align='center'}
@@ -623,7 +637,7 @@ for (i in 1:length(groups_id[1:9])) {
   
   # model with and without foehn
   mod_modif     <-gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
-  model_baseline <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  # model_baseline <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
 
   # prediction with and without foehn
   pred_modif   <- crosspred(modif_rev, mod_modif, cen = 15.5, by = 0.1)
@@ -632,12 +646,8 @@ for (i in 1:length(groups_id[1:9])) {
   
       
   # p value extraction
-  an <- anova(mod_modif, model_baseline)
-  
-  # chisq()
-  deviance <- abs(an$Deviance[2])  # Deviance for Model 1 vs. Model 2
-  df <- abs(an$Df[2])             # Degrees of freedom for Model 1 vs. Model 2
-  p_value <- round(pchisq(deviance, df, lower.tail = FALSE), digits = 4)
+  # anova_result <- anova(mod_modif, model_baseline, test = "LRT")
+  # p_value <- round(anova_result$`Pr(>Chi)`[2], digits = 4)
                    
                    
                    
@@ -656,7 +666,7 @@ for (i in 1:length(groups_id[1:9])) {
   text(-14, 2.4, labels = paste0("(", letters[i], ")"), pos = 2)
   
   # p value in plot
-  text(-14, 2, labels = paste0("p-value = " , as.character(p_value)), pos = 4)
+  # text(-14, 2, labels = paste0("p-value = " , as.character(p_value)), pos = 4)
   
   }
 

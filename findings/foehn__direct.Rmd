@@ -119,17 +119,22 @@ for (i in 1:length(groups_id)) {
 
 table_estimates_transposed = t(table_estimates)
 
-kable(table_estimates_transposed,
-      # digits = 3,
-      col.names = c("RR foehn [CI]", "RR foehn + temp [CI]"),
-      align = rep("r", ncol(table_estimates_transposed) )) %>%
-   kable_styling(full_width = FALSE) %>%
-save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.html")
-webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.html",
-        "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.png",
-        vwidth = 450,   # increase width
-        vheight = 400,  # increase height
-        zoom = 3)        # increase zoom level for higher resolution
+colnames(table_estimates_transposed) <- c("relative risk foehn [CI]", "relative risk foehn + temperature [CI]")
+rownames(table_estimates_transposed) <- c("all", "male", "female", "<65 years", ">64 years", "cardiovascular", "respiratory", "infectious", "urinary", "mental")
+
+write.csv(table_estimates_transposed, file = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.csv")
+
+# kable(table_estimates_transposed,
+#       # digits = 3,
+#       col.names = c("RR foehn [CI]", "RR foehn + temp [CI]"),
+#       align = rep("r", ncol(table_estimates_transposed) )) %>%
+#    kable_styling(full_width = FALSE) %>%
+# save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.html")
+# webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.html",
+#         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.png",
+#         vwidth = 450,   # increase width
+#         vheight = 400,  # increase height
+#         zoom = 3)        # increase zoom level for higher resolution
 
 
 

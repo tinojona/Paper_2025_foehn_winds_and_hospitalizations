@@ -216,19 +216,24 @@ for (i in 1:length(stations)) {
   # # full_dates = seq(min(subs$date), max(subs$date), by = "day")
   # # gen_stats$missing_data[i+1] = paste0( round(  length(full_dates) / nrow(subs) *100 - 100 , digits = 1), " %")
 
-  }
+}
 
 
-kable(gen_stats,
-      col.names = c("start date *", "years", "mean_temp[sd]", "annual_foehn[sd]" ,"%-foehn", "bin-foehn-%", "annual_hosp[sd]", "%-hosp"     ),
-      align = c("c", rep("r", ncol(gen_stats) -2), "c"))  %>%
-   kable_styling(full_width = FALSE) %>%
-save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.html")
-webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.html",
-        "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.png",
-        vwidth = 1050,   # increase width
-        vheight = 400,  # increase height
-        zoom = 3)        # increase zoom level for higher resolution
+
+write.csv(gen_stats, file = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.csv")
+
+
+# 
+# kable(gen_stats,
+#       col.names = c("start date *", "years", "mean_temp[sd]", "annual_foehn[sd]" ,"%-foehn", "bin-foehn-%", "annual_hosp[sd]", "%-hosp"     ),
+#       align = c("c", rep("r", ncol(gen_stats) -2), "c"))  %>%
+#    kable_styling(full_width = FALSE) %>%
+# save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.html")
+# webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.html",
+#         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/main_table.png",
+#         vwidth = 1050,   # increase width
+#         vheight = 400,  # increase height
+#         zoom = 3)        # increase zoom level for higher resolution
 ```
 
 <br>
@@ -498,20 +503,29 @@ for (i in 1:length(unique(data$station))) {
   subgroups$ment[i+1] = paste( sprintf("%.1f",round( sum(subs$ment) / sum(subs$all)*100, digits = 1)), " %")
   
   
-}                       
+}    
 
 
-kable(subgroups, 
-      digits = 2, 
-      col.names = c("total", "mal", "fem", "y64", "o64", "cvd", "resp", "inf", "uri", "ment"),
-      align = rep("r", ncol(subgroups))) %>%
-   kable_styling(full_width = FALSE) %>%
-save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html")
-webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html",
-        "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups_table.png",
-        vwidth = 800,   # increase width
-        vheight = 400,  # increase height
-        zoom = 3)        # increase zoom level for higher resolution
+colnames(subgroups) <- c("all", "male", "female", "<65 years", ">64 years", "cardiovascular", "respiratory", "infectious", "urinary", "mental")
+write.csv(subgroups, file = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups_table.csv")
+
+
+subgroups_ICD = data.frame(total = "-", mal = "-", fem = "-", y64 ="-", o64="-", cvd = "I00-I99", resp = "J00-J99", inf = "A00-B99", uri = "N00-N99", ment = "F00-F99",
+                       row.names = "ICD code ") 
+
+subgroups_all = rbind(subgroups_ICD, subgroups)
+
+# kable(subgroups_all, 
+#       digits = 2, 
+#       col.names = c("total", "mal", "fem", "y64", "o64", "cvd", "resp", "inf", "uri", "ment"),
+#       align = rep("r", ncol(subgroups_all))) %>%
+#    kable_styling(full_width = FALSE) %>%
+# save_kable("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html")
+# webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups.html",
+#         "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/subgroups_table.png",
+#         vwidth = 900,   # increase width
+#         vheight = 400,  # increase height
+#         zoom = 3)        # increase zoom level for higher resolution
 
 ```
 
@@ -523,7 +537,7 @@ webshot("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plo
 
 
 ```{r station_stats, echo=FALSE}
-
+write.csv(station_MedStat_full, file = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/medstat_table.csv")
 
 kable(station_MedStat_full,
       align = rep("r", ncol(station_MedStat_full))) # %>%
