@@ -146,9 +146,9 @@ raster_df <- as.data.frame(raster_cropped, xy = TRUE, na.rm = TRUE); colnames(ra
 
 
 
-# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/map_plot.png", width = 1800, height = 1400, res = 300)
-png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/map_plot_new.png", width = 1800, height = 1400, res = 300)
-
+## png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/map_plot.png", width = 1800, height = 1400, res = 300)
+# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/map_plot_new.png", width = 1800, height = 1400, res = 300)
+pdf("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/pdf/map_plot_new.pdf", width = 7, height = 5)
 
 ggplot() +
   geom_raster(data = raster_df, aes(x = x, y = y, fill = elevation)) +
