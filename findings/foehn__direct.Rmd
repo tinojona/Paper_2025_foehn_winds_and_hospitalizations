@@ -122,7 +122,7 @@ table_estimates_transposed = t(table_estimates)
 colnames(table_estimates_transposed) <- c("relative risk foehn [CI]", "relative risk foehn + temperature [CI]")
 rownames(table_estimates_transposed) <- c("all", "male", "female", "<65 years", ">64 years", "cardiovascular", "respiratory", "infectious", "urinary", "mental")
 
-write.csv(table_estimates_transposed, file = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.csv")
+# write.csv(table_estimates_transposed, file = "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/rq1_table.csv")
 
 # kable(table_estimates_transposed,
 #       # digits = 3,
@@ -140,6 +140,115 @@ write.csv(table_estimates_transposed, file = "C:/Users/tinos/Documents/Master - 
 
 ```
 
+
+PLOT of exposure response for all ~ foehn wind for all cause hospitalizations
+
+```{r}
+# model
+mod_nm1 <- gnm(all ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prediction
+pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
+
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/Defence/rq1_foehn_only_biglab.png", width = 1800, height =1800, res = 300)
+
+
+png("C:/Users/tinos/Desktop/test.png", width = 1800, height = 1800, res = 300)
+
+par(
+  mar = c(3.7, 3.6, 1,1),
+  mgp = c(2.2, 0.7, 0))
+
+# plot
+plot(pred_nm1,
+     "overall",
+     xlab = "foehn wind intensity",
+     ylab = "relative risk",
+     col = "gold2",
+     ci.arg = list(col = alpha(colour = "gold3", .15)),
+     lwd = 2,
+     cex.lab = 1.5,
+     cex.axis = 1.5
+     )
+
+abline(v = 72, lty = 2)
+
+dev.off()
+```
+
+Table sensitivity analysis of buffer size!
+
+```{r sensitivity}
+sensitivity_table = data.frame(
+  bs_5= rep(NA,2),
+  bs_10=rep(NA,2))
+colnames(sensitivity_table) = c("Model1", "Model2")
+
+sizes = c(5000,10000)
+
+for( i in 1:2){
+  
+  
+  buffer = sizes[i] # buffer size
+
+data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv")) # data
+
+data$date = as.Date(data$date); data$station <- as.factor(data$station)
+
+# index to include only stratum that have hosp counts
+data$stratum_dow = as.factor(data$stratum_dow); data$stratum = as.factor(data$stratum)
+ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
+
+data <- data %>%
+  mutate(y64 = a014y + a1564y) %>%
+  mutate(o64 = a6574y + a7584y + a85plusy)
+cb.temp <- crossbasis(data$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data$station)
+
+cb.foehn <- crossbasis(data$f_id,
+                       lag = 3,
+                       argvar = list(fun="lin"),
+                       arglag = list(fun="integer"),
+                       group = data$station)
+
+
+formula1 <- as.formula("all ~ cb.foehn")
+
+  # model
+  mod_nm1 <- gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction
+  pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
+
+  # extract prediction for value 72 and save it
+  sensitivity_table[i,1] = paste0( sprintf("%.3f",round(pred_nm1$allRRfit["72"],digits=3)), 
+                                         " [", 
+                                         sprintf("%.3f",round(pred_nm1$allRRlow["72"], digits=3)),
+                                         "-", 
+                                         sprintf("%.3f",round(pred_nm1$allRRhigh["72"], digits = 3)), "]")
+
+    # formula, foehn + temp
+  formula2 <- as.formula("all ~ cb.foehn + cb.temp")
+
+  # model
+  mod_nm2 <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction
+  pred_nm2 <- crosspred(cb.foehn, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
+
+  # extract prediction for value 72 and save it
+  sensitivity_table[i,2] = paste0( sprintf("%.3f",round(pred_nm2$allRRfit["72"],digits = 3)),
+                                 " [", 
+                                 sprintf("%.3f",round(pred_nm2$allRRlow["72"],digits=3)),
+                                 "-", 
+                                 sprintf("%.3f",round(pred_nm2$allRRhigh["72"], digits = 3)), "]")
+
+}
+
+```
 
 
 <br>
@@ -427,6 +536,137 @@ Through the inclusion of temperature in our model, the effect of foehn has even 
 <br>
 
 
+3D PLOT OF FOEHN Wind
 
 
+```{r}
+
+mod <- gnm(all ~ cb.foehn, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+prednew <- crosspred(cb.foehn, mod, cumul=FALSE, cen = 20)
+
+
+
+
+
+png("C:/Users/tinos/Desktop/test5.png", width = 1800, height = 1800, res = 300)
+par(
+  mar = c(2, 3, 1,2),
+  mgp = c(2.8, 2.5, 0))
+
+
+
+plot(prednew,            
+     "3d",
+     
+     main = "",
+     xlab = "foehn wind intensity",
+     zlab = "relative risk",
+     
+     zlim = c(0.995,1.02),
+     
+     col = "gold2",
+     border = "black",
+     # shade = 0.1,
+     lwd = .2,
+     # nlevels = 15,not a graphical parameter!
+     ticktype = "detailed",
+     
+     
+     expand = .8,
+     theta = 250, # rotation
+     phi = 25 # elevation
+     
+
+     )
+
+
+dev.off()
+```
+
+
+
+
+*Table 1:Sensitivity analysis of the lag period *
+
+```{r resultss, echo=FALSE}
+
+#### Results table
+cb.temp <- crossbasis(data$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data$station)
+
+cb.foehn <- crossbasis(data$f_id,
+                       lag = 15, # LAG OF ONE
+                       argvar = list(fun="lin"),
+                       arglag = list(fun="integer"),
+                       group = data$station)
+
+
+groups_id = colnames(data)[c(3,9,10,24,25, 13, 14, 11, 15, 12)]
+
+table_estimates = data.frame(all = rep(NA, 2),
+                             mal = rep(NA, 2),
+                             fem = rep(NA, 2),
+                             y64 = rep(NA, 2),
+                             o64  = rep(NA, 2),
+                             cvd = rep(NA, 2),
+                             resp = rep(NA, 2),
+                             inf = rep(NA, 2),
+                             uri = rep(NA, 2),
+                             ment = rep(NA, 2),
+                             row.names = c("RR foehn [CI]", "RR foehn + temp [CI]"))
+
+for (i in 1:length(groups_id)) {
+
+  colvar = groups_id[i]
+  
+  # formula, only foehn
+  formula1 <- as.formula(paste(colvar, "~ cb.foehn"))
+
+  # model
+  mod_nm1 <- gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction
+  pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cumul=TRUE, cen = 0)
+
+  # extract prediction for value 72 and save it
+  table_estimates[1,i] = paste0( sprintf("%.3f",round(pred_nm1$allRRfit["72"],digits=3)), 
+                                         " [", 
+                                         sprintf("%.3f",round(pred_nm1$allRRlow["72"], digits=3)),
+                                         "-", 
+                                         sprintf("%.3f",round(pred_nm1$allRRhigh["72"], digits = 3)), "]")
+  
+  
+  
+  # formula, foehn + temp
+  formula2 <- as.formula(paste(colvar, "~ cb.foehn + cb.temp"))
+
+  # model
+  mod_nm2 <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction
+  pred_nm2 <- crosspred(cb.foehn, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
+
+  # extract prediction for value 72 and save it
+  table_estimates[2,i] = paste0( sprintf("%.3f",round(pred_nm2$allRRfit["72"],digits = 3)),
+                                 " [", 
+                                 sprintf("%.3f",round(pred_nm2$allRRlow["72"],digits=3)),
+                                 "-", 
+                                 sprintf("%.3f",round(pred_nm2$allRRhigh["72"], digits = 3)), "]")
+  
+
+
+}
+
+table_estimates_transposed = t(table_estimates)
+
+colnames(table_estimates_transposed) <- c("relative risk foehn [CI]", "relative risk foehn + temperature [CI]")
+rownames(table_estimates_transposed) <- c("all", "male", "female", "<65 years", ">64 years", "cardiovascular", "respiratory", "infectious", "urinary", "mental")
+
+
+
+
+```
 
