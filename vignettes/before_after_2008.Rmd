@@ -86,23 +86,24 @@ mod_nm2 <- gnm(all ~ cb.foehn + modif_rev,
 # prediction for foehn for only left plot
 pred_nm1 <- crosspred(cb.foehn, mod_nm1, at=0:288, cumul=FALSE, cen = 0)
 pred_nm2 <- crosspred(cb.foehn, mod_nm2, at=0:288, cumul=FALSE, cen = 0)
-```
 
-
-```{r RQ1_model_plot, echo=FALSE}
-par(mfrow=c(1,2))
+png("C:/Users/tinos/Desktop/test3.png", width = 2500, height = 1500, res = 300)
+par(mfrow = c(1,2),
+  mar = c(3.5, 3.5, 1,1),
+  mgp = c(2.1, 0.7, 0))
 
 plot(pred_nm1,              ## cumulative exposure
      "overall",
      col = colors[2],
      ci = "area",
      ci.arg = list(col = alpha(colour = colors[2], 0.25)), 
-     xlab = "foehn",
-     ylab = "cumulative RR",
+     xlab = "foehn wind intensity",
+     ylab = "relative risk",
      lwd = 2,
-     main = "model = foehn",
-     cex.axis = 0.7,
-     cex.lab = 0.7)
+     # main = "model = foehn",
+     # cex.axis = 0.7,
+     # cex.lab = 0.7,
+     ylim = c(0.9,1.3))
 
 
 lines(pred_nm2,           ## cumulative exposure
@@ -111,8 +112,10 @@ lines(pred_nm2,           ## cumulative exposure
      ci = "area",
      ci.arg = list(col = alpha(colour = colors[3], .15)),
      lwd = 2)
+
+text(200, 1.25, "(a)")
   
-legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
+legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2))
 
 
 
@@ -131,12 +134,13 @@ plot(pred_nm1,              ## cumulative exposure
      col = colors[2],
      ci = "area",
      ci.arg = list(col = alpha(colour = colors[2], 0.25)), 
-     xlab = "foehn",
-     ylab = "cumulative RR",
+     xlab = "foehn wind intensity",
+     ylab = "relative risk",
      lwd = 2,
-     main = "model = foehn + temp",
-     cex.axis = 0.7,
-     cex.lab = 0.7)
+     # main = "model = foehn + temp",
+     # cex.axis = 0.7,
+     # cex.lab = 0.7,
+     ylim = c(0.9,1.3))
 
 
 lines(pred_nm2,           ## cumulative exposure
@@ -145,10 +149,11 @@ lines(pred_nm2,           ## cumulative exposure
      ci = "area",
      ci.arg = list(col = alpha(colour = colors[3], .15)),
      lwd = 2)
-  
-legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
 
+text(200, 1.25, "(b)")
+# legend("topleft", ncol = 1, legend = c("before 2008", "after 2008"), col = c(colors[2], colors[3]),  bty = "n", lwd=c(2,2), cex = 0.7)
 
+dev.off()
 ```
 
 - **prediction of the binary variable coefficient**
