@@ -71,6 +71,8 @@ data_daily_mean = data %>%
     p25_temp = quantile(temp, 0.25),
     p50_temp = quantile(temp, 0.5),
     p75_temp = quantile(temp, 0.75),
+    p95_temp = quantile(temp, .95),
+    p99_temp = quantile(temp, .95),
     p25_all = quantile(all, 0.25),
     p50_all = quantile(all, 0.5),
     p75_all = quantile(all, 0.75),
@@ -86,7 +88,8 @@ data_daily_mean$MA90 = rollmean(data_daily_mean$p90_f_id, k = 30, fill = NA, ali
 data_daily_mean$MA25_temp = rollmean(data_daily_mean$p25_temp, k = 30, fill = NA, align = "center")
 data_daily_mean$MA50_temp = rollmean(data_daily_mean$p50_temp, k = 30, fill = NA, align = "center")
 data_daily_mean$MA75_temp = rollmean(data_daily_mean$p75_temp, k = 30, fill = NA, align = "center")
-
+data_daily_mean$MA95_temp = rollmean(data_daily_mean$p95_temp, k = 30, fill = NA, align = "center")
+data_daily_mean$MA99_temp = rollmean(data_daily_mean$p99_temp, k = 30, fill = NA, align = "center")
 data_daily_mean$MA25_all = rollmean(data_daily_mean$p25_all, k = 30, fill = NA, align = "center")
 data_daily_mean$MA50_all = rollmean(data_daily_mean$p50_all, k = 30, fill = NA, align = "center")
 data_daily_mean$MA75_all = rollmean(data_daily_mean$p75_all, k = 30, fill = NA, align = "center")
@@ -243,9 +246,11 @@ write.csv(gen_stats, file = "C:/Users/tinos/Documents/Master - Climate Science/3
 
 ```{r plot_foehn, echo=FALSE, fig.width= 6, fig.height=6, fig.align = 'center'}
 
-png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/distribution_plot.png", width = 1800, height = 2000, res = 300)
+# png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/distribution_plot.png", width = 1800, height = 2000, res = 300)
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/Defence/distribution_plot.png", width = 2700, height = 1500, res = 300)
 
-par(mfrow=c(3,2), 
+par(mfcol =c(2,3), 
+    # mfrow = c(3,2),
     mar = c(4,4,.5,1),
     mgp = c(2, .5, 0))
 
@@ -323,6 +328,8 @@ axis(1,
 lines(data_daily_mean$daymonth, data_daily_mean$MA25_temp, col = 1, lwd = 2, lty = 3)
 lines(data_daily_mean$daymonth, data_daily_mean$MA50_temp, col = 1, lwd = 2, lty = 1)
 lines(data_daily_mean$daymonth, data_daily_mean$MA75_temp, col = 1, lwd = 2, lty = 2)
+# lines(data_daily_mean$daymonth, data_daily_mean$MA95_temp, col = 1, lwd = 2, lty = 2)
+# lines(data_daily_mean$daymonth, data_daily_mean$MA99_temp, col = 2, lwd = 2, lty = 1)
 
 legend(monthly_ticks[2]+15, -2,  
        legend = c("p25", "p50","p75"), bty = "n",
