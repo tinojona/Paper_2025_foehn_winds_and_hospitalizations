@@ -53,6 +53,12 @@ cb.temp <- crossbasis(data$temp,
                       arglag=list(fun="ns", knots = logknots(21,3)),
                       group = data$station)
 
+# cb.temp <- crossbasis(data$temp,
+#                       lag=21,
+#                       argvar=list(fun="ns", knots = quantile(data$temp, c(.1,.75,.9), na.rm=TRUE)),
+#                       arglag=list(fun="ns", knots = logknots(21,3)),
+#                       group = data$station)
+
 #####
 
 
@@ -71,6 +77,68 @@ prednew <- crosspred(cb.temp, mod, cumul=FALSE, cen = min1)
 
 png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/temp_only_plot.png", width = 1000, height =1000, res = 300)
 
+
+
+
+par(mfrow=c(1,1),
+    mar = c(3,3,.5,.5),
+    mgp = c(1.8, .5, 0))
+
+plot(prednew,              ## cumulative exposure
+     "overall",
+     col = colors[1],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[1], 0.25)), # list(col = alpha(colour = foehn_col, .15)),
+     xlab = "temperature [\u00B0C]",
+     ylab = "cumulative RR",
+     lwd = 2,
+     main = "",
+     cex.axis = 1,
+     cex.lab = 1)
+
+
+
+dev.off()
+
+
+
+x="-1"
+
+
+prednew$allRRfit[x]
+prednew$allRRlow[x]
+prednew$allRRhigh[x]
+
+
+
+
+
+## Comparison of model to Gasparinis Model
+
+cb.tempog <- crossbasis(data$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data$temp, c(.1,.75,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data$station)
+
+
+# model
+mod <- gnm(all ~ cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+modog <- gnm(all ~ cb.tempog, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prediction preliminary
+pred <- crosspred(cb.temp, mod, cumul=FALSE, cen = 0)
+
+# find min value for plotting
+min1 <- findmin(cb.temp,pred,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
+
+# prediction final
+prednew <- crosspred(cb.temp, mod, cumul=FALSE, cen = min1)
+prednewog <- crosspred(cb.tempog, modog, cumul=FALSE, cen = min1)
+
+
+png("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/temp_only_comparison_plot.png", width = 1000, height =1000, res = 300)
+
 par(mfrow=c(1,1),
     mar = c(3,3,.5,.5),
     mgp = c(1.8, .5, 0))
@@ -87,31 +155,26 @@ plot(prednew,              ## cumulative exposure
      cex.axis = 0.7,
      cex.lab = 0.7)
 
+lines(prednewog,              ## cumulative exposure
+     "overall",
+     col = colors[3],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[3], 0.25)), # list(col = alpha(colour = foehn_col, .15)),
+     lwd = 2,
+     main = "")
+
+legend("topright", legend = c("adjusted", "not adjusted"), col = c(colors[1], colors[3]), lwd = 1.5, bty = "n", cex = 0.8)
 
 
 dev.off()
 
+QAIC <- function(model) {
+  phi <- summary(model)$dispersion
+  loglik <- sum(dpois(model$y, model$fitted.values, log=TRUE))
+  return(-2*loglik + 2*summary(model)$df[3]*phi)
+}
 
-
-x="29"
-
-
-prednew$allRRfit[x]
-prednew$allRRlow[x]
-prednew$allRRhigh[x]
-
-
-
-
-
-
-
-
-
-
-
-
-
+QAIC(mod); QAIC(modog)
 
 
 # winter vs summer
