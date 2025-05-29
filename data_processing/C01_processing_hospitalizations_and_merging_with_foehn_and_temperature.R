@@ -1,4 +1,6 @@
 ################################################################################
+### HOSPITALIZATION PROCESSING
+################################################################################
 ### In this file I:
 ### - aggregated the hospitalization data of the regions (depending on the buffer)
 ###   to their corresponding meteorological station
@@ -6,45 +8,54 @@
 ###   and added a column with the day of the week
 ### - to this data, I saved the corresponding foehn and temp data, maybe inducing some NAs
 ###   for dates that no temp / foehn data was apparent
-### - I saved both the data per station, and per buffer size combined of all stations
+### - I saved the data per buffer size combined of all stations
 
 
 
+### DATA
+#----
 
-# packages
-library(dplyr)
-rm(list = ls())
+rm(list=ls())
 
+# libraries
+library(tidyverse); library(lubridate)
 
 # read hospitalization data
-data = read.csv("../data-raw/MedStat/med_stat_data/hosp_daily.csv", header =T)
-data$station = NA
-# data$DT_EINTRITTSDAT = as.Date(data$DT_EINTRITTSDAT)
-
+data = read.csv("../data-raw/MedStat/hosp_daily.csv", header =T) |>
+  mutate(station = NA)
 
 # get foehn data for every station
-files_foehn = list.files("../data/foehn_processed")
+files_foehn = list.files("data_nonsensitive/foehn_wind_station_aggregated/")
 
 # CAREFUL! Sensitivity analysis with only full foehn in aggregation
-files_foehn = files_foehn[grepl("sensitivity", files_foehn)]
+# files_foehn = files_foehn[grepl("sensitivity", files_foehn)]
 
 # get temperature data for every station
-files_temp = list.files("../data/temp_processed")
-
+files_temp = list.files("data_nonsensitive/temperature_station_processed")
 
 # get regions sorted to station files
-files_regions = list.files("../data/MetStatRegions/centroids/per_station")
+files_regions = list.files("data_nonsensitive/Medstat_regions_per_buffer_size")
 
-# recreate all the buffer sies that are in files_regions, in THE SAME ORDER
-# buffer_sizes = c(seq(10000,15000,1000), seq(4000, 9000, 1000))
-buffer_sizes = 8000
+#----
+
+
+### FOR LOOP over all buffer sizes and consequently Medstat combinations
+#----
+
+# define the buffer size you are interested in
+buffer_sizes = c(5000,6000,7000,seq(9000,15000,1000))
 
 # start loop for 4 buffers
-for(i in 1:length(buffer_sizes)){
+for(i in buffer_sizes){
 
-  # get buffer size and sorted regions
-  buffer = buffer_sizes[i]
-  regions = read.csv(paste0("../data/MetStatRegions/centroids/per_station/", files_regions[i]))
+  # save buffer for file writing in the end
+  buffer = i
+
+  # get the file for the selected buffer size
+  medstat_file = files_regions[grepl( paste0("_",as.character(i)), files_regions )]
+
+  # load the regions file
+  regions = read.csv(paste0("data_nonsensitive/Medstat_regions_per_buffer_size/", medstat_file))
 
   # get colnames of the stations for later
   station_names = colnames(regions)
@@ -91,33 +102,41 @@ for(i in 1:length(buffer_sizes)){
 
 
     # summarize when the station name is present in data$station by date
-    aggregated_by_station <- data %>%
-      filter(station == station_current) %>%  # Filter out rows where station is NA
-      group_by(DT_EINTRITTSDAT) %>%           # Group by the date column
-      summarise(across(all:uri, sum),         # across al variables we sum
-                station = station_current)    # but we keep the station name
+    aggregated_by_station <- data |>
 
-    # rename date column so that it matches with foehn and temp later
-    aggregated_by_station <- aggregated_by_station %>%
+      # Filter out rows where station is NA
+      filter(station == station_current) |>
+
+      # group by date
+      group_by(DT_EINTRITTSDAT) |>
+
+      # sum across hospitalization subpopulations
+      summarise(across(all:uri, sum),
+                station = station_current) |>
+
+      # rename date column so that it matches with foehn and temp later
       rename("date" = DT_EINTRITTSDAT)
+
 
     ## insert dates that got excluded by the aggregation process
     start_date = min(aggregated_by_station$date, na.rm = TRUE)
     end_date = max(aggregated_by_station$date, na.rm = TRUE)
     end_date_alter = "2019-12-31"
 
-
     if(as.Date(end_date) >= as.Date(end_date_alter)){
       end_date <- end_date_alter
     }
 
 
-    # create empty df with continous dates
+
+    # create empty data frame with continuous dates
     df_with_dates = data.frame(date = as.character(seq.Date(from = as.Date(start_date), to = as.Date(end_date), by = "day")))
 
-    # merge df with hosp data
+
+    # merge empty data frame with time series with hospitalization data
     df_full <- df_with_dates %>%
       left_join(aggregated_by_station, by = "date")
+
 
     # fill NA in station with station name
     df_full$station = station_current
@@ -125,7 +144,7 @@ for(i in 1:length(buffer_sizes)){
     # fill NA in values with 0
     df_full[is.na(df_full)] <- 0
 
-    # reasign proper df name
+    # reassign proper data frame name
     aggregated_by_station <- df_full
 
 
@@ -137,42 +156,40 @@ for(i in 1:length(buffer_sizes)){
 
     matching_strings <- grep(station_current_up, files_foehn, value = TRUE)
 
-    foehn_data = read.csv(paste0("../data/foehn_processed/", matching_strings))
-    foehn_data <- foehn_data %>%
+    foehn_data = read.csv(paste0("data_nonsensitive/foehn_wind_station_aggregated/", matching_strings)) |>
       rename("date" = time_conv)
 
     aggregated_by_station <- aggregated_by_station %>%
       left_join(foehn_data[,2:3], by = "date")
 
 
+
+
     # cbind the temp data
     # find the correct file
     matching_strings <- grep(station_current_up, files_temp, value = TRUE)
-    temp_data = read.csv(paste0("../data/temp_processed/", matching_strings))
-    temp_data$date <- as.character(as.Date(strptime(as.character(temp_data$time), format = "%Y%m%d")))
+    temp_data = read.csv(paste0("data_nonsensitive/temperature_station_processed/", matching_strings)) |>
+      mutate(date = time_conv)
 
-    aggregated_by_station <- aggregated_by_station %>%
+    aggregated_by_station <- aggregated_by_station |>
       left_join(temp_data[,3:4], by = "date")
 
-    # print(nrow(aggregated_by_station)) # TODO delete later
+
 
 
     # create day of the week column
-    aggregated_by_station$date <- as.Date(aggregated_by_station$date)
-    aggregated_by_station$dow <- weekdays(aggregated_by_station$date)
+    aggregated_by_station <- aggregated_by_station |>
+      mutate(date = as.Date(date),
 
+             # create base variables for the stratum
+             dow = as.factor(weekdays(date)),
+             year = as.factor(format(date, "%Y")),
+             month = as.factor(format(date, "%m")),
 
-    # create 2 stratum variables of 1: station-year-month, 2: station-year-month-dow
-    aggregated_by_station$dow   = as.factor(aggregated_by_station$dow)
-    aggregated_by_station$year  = as.factor(format(aggregated_by_station$date, "%Y"))
-    aggregated_by_station$month = as.factor(format(aggregated_by_station$date, "%m"))
-
-    aggregated_by_station$stratum_dow = with(aggregated_by_station, factor(paste(station, year, month, dow, sep="-")))
-    aggregated_by_station$stratum = with(aggregated_by_station, factor(paste(station, year, month, sep="-")))
-
-    # save the data per station and buffer
-    # file_name = paste0(station_current, "_buffer_", buffer, ".csv")
-    # write.csv(aggregated_by_station, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/by_station/", file_name))
+             # create stratum
+             stratum_dow = paste(station, year, month, dow, sep="-"),
+             stratum = paste(station, year, month, sep="-")
+             )
 
 
     # append the data to the buffer aggregated dataset
@@ -184,8 +201,7 @@ for(i in 1:length(buffer_sizes)){
   aggregated_by_buffer <- aggregated_by_buffer[complete.cases(aggregated_by_buffer), ]
 
   # save the combined buffer set
-  # write.csv(aggregated_by_buffer, file = paste0("../data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv"))
-  write.csv(aggregated_by_buffer, file = paste0("../data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, "sensitivity_onlyfullfoehnaggregation.csv"))
+  write.csv(aggregated_by_buffer, file = paste0("../data/Medstat_hospitalizations_aggregated/hosp_buffer_", buffer, ".csv"))
 
 }
 
