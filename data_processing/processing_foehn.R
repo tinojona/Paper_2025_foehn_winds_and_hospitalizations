@@ -10,7 +10,7 @@ library(lubridate) # for UTC to CET
 rm(list = ls())
 
 # Specify the folder path
-folder_path <- "C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/foehn/data"
+folder_path <- "../data-raw/foehn/data"
 
 # List all files in the folder
 file_names <- list.files(path = folder_path)
@@ -23,7 +23,7 @@ foehn_NA = data.frame(stations = rep(NA,8),
 for(i in 1:8){
 
   # load complete path to file
-  file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/foehn/data/", file_names[i])
+  file = paste0("../data-raw/foehn/data/", file_names[i])
 
   # load data
   data = read.table(file, header = TRUE)
@@ -38,14 +38,20 @@ for(i in 1:8){
   # convert foehn data to numeric
   data$f_id <- as.numeric(data$wcc006s0)
 
+  # CAREFUL ! SENSITIVITY ANALYSIS WITH DIFFERENT FOEHN WINDS AGGREGATION
+  # data <- data |>
+    # mutate(f_id_sens = ifelse(f_id == 2, 2, 0))
+
   # aggregate by day, sum
-  data_agg_daily_sum <- aggregate(f_id ~ time_conv, data = data, FUN = function(x) sum(x, na.rm = TRUE))
+  # data_agg_daily_sum <- aggregate(f_id ~ time_conv, data = data, FUN = function(x) sum(x, na.rm = TRUE))
+  data_agg_daily_sum <- aggregate(f_id_sens ~ time_conv, data = data, FUN = function(x) sum(x, na.rm = TRUE))
 
   # extract station abbreviation
   station_abbr = substring(file_names[i], 14,16)
 
   # path for file
-  path_for_file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/foehn_processed/",station_abbr,"_daily_aggregated.csv")
+  path_for_file = paste0("../data/foehn_processed/",station_abbr,"_daily_aggregated.csv")
+  # path_for_file = paste0("../data/foehn_processed/",station_abbr,"_daily_aggregated_sensitivity_onlyfullfoehnaggregation.csv")
 
   # save aggregated file
   write.csv(data_agg_daily_sum, file = path_for_file)

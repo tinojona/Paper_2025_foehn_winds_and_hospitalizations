@@ -17,31 +17,34 @@ rm(list = ls())
 
 
 # read hospitalization data
-data = read.csv("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data-raw/MedStat/med_stat_data/hosp_daily.csv", header =T)
+data = read.csv("../data-raw/MedStat/med_stat_data/hosp_daily.csv", header =T)
 data$station = NA
 # data$DT_EINTRITTSDAT = as.Date(data$DT_EINTRITTSDAT)
 
 
 # get foehn data for every station
-files_foehn = list.files("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/foehn_processed")
+files_foehn = list.files("../data/foehn_processed")
+
+# CAREFUL! Sensitivity analysis with only full foehn in aggregation
+files_foehn = files_foehn[grepl("sensitivity", files_foehn)]
 
 # get temperature data for every station
-files_temp = list.files("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/temp_processed")
+files_temp = list.files("../data/temp_processed")
 
 
 # get regions sorted to station files
-files_regions = list.files("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/per_station")
+files_regions = list.files("../data/MetStatRegions/centroids/per_station")
 
 # recreate all the buffer sies that are in files_regions, in THE SAME ORDER
-buffer_sizes = c(seq(10000,15000,1000), seq(4000, 9000, 1000))
-
+# buffer_sizes = c(seq(10000,15000,1000), seq(4000, 9000, 1000))
+buffer_sizes = 8000
 
 # start loop for 4 buffers
 for(i in 1:length(buffer_sizes)){
 
   # get buffer size and sorted regions
   buffer = buffer_sizes[i]
-  regions = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MetStatRegions/centroids/per_station/", files_regions[i]))
+  regions = read.csv(paste0("../data/MetStatRegions/centroids/per_station/", files_regions[i]))
 
   # get colnames of the stations for later
   station_names = colnames(regions)
@@ -134,7 +137,7 @@ for(i in 1:length(buffer_sizes)){
 
     matching_strings <- grep(station_current_up, files_foehn, value = TRUE)
 
-    foehn_data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/foehn_processed/", matching_strings))
+    foehn_data = read.csv(paste0("../data/foehn_processed/", matching_strings))
     foehn_data <- foehn_data %>%
       rename("date" = time_conv)
 
@@ -145,7 +148,7 @@ for(i in 1:length(buffer_sizes)){
     # cbind the temp data
     # find the correct file
     matching_strings <- grep(station_current_up, files_temp, value = TRUE)
-    temp_data = read.csv(paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/temp_processed/", matching_strings))
+    temp_data = read.csv(paste0("../data/temp_processed/", matching_strings))
     temp_data$date <- as.character(as.Date(strptime(as.character(temp_data$time), format = "%Y%m%d")))
 
     aggregated_by_station <- aggregated_by_station %>%
@@ -181,7 +184,8 @@ for(i in 1:length(buffer_sizes)){
   aggregated_by_buffer <- aggregated_by_buffer[complete.cases(aggregated_by_buffer), ]
 
   # save the combined buffer set
-  write.csv(aggregated_by_buffer, file = paste0("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv"))
+  # write.csv(aggregated_by_buffer, file = paste0("../data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv"))
+  write.csv(aggregated_by_buffer, file = paste0("../data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, "sensitivity_onlyfullfoehnaggregation.csv"))
 
 }
 
