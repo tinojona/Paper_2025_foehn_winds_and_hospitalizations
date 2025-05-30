@@ -43,7 +43,7 @@ files_regions = list.files("data_nonsensitive/Medstat_regions_per_buffer_size")
 #----
 
 # define the buffer size you are interested in
-buffer_sizes = c(5000,6000,7000,seq(9000,15000,1000))
+buffer_sizes = seq(4000, 15000, 1000)
 
 # start loop for 4 buffers
 for(i in buffer_sizes){
@@ -160,7 +160,8 @@ for(i in buffer_sizes){
       rename("date" = time_conv)
 
     aggregated_by_station <- aggregated_by_station %>%
-      left_join(foehn_data[,2:3], by = "date")
+      left_join(foehn_data |> select(-X),
+                by = "date")
 
 
 
@@ -172,7 +173,7 @@ for(i in buffer_sizes){
       mutate(date = time_conv)
 
     aggregated_by_station <- aggregated_by_station |>
-      left_join(temp_data[,3:4], by = "date")
+      left_join(temp_data |> select(temp,date), by = "date")
 
 
 
