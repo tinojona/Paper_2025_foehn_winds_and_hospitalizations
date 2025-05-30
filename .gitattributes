@@ -1,1 +1,3 @@
 *.html linguist-vendored
+data_processing/*.ipynb linguist-vendored
+data_processing/*.py linguist-vendored
