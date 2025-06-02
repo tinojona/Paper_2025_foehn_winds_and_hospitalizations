@@ -58,14 +58,20 @@ for(i in 1:length(file_names)){
     mutate(f_id_bin = ifelse(f_id > 72, 0, 1),
            f_id_bin_rev = ifelse(f_id_bin == 0, 1, 0))
 
+  # data_agg_daily_sum <- data_agg_daily_sum |>
+  #   mutate(f_id_bin = ifelse(f_id_sens > 72, 0, 1),
+  #          f_id_bin_rev = ifelse(f_id_bin == 0, 1, 0))
+
   # extract station abbreviation
   station_abbr = substring(file_names[i], 14,16)
 
   # path for file
   path_for_file = paste0("data_nonsensitive/foehn_wind_station_aggregated/",station_abbr,"_daily_aggregated.csv")
-  # path_for_file = paste0("../data/foehn_processed/",station_abbr,"_daily_aggregated_sensitivity_onlyfullfoehnaggregation.csv")
+  # path_for_file = paste0("data_nonsensitive/foehn_wind_station_aggregated/",station_abbr,"_daily_aggregated_sensitivity_onlyfullfoehnaggregation.csv")
 
   # save aggregated file
   write.csv(data_agg_daily_sum, file = path_for_file)
 
 }
+
+#----

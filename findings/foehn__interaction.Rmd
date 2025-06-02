@@ -11,62 +11,62 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r data, echo=FALSE, warning=FALSE, message=FALSE}
-### PACKAGES ####
-library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr);library(knitr);library(lmtest); library(grid);library(gridBase)
-library(ggstance)
-
-rm(list=ls())
-
-
-
-### DATA ####
-
-# buffer size for data file read
-buffer = 8000
-
-data = read.csv(paste0("../../data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv")) |>
-  mutate(station_date = paste0(station, date),
-         date = as.Date(date),
-         station = as.factor(station),
-         stratum_dow = as.factor(stratum_dow),
-         stratum = as.factor(stratum),
-         y64 = a014y + a1564y,
-         o64 = a6574y + a7584y + a85plusy,
-         foehn_bin = ifelse(f_id > 72, 0, 1), # binary foehn foehn_bin <- ifelse(data$f_id > 72, 0, 1);
-         foehn_bin_rev = ifelse(foehn_bin == 1, 0, 1)) # foehn_bin_rev <- ifelse(foehn_bin == 1, 0, 1)
-
-# index to include only stratum that have hosp counts
-ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
-
-# define the maximum lag distance we account for
-maxlago <- 3
-
-# mmt function
-source("../functions/findmin.R")
-
-# crossbasis temp
-cb.temp <- crossbasis(data$temp,
-                      lag=21,
-                      argvar=list(fun="ns", knots = quantile(data$temp, c(.5,.9), na.rm=TRUE)),
-                      arglag=list(fun="ns", knots = logknots(21,3)),
-                      group = data$station)
-
-
-
-# modifier functions
-modif <- cb.temp * data$foehn_bin
-modif_rev <- cb.temp * data$foehn_bin_rev
-
-# groups
-groups_id = c("all", "mal", "fem", "y64", "o64", "cvd", "resp", "inf", "uri", "ment" )
-letters = c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")
-
-
-# colors
-colors <- viridis(3, option = "viridis")
-
-foehn_col = colors[2]
-temp_col = colors[3]
+# ### PACKAGES ####
+# library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm); library(dplyr);library(knitr);library(lmtest); library(grid);library(gridBase)
+# library(ggstance)
+# 
+# rm(list=ls())
+# 
+# 
+# 
+# ### DATA ####
+# 
+# # buffer size for data file read
+# buffer = 8000
+# 
+# data = read.csv(paste0("../../data/MedStat_aggregated/centroid_aggregated/hosp_buffer_", buffer, ".csv")) |>
+#   mutate(station_date = paste0(station, date),
+#          date = as.Date(date),
+#          station = as.factor(station),
+#          stratum_dow = as.factor(stratum_dow),
+#          stratum = as.factor(stratum),
+#          y64 = a014y + a1564y,
+#          o64 = a6574y + a7584y + a85plusy,
+#          foehn_bin = ifelse(f_id > 72, 0, 1), # binary foehn foehn_bin <- ifelse(data$f_id > 72, 0, 1);
+#          foehn_bin_rev = ifelse(foehn_bin == 1, 0, 1)) # foehn_bin_rev <- ifelse(foehn_bin == 1, 0, 1)
+# 
+# # index to include only stratum that have hosp counts
+# ind_dow = tapply(data$all, data$stratum_dow, sum); ind = tapply(data$all, data$stratum, sum)
+# 
+# # define the maximum lag distance we account for
+# maxlago <- 3
+# 
+# # mmt function
+# source("../functions/findmin.R")
+# 
+# # crossbasis temp
+# cb.temp <- crossbasis(data$temp,
+#                       lag=21,
+#                       argvar=list(fun="ns", knots = quantile(data$temp, c(.5,.9), na.rm=TRUE)),
+#                       arglag=list(fun="ns", knots = logknots(21,3)),
+#                       group = data$station)
+# 
+# 
+# 
+# # modifier functions
+# modif <- cb.temp * data$foehn_bin
+# modif_rev <- cb.temp * data$foehn_bin_rev
+# 
+# # groups
+# groups_id = c("all", "mal", "fem", "y64", "o64", "cvd", "resp", "inf", "uri", "ment" )
+# letters = c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")
+# 
+# 
+# # colors
+# colors <- viridis(3, option = "viridis")
+# 
+# foehn_col = colors[2]
+# temp_col = colors[3]
 
 #####
 ```

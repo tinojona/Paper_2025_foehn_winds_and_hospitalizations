@@ -44,6 +44,7 @@ files_regions = list.files("data_nonsensitive/Medstat_regions_per_buffer_size")
 
 # define the buffer size you are interested in
 buffer_sizes = seq(4000, 15000, 1000)
+# buffer_sizes = 8000
 
 # start loop for 4 buffers
 for(i in buffer_sizes){
@@ -203,7 +204,8 @@ for(i in buffer_sizes){
 
   # save the combined buffer set
   write.csv(aggregated_by_buffer, file = paste0("../data/Medstat_hospitalizations_aggregated/hosp_buffer_", buffer, ".csv"))
+  # write.csv(aggregated_by_buffer, file = paste0("../data/Medstat_hospitalizations_aggregated/hosp_buffer_", buffer, "sensitivity_onlyfullfoehnaggregation.csv"))
 
 }
 
-
+#----
