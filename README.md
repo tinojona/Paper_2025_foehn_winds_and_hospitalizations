@@ -1,37 +1,36 @@
-# Master Thesis by Tino Schneidewind
+# Master Thesis: *The risk of hospitalization associated with foehn winds and heat in the mountainous region of Switzerland*
 
-This repository was created using a github template from geco-bern and serves as a platform 
-to save my code in the form of R-Markdown and R-Script documents.
+author: Tino Schneidewind
+
+Disclamer:
+
+This repository presents my workflow and my results of my master thesis. Due to the sensitivity of the hospitalization data, I cannot publish the full data of the analysis. The data that is not part of this repository but can be applied for using the following procedure. The meteorological data was provided by the [Swiss Federal Office for Meteorology and Climatology](https://www.meteoschweiz.admin.ch/#tab=forecast-map) and is accessable through their own distribution platform [IDAweb](https://www.meteoschweiz.admin.ch/service-und-publikationen/service/wetter-und-klimaprodukte/datenportal-fuer-lehre-und-forschung.html). The hospitalization data was provided by the [Swiss Federal Office for Statistics](https://www.bfs.admin.ch/bfs/de/home.html) and the data can be accessed as described on their [webpage](https://www.bfs.admin.ch/bfs/de/home/statistiken/gesundheit/erhebungen/ms.html).
+
+
 
 ## Folders
+
+### The analysis folder
+
+The `analysis` folder contains the crossbasis definition methods for both foehn winds and temperature exposure (A01, A02). The procedure by which the descriptive statistics were calculated (B01, B02) and both research questions were answered (C01, C02).
+
+
+### The data folder
+
+The `data` folder includes all the environmental data in both raw and processed form, as well as the necessary shapefiles for the buffer size calculation and subsequent Medstat region selection.
 
 
 ### The functions folder
 
-The `functions` folder contains R functions, not scripts which are stored there so that they can be accessed
-in other documents through realtive paths. 
+The `functions` folder contains R functions, which are stored there so that they can be accessed
+in other R scripts.
 
-### The data-raw folder
 
-The `data-raw` folder contains, as the name suggests, raw data and the scripts
-to download and pre-process the data. This is data which requires significant
-pre-processing to be of use in analysis.
+### The output folder
 
-### The data folder
+The `output` folder has both all figures and tables of the paper that were created in the analysis. 
 
-The `data` folder contains analysis ready data. This is data which you can use,
-as is. This often contains the output of a `data-raw` pre-processing workflow,
-but can also include data which doesn't require any intervention, e.g. a land
-cover map which is used as-is. 
-
-### The analysis folder
-
-The `analysis` folder contains, *surprise*, R scripts covering analysis of your
-analysis ready data (in the `data` folder). These are R scripts with output
-which is limited to numbers, tables and figures. It should not include R
-markdown code!
 
 ### The vignettes folder
 
-The `vignettes` folder contains dynamic notebooks, i.e. R markdown files. These
-might serve a dual use between analysis and manuscript. 
+The `vignettes` folder presents how the buffersize influences the Medstat selection (01) and an explorative investigation into the foehn wind data (02), the hospitalization data (03) and for both Altdorf and Lugano an overview over the processed hospitalization-foehnwind-temperature data set.
