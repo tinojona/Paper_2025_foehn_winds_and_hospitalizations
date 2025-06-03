@@ -18,7 +18,7 @@ rm(list=ls())
 library(lubridate); library(tidyverse)
 
 # List all files in the folder
-file_names <- list.files(path = "data_nonsensitive/temperature_station_raw/data/")
+file_names <- list.files(path = "data/environmental_RAW/temperature_station_raw/data/")
 
 #----
 
@@ -30,7 +30,7 @@ file_names <- list.files(path = "data_nonsensitive/temperature_station_raw/data/
 for(i in file_names){
 
   # load complete path to file
-  file = paste0("data_nonsensitive/temperature_station_raw/data/", i)
+  file = paste0("data/environmental_RAW/temperature_station_raw/data/", i)
 
   # load data
   data = read.table(file, header = TRUE) |>
@@ -50,7 +50,7 @@ for(i in file_names){
   station_abbr = substring(i, 14,16)
 
   # path for file
-  path_for_file = paste0("data_nonsensitive/temperature_station_processed/temp_",station_abbr,".csv")
+  path_for_file = paste0("data/environmental_processed/temperature_station_processed/temp_",station_abbr,".csv")
 
   # save aggregated file
   write.csv(data, file = path_for_file)

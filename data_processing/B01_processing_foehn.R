@@ -20,7 +20,7 @@ rm(list = ls())
 library(lubridate); library(tidyverse)
 
 # List all files in the foehn wind folder
-file_names <- list.files(path = "data_nonsensitive/foehn_wind_station_raw/data")
+file_names <- list.files(path = "data/environmental_RAW/foehn_wind_station_raw/data")
 
 #----
 
@@ -32,7 +32,7 @@ file_names <- list.files(path = "data_nonsensitive/foehn_wind_station_raw/data")
 for(i in 1:length(file_names)){
 
   # load complete path to file
-  file = paste0("data_nonsensitive/foehn_wind_station_raw/data/", file_names[i])
+  file = paste0("data/environmental_RAW/foehn_wind_station_raw/data/", file_names[i])
 
   # load data
   data = read.table(file, header = TRUE) |>
@@ -66,7 +66,7 @@ for(i in 1:length(file_names)){
   station_abbr = substring(file_names[i], 14,16)
 
   # path for file
-  path_for_file = paste0("data_nonsensitive/foehn_wind_station_aggregated/",station_abbr,"_daily_aggregated.csv")
+  path_for_file = paste0("data/environmental_processed/foehn_wind_station_aggregated/",station_abbr,"_daily_aggregated.csv")
   # path_for_file = paste0("data_nonsensitive/foehn_wind_station_aggregated/",station_abbr,"_daily_aggregated_sensitivity_onlyfullfoehnaggregation.csv")
 
   # save aggregated file

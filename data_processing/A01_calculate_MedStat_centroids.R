@@ -17,10 +17,10 @@ library(raster); library(sf); library(ggplot2); library(knitr); library(RColorBr
 
 
 # load population densities of Switzerland
-pop <- raster("../data-raw/SUI_population_densities/gpw_v4_population_density_rev11_2010_30_sec_3.asc")
+pop <- raster("/Volumes/FS/_ISPM/CCH/Tino/master_thesis/data-raw/SUI_population_densities/gpw_v4_population_density_rev11_2010_30_sec_3.asc")
 
 # load spahefile data
-mesh <- st_read("data_nonsensitive/MedStat_shapefiles/raw/MEDSTAT_AREAS_2019.shp", quiet = TRUE)
+mesh <- st_read("data/MedStat_shapefiles/raw/MEDSTAT_AREAS_2019.shp", quiet = TRUE)
 
 #--------
 
@@ -112,9 +112,9 @@ sf_centroids$geometry <- st_transform(sf_centroids$geometry, crs = 2056)
 #----
 
 # new mesh (crs adjusted)
-st_write(mesh, "data_nonsensitive/Medstat_shapefiles/processed/MedStat_csr_adjusted.shp")
+st_write(mesh, "data/Medstat_shapefiles/processed/MedStat_csr_adjusted.shp")
 
 # centroids
-st_write(sf_centroids, "data_nonsensitive/Medstat_shapefiles/centroids/MedStat_centroids_popdensity.shp")
+st_write(sf_centroids, "data/Medstat_shapefiles/centroids/MedStat_centroids_popdensity.shp")
 
 #----

@@ -21,20 +21,21 @@ rm(list=ls())
 library(tidyverse); library(lubridate)
 
 # read hospitalization data
-data = read.csv("../data-raw/MedStat/hosp_daily.csv", header =T) |>
+data = read.csv("/Volumes/FS/_ISPM/CCH/Tino/master_thesis/data-raw/MedStat/hosp_daily.csv", header =T) |>
   mutate(station = NA)
 
 # get foehn data for every station
-files_foehn = list.files("data_nonsensitive/foehn_wind_station_aggregated/")
+files_foehn = list.files("data/environmental_processed/foehn_wind_station_aggregated/")
+files_foehn = files_foehn[!grepl("sensitivity", files_foehn)]
 
 # CAREFUL! Sensitivity analysis with only full foehn in aggregation
 # files_foehn = files_foehn[grepl("sensitivity", files_foehn)]
 
 # get temperature data for every station
-files_temp = list.files("data_nonsensitive/temperature_station_processed")
+files_temp = list.files("data/environmental_processed/temperature_station_processed")
 
 # get regions sorted to station files
-files_regions = list.files("data_nonsensitive/Medstat_regions_per_buffer_size")
+files_regions = list.files("data/Medstat_regions_per_buffer_size")
 
 #----
 
@@ -56,7 +57,7 @@ for(i in buffer_sizes){
   medstat_file = files_regions[grepl( paste0("_",as.character(i)), files_regions )]
 
   # load the regions file
-  regions = read.csv(paste0("data_nonsensitive/Medstat_regions_per_buffer_size/", medstat_file))
+  regions = read.csv(paste0("data/Medstat_regions_per_buffer_size/", medstat_file))
 
   # get colnames of the stations for later
   station_names = colnames(regions)
@@ -157,7 +158,7 @@ for(i in buffer_sizes){
 
     matching_strings <- grep(station_current_up, files_foehn, value = TRUE)
 
-    foehn_data = read.csv(paste0("data_nonsensitive/foehn_wind_station_aggregated/", matching_strings)) |>
+    foehn_data = read.csv(paste0("data/environmental_processed/foehn_wind_station_aggregated/", matching_strings)) |>
       rename("date" = time_conv)
 
     aggregated_by_station <- aggregated_by_station %>%
@@ -170,7 +171,7 @@ for(i in buffer_sizes){
     # cbind the temp data
     # find the correct file
     matching_strings <- grep(station_current_up, files_temp, value = TRUE)
-    temp_data = read.csv(paste0("data_nonsensitive/temperature_station_processed/", matching_strings)) |>
+    temp_data = read.csv(paste0("data/environmental_processed/temperature_station_processed/", matching_strings)) |>
       mutate(date = time_conv)
 
     aggregated_by_station <- aggregated_by_station |>
@@ -203,7 +204,7 @@ for(i in buffer_sizes){
   aggregated_by_buffer <- aggregated_by_buffer[complete.cases(aggregated_by_buffer), ]
 
   # save the combined buffer set
-  write.csv(aggregated_by_buffer, file = paste0("../data/Medstat_hospitalizations_aggregated/hosp_buffer_", buffer, ".csv"))
+  write.csv(aggregated_by_buffer, file = paste0("/Volumes/FS/_ISPM/CCH/Tino/master_thesis/data/Medstat_hospitalizations_aggregated/hosp_buffer_", buffer, ".csv"))
   # write.csv(aggregated_by_buffer, file = paste0("../data/Medstat_hospitalizations_aggregated/hosp_buffer_", buffer, "sensitivity_onlyfullfoehnaggregation.csv"))
 
 }

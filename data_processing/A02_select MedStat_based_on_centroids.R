@@ -18,10 +18,10 @@ rm(list=ls())
 library(sf); library(raster); library(ggplot2); library(gridExtra); library(viridis); library(terra)
 
 # load shapefile of regions
-mesh <- st_read("data_nonsensitive/Medstat_shapefiles/processed/MedStat_csr_adjusted.shp", quiet = TRUE)
+mesh <- st_read("data/Medstat_shapefiles/processed/MedStat_csr_adjusted.shp", quiet = TRUE)
 
 # load shapefile of centroids
-centroids <- st_read("data_nonsensitive/Medstat_shapefiles/centroids/MedStat_centroids_popdensity.shp", quiet = TRUE)
+centroids <- st_read("data/Medstat_shapefiles/centroids/MedStat_centroids_popdensity.shp", quiet = TRUE)
 
 # coordinates for the 8 stations
 df_stations <- data.frame(station = c("Davos", "Chur", "Altdorf", "Montana", "Visp", "Magadino", "Lugano", "Poschiavo"),
@@ -144,7 +144,7 @@ colors <- viridis(8, option = "viridis")
 station_loc <- st_as_sf(df_stations[,2:3], coords = c("x", "y"), crs = 2056)
 
 # raster data from Swisstopo https://www.swisstopo.admin.ch/en/height-model-dhm25-200m#Additional-information
-raster_data <- rast("data_nonsensitive/SUI_elevation/DHM200.asc")
+raster_data <- rast("data/SUI_elevation/DHM200.asc")
 crs(raster_data) <- "EPSG:21781" # assign projection based on LV03 LN02
 
 # reproject to the same geometry
@@ -181,8 +181,8 @@ centroids$geometry = st_transform(centroids$geometry, crs = reference)
 # Note: the plot is configured for a buffer radius of 8km
 # therefore the for loop above has to be run for 8km
 
-# png("figures/elevation_map_8kmbuffer_selected_Medstats.png", width = 1800, height = 1400, res = 300)
-# pdf("figures/elevation_map_8kmbuffer_selected_Medstats.pdf", width = 7, height = 5)
+# png("output/figures/Figure2.png", width = 1800, height = 1400, res = 300)
+# pdf("output/figures/Figure2.pdf", width = 7, height = 5)
 
 
 ggplot() +
@@ -349,8 +349,7 @@ plot5 <- ggplot() +
 
 # PLOT
 
-png("figures/SENSITIVITY_buffers_selected_centroids.png", width = 2200, height = 2600, res = 300)
-# pdf("C:/Users/tinos/Documents/Master - Climate Science/3 - Master Thesis/plots/paper/pdf/map_plot_new.pdf", width = 7, height = 5)
+png("output/figures/sFigure1.png", width = 2200, height = 2600, res = 300)s
 
 grid.arrange(plot5, plot10, ncol = 1)
 
