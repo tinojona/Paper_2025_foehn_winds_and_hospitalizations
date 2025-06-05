@@ -1,18 +1,26 @@
-# Master Thesis: *The risk of hospitalization associated with foehn winds and heat in the mountainous region of Switzerland*
+# Title: *The risk of hospitalization associated with foehn winds and heat in the mountainous region of Switzerland*
 
-author: Tino Schneidewind
+authors: Tino Schneidewind [1,2], Sujung Lee [1,2], Ana Maria Vicedo-Cabrera [1,2], Apolline Saucy [1,2]
 
-Disclamer:
+1 Institute for Social and Preventive Medicine, University of Bern, Switzerland
 
-This repository presents my workflow and my results of my master thesis. Due to the sensitivity of the hospitalization data, I cannot publish the full data of the analysis. The data that is not part of this repository but can be applied for using the following procedure. The meteorological data was provided by the [Swiss Federal Office for Meteorology and Climatology](https://www.meteoschweiz.admin.ch/#tab=forecast-map) and is accessable through their own distribution platform [IDAweb](https://www.meteoschweiz.admin.ch/service-und-publikationen/service/wetter-und-klimaprodukte/datenportal-fuer-lehre-und-forschung.html). The hospitalization data was provided by the [Swiss Federal Office for Statistics](https://www.bfs.admin.ch/bfs/de/home.html) and the data can be accessed as described on their [webpage](https://www.bfs.admin.ch/bfs/de/home/statistiken/gesundheit/erhebungen/ms.html).
+2 Oeschger Centre for Climate Change Research, University of Bern, Switzerland
+
+<br>
 
 
+This repository presents the workflow and the analysis of the paper, which developed out of my master thesis. Due to the sensitivity of the hospitalization data, I cannot publish the full data of the analysis. The data that is not part of this repository but can be applied for using the following procedure. The hospitalization data was provided by the [Swiss Federal Office for Statistics](https://www.bfs.admin.ch/bfs/de/home.html) and the data can be accessed as described on their [webpage](https://www.bfs.admin.ch/bfs/de/home/statistiken/gesundheit/erhebungen/ms.html).
+
+
+The non-sensitive meteorological data was provided by the [Swiss Federal Office for Meteorology and Climatology](https://www.meteoschweiz.admin.ch/#tab=forecast-map) and is part of this repository.
+
+<br>
 
 ## Folders
 
 ### The analysis folder
 
-The `analysis` folder contains the crossbasis definition methods for both foehn winds and temperature exposure (A01, A02). The procedure by which the descriptive statistics were calculated (B01, B02) and both research questions were answered (C01, C02).
+The `analysis` folder contains the crossbasis definition methods for both foehn winds and temperature exposure (A01, A02), the procedure by which the descriptive statistics were calculated (B01, B02) and both research questions were answered (C01, C02).
 
 
 ### The data folder
@@ -33,4 +41,4 @@ The `output` folder has both all figures and tables of the paper that were creat
 
 ### The vignettes folder
 
-The `vignettes` folder presents how the buffersize influences the Medstat selection (01) and an explorative investigation into the foehn wind data (02), the hospitalization data (03) and for both Altdorf and Lugano an overview over the processed hospitalization-foehnwind-temperature data set.
+The `vignettes` folder presents how the buffersize influences the Medstat selection (01) and an explorative investigation into the foehn wind data (02), the hospitalization data (03) and for both Altdorf (04) and Lugano (05) an overview over the processed hospitalization-foehnwind-temperature data set.
