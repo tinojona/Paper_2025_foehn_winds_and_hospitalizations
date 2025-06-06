@@ -162,6 +162,7 @@ lines(pred_modif_rev_new,
       lwd = 2)
 
 abline(v =quantile(data$temp, .99), col = "black", lty = 2)
+abline(v =quantile(data$temp, .01), col = "black", lty = 2)
 
 legend("top", ncol = 1, legend = c("temperature on foehn days (Model 4)", "temperature on non-foehn days (Model 4)"), col = c("green4", "gold2"),
        bty = "n", lwd=c(2,2), cex = 0.7)
@@ -579,6 +580,7 @@ plot(pred_modif,              ## cumulative exposure
      cex.lab = 0.7)
 
 abline(v=24.7, lty = 2)
+abline(v=-8.9, lty = 2)
 
 est_CI <- paste0(
   round(pred_modif$allRRfit["24.7"], digits = 3),
@@ -589,6 +591,16 @@ est_CI <- paste0(
   ")")
 
 text(25, 2, labels = est_CI, pos = 2)
+
+est_CI <- paste0(
+  round(pred_modif$allRRfit["-8.9"], digits = 3),
+  " (CI: ",
+  round(pred_modif$allRRlow["-8.9"], digits = 3),
+  "; " ,
+  round(pred_modif$allRRhigh["-8.9"], digits = 3),
+  ")")
+
+text(25, 1.5, labels = est_CI, pos = 2)
 
 dev.off()
 
@@ -713,6 +725,7 @@ for (i in 1:length(groups_id[2:10])) {
   text(-14, 2.4, labels = paste0("(", letters[i], ")"), pos = 2)
 
   abline(v=24.7, lty = 2)
+  abline(v=-8.9, lty = 2)
 
   est_CI <- paste0(
     round(pred_modif$allRRfit["24.7"], digits = 3),
@@ -723,6 +736,16 @@ for (i in 1:length(groups_id[2:10])) {
     ")")
 
   text(25, 2, labels = est_CI, pos = 2)
+
+  est_CI <- paste0(
+    round(pred_modif$allRRfit["-8.9"], digits = 3),
+    " (CI: ",
+    round(pred_modif$allRRlow["-8.9"], digits = 3),
+    "; " ,
+    round(pred_modif$allRRhigh["-8.9"], digits = 3),
+    ")")
+
+  text(25, 1.5, labels = est_CI, pos = 2)
 
 
 
@@ -967,8 +990,561 @@ write.csv(table_estimates_review, "output/tables/sTable7.csv")
 #----
 
 
+### Table for Figure 3c !cold!
+#----
+
+# Figure 3c as a Table !cold!
+
+# empty data frame
+table_estimates = data.frame(all = rep(NA, 2),
+                             mal = rep(NA, 2),
+                             fem = rep(NA, 2),
+                             y64 = rep(NA, 2),
+                             o64  = rep(NA, 2),
+                             cvd = rep(NA, 2),
+                             resp = rep(NA, 2),
+                             inf = rep(NA, 2),
+                             uri = rep(NA, 2),
+                             ment = rep(NA, 2),
+                             row.names = c("Model_4_foehn_days", "Model_4_non_foehn_days"))
+
+# loop through all subpopulations
+for (i in 1:length(groups_id)) {
+
+  # select subpopulation
+  colvar  =  groups_id[i]
+
+  # formula
+  formula1  <- as.formula(paste0(colvar, "~ cb.temp + modif"))
+  formula2 <- as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
+
+  # model with and without foehn
+  mod_modif     <-gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  mod_modif_rev <- gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # prediction with and without foehn
+  pred_modif   <- crosspred(cb.temp, mod_modif, cen = 20, cumul=FALSE)
+
+  # get min value of both predictions and use for centering
+  min1 <- findmin(cb.temp,pred_modif,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
+
+  # predict with new min values
+  pred_modif_new     <- crosspred(cb.temp, mod_modif, cen = min1, cumul=FALSE, by = .1)
+  pred_modif_rev_new <- crosspred(cb.temp, mod_modif_rev, cen = min1, cumul=FALSE, by = .1)
+
+  # extract prediction for value 24.7 and save it
+  table_estimates[1,i] = paste0( sprintf("%.3f",round(pred_modif_new$allRRfit["-8.9"],digits=3)),
+                                 " [",
+                                 sprintf("%.3f",round(pred_modif_new$allRRlow["-8.9"], digits=3)),
+                                 "-",
+                                 sprintf("%.3f",round(pred_modif_new$allRRhigh["-8.9"], digits = 3)), "]")
+
+  table_estimates[2,i] = paste0( sprintf("%.3f",round(pred_modif_rev_new$allRRfit["-8.9"],digits=3)),
+                                 " [",
+                                 sprintf("%.3f",round(pred_modif_rev_new$allRRlow["-8.9"], digits=3)),
+                                 "-",
+                                 sprintf("%.3f",round(pred_modif_rev_new$allRRhigh["-8.9"], digits = 3)), "]")
+
+
+
+}
+
+table_estimates = t(table_estimates)
+
+#----
+
+
+
+### Figure 3c !cold!
+#----
+
+# Cumulative relative risk (Model 4) for subpopulations at 24.7 °C with 95% confidence
+# intervals.
+
+# empty dataframe
+table_estimates = data.frame(categories = c("all","all", "mal", "mal","fem","fem","y64","y64","o64","o64",
+                                            "cvd","cvd","resp","resp","inf","inf","uri","uri","ment","ment"),
+                             model = rep(c("temp + foehn", "temp - foehn"), 10),
+                             pred = rep(NA, 20),
+                             CI_low = rep(NA, 20),
+                             CI_high = rep(NA, 20))
+
+
+# loop through all specifications
+for (i in 1:nrow(table_estimates)) {
+
+  # extract current subpopulation
+  colvar  =  table_estimates$categories[i]
+
+  # uneven numbers is foehn scenario
+  if( i %% 2 != 0) {
+    formula1 = as.formula(paste0(colvar, "~ cb.temp + modif"))
+
+    # even number is non-foehn scenario
+  } else {
+    formula1 = as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
+  }
+
+  # GET UNIFORM MMT
+  mod_modif     <-gnm(as.formula(paste0(colvar, "~ cb.temp + modif")), data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  pred_modif   <- crosspred(cb.temp, mod_modif, cen = 20, cumul=FALSE)
+  min1 <- findmin(cb.temp,pred_modif,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
+
+  # model with and without foehn
+  mod_modif     <- gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # predict with new min values
+  pred_modif_new  <- crosspred(cb.temp, mod_modif, cen = min1, cumul=FALSE, by = .1)
+
+  # extract relative risk and confidence intervals
+  table_estimates$pred[i]    = pred_modif_new$allRRfit["-8.9"]
+  table_estimates$CI_low[i]  = pred_modif_new$allRRlow["-8.9"]
+  table_estimates$CI_high[i] = pred_modif_new$allRRhigh["-8.9"]
+}
+
+
+table_estimates <- table_estimates |>
+  mutate(categories = c("all", "all", "male", "male", "female", "female","<65 years", "<65 years", ">64 years", ">64 years", "circulatory", "circulatory", "respiratory", "respiratory", "infectious", "infectious", "genitourinary", "genitourinary" ,"mental", "mental"),
+         categories = factor(categories, levels = rev(unique(categories))),
+         model = factor(model, levels = c("temp + foehn", "temp - foehn")))
+
+
+
+
+# save figure
+png("output/figures/Figure3c_cold.png", width = 2000, height =2500, res = 300)
+par(
+  mar = c(3.5, 6, 1,1),
+  mgp = c(2.1, 0.7, 0))
+
+# create empty plot
+plot(1, type = "n", xlim = c(0.5, 2.5), ylim = c(0.5, length(table_estimates$categories) + 0.5),
+     xlab = "relative risk", ylab = "", yaxt = "n", xaxt="n", bty = "n",
+     cex.axis = 1, cex.lab = 1)
+
+# create dashed 1-line
+abline(v = 1, lty = 2, col = "black")
+
+# define vertical offsets for different models
+offset <- - 0.25
+vertical_shift <- 0.3
+
+# add error bars
+for(i in 1:length(table_estimates$pred)) {
+
+  # assign color based on foehn presence
+  col <- ifelse(table_estimates$model[i] == "temp + foehn", foehn_col, temp_col)
+
+  # adjust the vertical position by combining the shift and offset
+  vertical_position <- length(table_estimates$categories) - i + 1 - vertical_shift
+
+  # apply model-specific offset
+  if (table_estimates$model[i] == "temp + foehn") {
+    vertical_position <- vertical_position + offset
+  } else {
+    vertical_position <- vertical_position - offset
+  }
+
+  # draw the error bars
+  segments(table_estimates$CI_low[i], vertical_position, table_estimates$CI_high[i], vertical_position, col = col, lwd = 2)
+  # draw the points
+  points(table_estimates$pred[i], vertical_position, pch = 16, col = col, cex = 1)
+}
+
+# add continuous y-axis with ticks every second label
+axis(2, at = seq(1, length(table_estimates$categories), by = 2),
+     labels = rev(table_estimates$categories)[seq(1, length(table_estimates$categories), by = 2)],
+     las = 1,cex.axis = 1)
+
+# add x-axis
+axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1)
+
+# add borders at the x and y axis
+rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[3], border = "black", lwd = 1)  # Bottom border
+rect(par("usr")[1], par("usr")[3], par("usr")[1], par("usr")[4], border = "black", lwd = 2)
+
+
+dev.off()
+
+#----
+
+
+
+### Figure 3 - only all cause temperature and modification
+#----
+
+# run the code of Figure 3c!
+
+# (a) Cumulative relative risk from temperature exposure (Model 3) for all-cause
+# hospitalizations with 95% confidence interval. (b) Cumulative relative risk from
+# temperature exposure (Model 4) for all-cause hospitalizations divided into foehn and
+# non-foehn days with 95% confidence intervals. The dotted line indicates the temperature
+# corresponding to the 1st and 99th percentile of the temperature distribution (-8.9 and 24.7 °C).
+
+
+# save the plot
+png("output/figures/Figure3_only_allcause.png", width = 1700, height =1500, res = 300)
+# pdf("output/figures/Figure3.pdf", width = 5.7, height =7)
+
+layout_matrix <- matrix(c(1, 1, 1, 1, 1, 1,
+                          2, 2, 2, 3, 3, 3,
+                          2, 2, 2, 3, 3, 3,
+                          2, 2, 2, 3, 3, 3),
+                        nrow = 4, byrow = TRUE)
+
+# Set up the layout
+graphics::layout(mat = layout_matrix)
+
+
+
+# PLOT 1 TOP: LEGEND
+plot.new()
+
+par(
+  mar = c(0, 0, 0,0),
+  mgp = c(0, 0, 0))
+
+legend("bottom", ncol = 3,
+       legend = c("temperature \n(Model 3)",
+                  "temperature on foehn days  \n(Model 4)",
+                  "temperature on non-foehn days  \n(Model 4)"),
+       col = c(colors[1], "green4", "gold2"), bty = "n", lwd=c(2,2,2), cex = 1,
+       y.intersp = 0,
+       x.intersp = 0.8,
+       text.width = c(0.19, 0.35, 0,25)
+       )
 
 
 
 
 
+
+
+# PLOT 2 BOTTOM LEFT: TEMPERATURE ONLY
+par(
+  mar = c(3.5, 3.5, 1,1),
+  mgp = c(2, 0.7, 0))
+
+
+cb.temp <- crossbasis(data$temp,
+                      lag=21,
+                      argvar=list(fun="ns", knots = quantile(data$temp, c(.5,.9), na.rm=TRUE)),
+                      arglag=list(fun="ns", knots = logknots(21,3)),
+                      group = data$station)
+mod <- gnm(all ~ cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+pred <- crosspred(cb.temp, mod, cumul=FALSE, cen = 0)
+min1 <- findmin(cb.temp,pred,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
+prednew <- crosspred(cb.temp, mod, cumul=FALSE, cen = min1)
+
+plot(prednew,
+     "overall",
+     col = colors[1],
+     ci = "area",
+     ci.arg = list(col = alpha(colour = colors[1], 0.25)),
+     xlab = "temperature [\u00B0C]",
+     ylab = "relative risk",
+     lwd = 2,
+     main = "",
+     cex.axis = 1,
+     cex.lab = 1,
+     ylim = c(0.8,2.3)
+)
+
+text(24, 2.15 , labels = "(a)", pos = 4, cex = 1)
+
+
+# PLOT 3 BOTTOM RIGHT : TEMPERATURE ON FOEHN AND NON-FOEHN DAYS
+par(
+  mar = c(3.5, 3.5, 1,1),
+  mgp = c(2, 0.7, 0))
+
+colvar  =  groups_id[1]
+
+formula1  <- as.formula(paste0(colvar, "~ cb.temp + modif"))
+formula2 <- as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
+
+# model with and without foehn
+mod_modif     <-gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+mod_modif_rev     <-gnm(formula2, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+# prediction with and without foehn
+pred_modif   <- crosspred(cb.temp, mod_modif, cen = 20)
+
+min1 <- findmin(cb.temp,pred_modif,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
+
+pred_modif_new     <- crosspred(cb.temp, mod_modif, cen = min1, by = .1)
+pred_modif_rev_new <- crosspred(cb.temp, mod_modif_rev, cen = min1, by = .1)
+
+plot(pred_modif_new,              ## cumulative exposure
+     "overall",
+     ylab = "relative risk",
+     xlab = "temperature [\u00B0C]",
+     col = "white",
+     ci.arg = list(col = alpha(colour = "white", .15)),
+     lwd = 2,
+     main ="",
+     ylim = c(0.8,2.3),
+     cex.axis = 1,
+     cex.lab = 1)
+
+abline(v =quantile(data$temp, .99), col = "black", lty = 2)
+abline(v =quantile(data$temp, .01), col = "black", lty = 2)
+
+lines(pred_modif_new,
+      "overall",
+      col = foehn_col,
+      ci = "area",
+      ci.arg = list(col = alpha(colour = foehn_col, .15)),
+      lwd = 2)
+
+
+lines(pred_modif_rev_new,
+      "overall",
+      col = temp_col,
+      ci = "area",
+      ci.arg = list(col = alpha(colour = temp_col, .15)),
+      lwd = 2)
+
+text(25, 2.15 , labels = "(b)", pos = 4, cex = 1)
+
+
+dev.off()
+
+#----
+
+
+
+### Figure 4 - temperature modification for cold and heat (two plots!)
+#----
+
+# Cumulative relative risk (Model 4) for subpopulations at 24.7 °C with 95% confidence
+# intervals.
+
+# empty dataframe
+table_estimates = data.frame(categories = c("all","all", "mal", "mal","fem","fem","y64","y64","o64","o64",
+                                            "cvd","cvd","resp","resp","inf","inf","uri","uri","ment","ment"),
+                             model = rep(c("temp + foehn", "temp - foehn"), 10),
+                             pred = rep(NA, 20),
+                             CI_low = rep(NA, 20),
+                             CI_high = rep(NA, 20))
+
+table_estimates_cold = data.frame(categories = c("all","all", "mal", "mal","fem","fem","y64","y64","o64","o64",
+                                            "cvd","cvd","resp","resp","inf","inf","uri","uri","ment","ment"),
+                             model = rep(c("temp + foehn", "temp - foehn"), 10),
+                             pred = rep(NA, 20),
+                             CI_low = rep(NA, 20),
+                             CI_high = rep(NA, 20))
+
+
+# loop through all specifications
+for (i in 1:nrow(table_estimates)) {
+
+  # extract current subpopulation
+  colvar  =  table_estimates$categories[i]
+
+  # uneven numbers is foehn scenario
+  if( i %% 2 != 0) {
+    formula1 = as.formula(paste0(colvar, "~ cb.temp + modif"))
+
+    # even number is non-foehn scenario
+  } else {
+    formula1 = as.formula(paste0(colvar, "~ cb.temp + modif_rev"))
+  }
+
+  # GET UNIFORM MMT
+  mod_modif     <-gnm(as.formula(paste0(colvar, "~ cb.temp + modif")), data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+  pred_modif   <- crosspred(cb.temp, mod_modif, cen = 20, cumul=FALSE)
+  min1 <- findmin(cb.temp,pred_modif,from=quantile(data$temp, .1),to=quantile(data$temp, .9))
+
+  # model with and without foehn
+  mod_modif     <- gnm(formula1, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+
+  # predict with new min values
+  pred_modif_new  <- crosspred(cb.temp, mod_modif, cen = min1, cumul=FALSE, by = .1)
+
+  # extract relative risk and confidence intervals
+  table_estimates$pred[i]    = pred_modif_new$allRRfit["24.7"]
+  table_estimates$CI_low[i]  = pred_modif_new$allRRlow["24.7"]
+  table_estimates$CI_high[i] = pred_modif_new$allRRhigh["24.7"]
+
+  # extract relative risk and confidence intervals
+  table_estimates_cold$pred[i]    = pred_modif_new$allRRfit["-8.9"]
+  table_estimates_cold$CI_low[i]  = pred_modif_new$allRRlow["-8.9"]
+  table_estimates_cold$CI_high[i] = pred_modif_new$allRRhigh["-8.9"]
+}
+
+
+table_estimates <- table_estimates |>
+  mutate(categories = c("all", "all", "male", "male", "female", "female","<65 years", "<65 years", ">64 years", ">64 years", "circulatory", "circulatory", "respiratory", "respiratory", "infectious", "infectious", "genitourinary", "genitourinary" ,"mental", "mental"),
+         categories = factor(categories, levels = rev(unique(categories))),
+         model = factor(model, levels = c("temp + foehn", "temp - foehn")))
+
+table_estimates_cold <- table_estimates_cold |>
+  mutate(categories = c("all", "all", "male", "male", "female", "female","<65 years", "<65 years", ">64 years", ">64 years", "circulatory", "circulatory", "respiratory", "respiratory", "infectious", "infectious", "genitourinary", "genitourinary" ,"mental", "mental"),
+         categories = factor(categories, levels = rev(unique(categories))),
+         model = factor(model, levels = c("temp + foehn", "temp - foehn")))
+
+
+
+
+
+
+
+
+
+
+
+
+
+# save figure
+png("output/figures/Figure4.png", width = 1700, height =2000, res = 300)
+
+layout_matrix <- matrix(c(1, 1, 1, 2, 2,
+                          3, 3, 3, 4, 4,
+                          3, 3, 3, 4, 4,
+                          3, 3, 3, 4, 4,
+                          3, 3, 3, 4, 4),
+                        nrow = 5, byrow = TRUE)
+
+# Set up the layout
+graphics::layout(mat = layout_matrix)
+
+
+
+# LEGENDS
+plot.new()
+par(mar = c(0, 0, 0,0))
+
+legend(x = 0.25, y = 1.5 , ncol = 1,
+       legend = c("cold on foehn days  \n(Model 4)",
+                  "cold on non-foehn days  \n(Model 4)"),
+       col = c("steelblue", "steelblue"), bty = "n", lwd=c(2,2), lty = c(3,1), cex = 1,
+       y.intersp = 9,
+       x.intersp = .6,
+       text.width = c(0.45, 0.55)
+)
+
+plot.new()
+
+par(mar = c(2, 0, 0,0))
+
+legend(x = 0.12, y = .65 , ncol = 1,
+       legend = c("heat on foehn days  \n(Model 4)",
+                  "heat on non-foehn days  \n(Model 4)"),
+       col = c("brown2", "brown2"), bty = "n", lwd=c(2,2), lty = c(3,1), cex = 1,
+       y.intersp = 1.6,
+       x.intersp = .6,
+       text.width = c(0.45, 0.55)
+)
+
+
+#  COLD PLOT
+
+par(
+  mar = c(3.5, 6.7, 0,4),
+  mgp = c(2.1, 0.7, 0))
+
+
+plot(1, type = "n", xlim = c(0.5, 2.5), ylim = c(0.5, length(table_estimates_cold$categories) + 0.5),
+     xlab = "relative risk", ylab = "", yaxt = "n", xaxt="n", bty = "n",
+     cex.axis = 1, cex.lab = 1)
+
+# create dashed 1-line
+abline(v = 1, lty = 2, col = "black")
+
+# define vertical offsets for different models
+offset <- - 0.25
+vertical_shift <- 0.3
+
+# add error bars
+for(i in 1:length(table_estimates_cold$pred)) {
+
+  # assign color based on foehn presence
+  lty <- ifelse(table_estimates_cold$model[i] == "temp + foehn", 3, 1)
+  col <- "steelblue"
+
+  # adjust the vertical position by combining the shift and offset
+  vertical_position <- length(table_estimates_cold$categories) - i + 1 - vertical_shift
+
+  # apply model-specific offset
+  if (table_estimates_cold$model[i] == "temp + foehn") {
+    vertical_position <- vertical_position + offset
+  } else {
+    vertical_position <- vertical_position - offset
+  }
+
+  # draw the error bars
+  segments(table_estimates_cold$CI_low[i], vertical_position, table_estimates_cold$CI_high[i], vertical_position, col = col, lwd = 2, lty = lty)
+  # draw the points
+  points(table_estimates_cold$pred[i], vertical_position, pch = 16, col = col, cex = 1)
+}
+
+# add continuous y-axis with ticks every second label
+axis(2, at = seq(1, length(table_estimates_cold$categories), by = 2),
+     labels = rev(table_estimates_cold$categories)[seq(1, length(table_estimates_cold$categories), by = 2)],
+     las = 1,cex.axis = 1)
+
+# add x-axis
+axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1)
+
+# add borders at the x and y axis
+rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[3], border = "black", lwd = 1)  # Bottom border
+rect(par("usr")[1], par("usr")[3], par("usr")[1], par("usr")[4], border = "black", lwd = 2)
+
+
+
+# HEAT PLOT
+
+par(mar = c(3.5, 0, 0,0.3),
+    mgp = c(2.1, 0.7, 0))
+
+
+plot(1, type = "n", xlim = c(0.5, 2.5), ylim = c(0.5, length(table_estimates$categories) + 0.5),
+     xlab = "relative risk", ylab = "", yaxt = "n", xaxt="n", bty = "n",
+     cex.axis = 1, cex.lab = 1)
+
+# create dashed 1-line
+abline(v = 1, lty = 2, col = "black")
+
+# define vertical offsets for different models
+offset <- - 0.25
+vertical_shift <- 0.3
+
+# add error bars
+for(i in 1:length(table_estimates$pred)) {
+
+  # assign color based on foehn presence
+  lty <- ifelse(table_estimates_cold$model[i] == "temp + foehn", 3, 1)
+  col <- "brown2"
+
+  # adjust the vertical position by combining the shift and offset
+  vertical_position <- length(table_estimates$categories) - i + 1 - vertical_shift
+
+  # apply model-specific offset
+  if (table_estimates$model[i] == "temp + foehn") {
+    vertical_position <- vertical_position + offset
+  } else {
+    vertical_position <- vertical_position - offset
+  }
+
+  # draw the error bars
+  segments(table_estimates$CI_low[i], vertical_position, table_estimates$CI_high[i], vertical_position, col = col, lwd = 2, lty = lty)
+  # draw the points
+  points(table_estimates$pred[i], vertical_position, pch = 16, col = col, cex = 1)
+}
+
+# add continuous y-axis with ticks every second label
+axis(2, at = seq(1, length(table_estimates$categories), by = 2),
+     labels = FALSE, las = 1, cex.axis = 1)
+
+# add x-axis
+axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1)
+
+# add borders at the x and y axis
+rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[3], border = "black", lwd = 1)  # Bottom border
+rect(par("usr")[1], par("usr")[3], par("usr")[1], par("usr")[4], border = "black", lwd = 2)
+
+
+dev.off()
+
+#----
