@@ -61,6 +61,7 @@ cb.temp <- crossbasis(data$temp,
 
 # model
 mod <- gnm(all ~ cb.temp, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# print(QAIC(mod)) 135721.5
 
 # prediction preliminary
 pred <- crosspred(cb.temp, mod, cumul=FALSE, cen = 0)
@@ -110,6 +111,8 @@ cb.tempog <- crossbasis(data$temp,
 
 # model
 modog <- gnm(all ~ cb.tempog, data = data,  family=quasipoisson(), eliminate=stratum_dow, subset=ind_dow>0)
+# print(QAIC(modog)) 135724.9
+
 
 # prediction final
 prednewog <- crosspred(cb.tempog, modog, cumul=FALSE, cen = min1)
