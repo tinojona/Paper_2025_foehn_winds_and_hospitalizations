@@ -1183,7 +1183,7 @@ dev.off()
 
 
 # save the plot
-png("output/figures/Figure3_only_allcause.png", width = 1700, height =1500, res = 300)
+png("output/figures/Figure3_only_allcause_bluered.png", width = 1950, height =1500, res = 300)
 # pdf("output/figures/Figure3.pdf", width = 5.7, height =7)
 
 layout_matrix <- matrix(c(1, 1, 1, 1, 1, 1,
@@ -1208,7 +1208,9 @@ legend("bottom", ncol = 3,
        legend = c("temperature \n(Model 3)",
                   "temperature on foehn days  \n(Model 4)",
                   "temperature on non-foehn days  \n(Model 4)"),
-       col = c(colors[1], "green4", "gold2"), bty = "n", lwd=c(2,2,2), cex = 1,
+       # col = c(colors[1], "green4", "gold2"),
+       col = c(colors[1], "brown2", "steelblue"),
+       bty = "n", lwd=c(2,2,2), cex = 1,
        y.intersp = 0,
        x.intersp = 0.8,
        text.width = c(0.19, 0.35, 0,25)
@@ -1292,17 +1294,21 @@ abline(v =quantile(data$temp, .01), col = "black", lty = 2)
 
 lines(pred_modif_new,
       "overall",
-      col = foehn_col,
+      # col = foehn_col,
+      col = "brown2",
       ci = "area",
-      ci.arg = list(col = alpha(colour = foehn_col, .15)),
+      # ci.arg = list(col = alpha(colour = foehn_col, .15)),
+      ci.arg = list(col = alpha(colour = "brown2", .15)),
       lwd = 2)
 
 
 lines(pred_modif_rev_new,
       "overall",
-      col = temp_col,
+      # col = temp_col,
+      col = "steelblue",
       ci = "area",
-      ci.arg = list(col = alpha(colour = temp_col, .15)),
+      # ci.arg = list(col = alpha(colour = temp_col, .15)),
+      ci.arg = list(col = alpha(colour = "steelblue", .15)),
       lwd = 2)
 
 text(25, 2.15 , labels = "(b)", pos = 4, cex = 1)
@@ -1397,14 +1403,15 @@ table_estimates_cold <- table_estimates_cold |>
 
 
 # save figure
-png("output/figures/Figure4.png", width = 1700, height =2000, res = 300)
+png("output/figures/Figure4.png", width = 1800, height =2250, res = 300)
 
 layout_matrix <- matrix(c(1, 1, 1, 2, 2,
                           3, 3, 3, 4, 4,
                           3, 3, 3, 4, 4,
                           3, 3, 3, 4, 4,
+                          3, 3, 3, 4, 4,
                           3, 3, 3, 4, 4),
-                        nrow = 5, byrow = TRUE)
+                        nrow = 6, byrow = TRUE)
 
 # Set up the layout
 graphics::layout(mat = layout_matrix)
@@ -1415,46 +1422,52 @@ graphics::layout(mat = layout_matrix)
 plot.new()
 par(mar = c(0, 0, 0,0))
 
-legend(x = 0.25, y = 1.5 , ncol = 1,
-       legend = c("cold on foehn days  \n(Model 4)",
-                  "cold on non-foehn days  \n(Model 4)"),
-       col = c("steelblue", "steelblue"), bty = "n", lwd=c(2,2), lty = c(3,1), cex = 1,
-       y.intersp = 9,
-       x.intersp = .6,
-       text.width = c(0.45, 0.55)
+legend(x = 0.07, y = 11.5 , ncol = 1,
+       legend = c("cold on foehn days  (Model 4)",
+                  "cold on non-foehn days  (Model 4)"),
+       col = c("steelblue", "steelblue"), bty = "n", lwd=c(2,2), lty = c(3,1), cex = 1.2,
+       y.intersp = 60,
+       x.intersp = 1,
+       # text.width = c(0.45, 0.55),
+       seg.len = 2.6
 )
 
 plot.new()
 
 par(mar = c(2, 0, 0,0))
 
-legend(x = 0.12, y = .65 , ncol = 1,
-       legend = c("heat on foehn days  \n(Model 4)",
-                  "heat on non-foehn days  \n(Model 4)"),
-       col = c("brown2", "brown2"), bty = "n", lwd=c(2,2), lty = c(3,1), cex = 1,
-       y.intersp = 1.6,
-       x.intersp = .6,
-       text.width = c(0.45, 0.55)
+legend(x = -0.1, y = .95 , ncol = 1,
+       legend = c("heat on foehn days  (Model 4)",
+                  "heat on non-foehn days  (Model 4)"),
+       col = c("brown2", "brown2"), bty = "n", lwd=c(2,2), lty = c(3,1), cex = c(1.2,1.2),
+       y.intersp = 2,
+       x.intersp = 1,
+       seg.len = 2.2
+       # text.width = c(0.45, 0.55)
 )
 
 
 #  COLD PLOT
-
 par(
-  mar = c(3.5, 6.7, 0,4),
+  mar = c(3.5, 6.5, 0,3),
   mgp = c(2.1, 0.7, 0))
 
 
-plot(1, type = "n", xlim = c(0.5, 2.5), ylim = c(0.5, length(table_estimates_cold$categories) + 0.5),
+# define vertical offsets for different models
+offset <- - 0.2
+vertical_shift <- 0.33
+
+spacing <- 0.6
+n_cat <- length(table_estimates_cold$categories)
+
+plot(1, type = "n", xlim = c(0.5, 2.5),
+     # ylim = c(0.5, length(table_estimates_cold$categories) * 1.5 + 0.5),
+     ylim = c(0.5, n_cat * spacing - 0.8),
      xlab = "relative risk", ylab = "", yaxt = "n", xaxt="n", bty = "n",
      cex.axis = 1, cex.lab = 1)
 
 # create dashed 1-line
 abline(v = 1, lty = 2, col = "black")
-
-# define vertical offsets for different models
-offset <- - 0.25
-vertical_shift <- 0.3
 
 # add error bars
 for(i in 1:length(table_estimates_cold$pred)) {
@@ -1463,10 +1476,9 @@ for(i in 1:length(table_estimates_cold$pred)) {
   lty <- ifelse(table_estimates_cold$model[i] == "temp + foehn", 3, 1)
   col <- "steelblue"
 
-  # adjust the vertical position by combining the shift and offset
-  vertical_position <- length(table_estimates_cold$categories) - i + 1 - vertical_shift
+  vertical_position <- (n_cat - i + 1) * spacing - vertical_shift
 
-  # apply model-specific offset
+  # and apply offset
   if (table_estimates_cold$model[i] == "temp + foehn") {
     vertical_position <- vertical_position + offset
   } else {
@@ -1479,13 +1491,13 @@ for(i in 1:length(table_estimates_cold$pred)) {
   points(table_estimates_cold$pred[i], vertical_position, pch = 16, col = col, cex = 1)
 }
 
-# add continuous y-axis with ticks every second label
-axis(2, at = seq(1, length(table_estimates_cold$categories), by = 2),
-     labels = rev(table_estimates_cold$categories)[seq(1, length(table_estimates_cold$categories), by = 2)],
-     las = 1,cex.axis = 1)
+axis(2,
+     at = seq(1, n_cat, by = 2) * spacing,
+     labels = rev(table_estimates_cold$categories)[seq(1, n_cat, by = 2)],
+     las = 1, cex.axis = 1.2)
 
 # add x-axis
-axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1)
+axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1.2)
 
 # add borders at the x and y axis
 rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[3], border = "black", lwd = 1)  # Bottom border
@@ -1499,16 +1511,15 @@ par(mar = c(3.5, 0, 0,0.3),
     mgp = c(2.1, 0.7, 0))
 
 
-plot(1, type = "n", xlim = c(0.5, 2.5), ylim = c(0.5, length(table_estimates$categories) + 0.5),
+plot(1, type = "n", xlim = c(0.5, 2.5),
+     # ylim = c(0.5, length(table_estimates$categories) * 1.5 + 0.5),
+     ylim = c(0.5, n_cat * spacing - 0.8),
      xlab = "relative risk", ylab = "", yaxt = "n", xaxt="n", bty = "n",
      cex.axis = 1, cex.lab = 1)
 
 # create dashed 1-line
 abline(v = 1, lty = 2, col = "black")
 
-# define vertical offsets for different models
-offset <- - 0.25
-vertical_shift <- 0.3
 
 # add error bars
 for(i in 1:length(table_estimates$pred)) {
@@ -1517,11 +1528,10 @@ for(i in 1:length(table_estimates$pred)) {
   lty <- ifelse(table_estimates_cold$model[i] == "temp + foehn", 3, 1)
   col <- "brown2"
 
-  # adjust the vertical position by combining the shift and offset
-  vertical_position <- length(table_estimates$categories) - i + 1 - vertical_shift
+  vertical_position <- (n_cat - i + 1) * spacing - vertical_shift
 
-  # apply model-specific offset
-  if (table_estimates$model[i] == "temp + foehn") {
+  # and apply offset
+  if (table_estimates_cold$model[i] == "temp + foehn") {
     vertical_position <- vertical_position + offset
   } else {
     vertical_position <- vertical_position - offset
@@ -1533,12 +1543,13 @@ for(i in 1:length(table_estimates$pred)) {
   points(table_estimates$pred[i], vertical_position, pch = 16, col = col, cex = 1)
 }
 
-# add continuous y-axis with ticks every second label
-axis(2, at = seq(1, length(table_estimates$categories), by = 2),
-     labels = FALSE, las = 1, cex.axis = 1)
+axis(2,
+     at = seq(1, n_cat, by = 2) * spacing,
+     labels = FALSE,
+     las = 1, cex.axis = 1.2)
 
 # add x-axis
-axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1)
+axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1.2)
 
 # add borders at the x and y axis
 rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[3], border = "black", lwd = 1)  # Bottom border
@@ -1548,3 +1559,5 @@ rect(par("usr")[1], par("usr")[3], par("usr")[1], par("usr")[4], border = "black
 dev.off()
 
 #----
+
+
