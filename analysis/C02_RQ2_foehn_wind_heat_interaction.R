@@ -590,7 +590,7 @@ est_CI <- paste0(
   round(pred_modif$allRRhigh["24.7"], digits = 3),
   ")")
 
-text(25, 2, labels = est_CI, pos = 2)
+text(26, 2, labels = est_CI, pos = 2, cex = 0.9)
 
 est_CI <- paste0(
   round(pred_modif$allRRfit["-8.9"], digits = 3),
@@ -600,7 +600,7 @@ est_CI <- paste0(
   round(pred_modif$allRRhigh["-8.9"], digits = 3),
   ")")
 
-text(25, 1.5, labels = est_CI, pos = 2)
+text(26, 1.5, labels = est_CI, pos = 2, cex = 0.9)
 
 dev.off()
 
@@ -722,30 +722,30 @@ for (i in 1:length(groups_id[2:10])) {
        cex.axis = 0.7,
        cex.lab = 0.7)
 
-  text(-14, 2.4, labels = paste0("(", letters[i], ")"), pos = 2)
+  text(-15, 2.4, labels = paste0("(", letters[i], ")"), pos = 2)
 
   abline(v=24.7, lty = 2)
   abline(v=-8.9, lty = 2)
 
   est_CI <- paste0(
     round(pred_modif$allRRfit["24.7"], digits = 3),
-    " (CI: ",
+    " \n(CI: ",
     round(pred_modif$allRRlow["24.7"], digits = 3),
     "; " ,
     round(pred_modif$allRRhigh["24.7"], digits = 3),
     ")")
 
-  text(25, 2, labels = est_CI, pos = 2)
+  text(26, 2.3, labels = est_CI, pos = 2, cex = 0.9)
 
   est_CI <- paste0(
     round(pred_modif$allRRfit["-8.9"], digits = 3),
-    " (CI: ",
+    " \n(CI: ",
     round(pred_modif$allRRlow["-8.9"], digits = 3),
     "; " ,
     round(pred_modif$allRRhigh["-8.9"], digits = 3),
     ")")
 
-  text(25, 1.5, labels = est_CI, pos = 2)
+  text(26, 1.9, labels = est_CI, pos = 2, cex = 0.9)
 
 
 
@@ -1183,18 +1183,15 @@ dev.off()
 
 
 # save the plot
-png("output/figures/Figure3_only_allcause_bluered.png", width = 1950, height =1500, res = 300)
+png("output/figures/Figure3_only_allcause_bluered.png", width = 2400, height =1850, res = 300)
 # pdf("output/figures/Figure3.pdf", width = 5.7, height =7)
 
-layout_matrix <- matrix(c(1, 1, 1, 1, 1, 1,
-                          2, 2, 2, 3, 3, 3,
-                          2, 2, 2, 3, 3, 3,
-                          2, 2, 2, 3, 3, 3),
-                        nrow = 4, byrow = TRUE)
+# define layout
+layout_matrix <- matrix(c(1, 1, 1, 1,
+                          2, 2, 3, 3),
+                        nrow = 2, byrow = TRUE)
 
-# Set up the layout
-graphics::layout(mat = layout_matrix)
-
+graphics::layout(mat = layout_matrix, heights = c(0.2, 0.8))
 
 
 # PLOT 1 TOP: LEGEND
@@ -1204,16 +1201,16 @@ par(
   mar = c(0, 0, 0,0),
   mgp = c(0, 0, 0))
 
-legend("bottom", ncol = 3,
-       legend = c("temperature \n(Model 3)",
-                  "temperature on foehn days  \n(Model 4)",
-                  "temperature on non-foehn days  \n(Model 4)"),
+legend("center", ncol = 3,
+       legend = c("temperature (Model 3)",
+                  "temperature on foehn days (Model 4)",
+                  "temperature on non-foehn days (Model 4)"),
        # col = c(colors[1], "green4", "gold2"),
        col = c(colors[1], "brown2", "steelblue"),
-       bty = "n", lwd=c(2,2,2), cex = 1,
+       bty = "n", lwd=c(2,2,2), cex = 1.3,
        y.intersp = 0,
        x.intersp = 0.8,
-       text.width = c(0.19, 0.35, 0,25)
+       text.width = c(0.215, 0.355, 0.43)
        )
 
 
@@ -1247,12 +1244,12 @@ plot(prednew,
      ylab = "relative risk",
      lwd = 2,
      main = "",
-     cex.axis = 1,
-     cex.lab = 1,
+     cex.axis = 1.3,
+     cex.lab = 1.3,
      ylim = c(0.8,2.3)
 )
 
-text(24, 2.15 , labels = "(a)", pos = 4, cex = 1)
+text(24, 2.15 , labels = "(a)", pos = 4, cex = 1.3)
 
 
 # PLOT 3 BOTTOM RIGHT : TEMPERATURE ON FOEHN AND NON-FOEHN DAYS
@@ -1286,8 +1283,8 @@ plot(pred_modif_new,              ## cumulative exposure
      lwd = 2,
      main ="",
      ylim = c(0.8,2.3),
-     cex.axis = 1,
-     cex.lab = 1)
+     cex.axis = 1.3,
+     cex.lab = 1.3)
 
 abline(v =quantile(data$temp, .99), col = "black", lty = 2)
 abline(v =quantile(data$temp, .01), col = "black", lty = 2)
@@ -1311,7 +1308,7 @@ lines(pred_modif_rev_new,
       ci.arg = list(col = alpha(colour = "steelblue", .15)),
       lwd = 2)
 
-text(25, 2.15 , labels = "(b)", pos = 4, cex = 1)
+text(25, 2.15 , labels = "(b)", pos = 4, cex = 1.3)
 
 
 dev.off()
@@ -1403,46 +1400,46 @@ table_estimates_cold <- table_estimates_cold |>
 
 
 # save figure
-png("output/figures/Figure4.png", width = 1800, height =2250, res = 300)
+png("output/figures/Figure4.png", width = 1700, height =1550, res = 300)
 
 layout_matrix <- matrix(c(1, 1, 1, 2, 2,
-                          3, 3, 3, 4, 4,
-                          3, 3, 3, 4, 4,
-                          3, 3, 3, 4, 4,
-                          3, 3, 3, 4, 4,
                           3, 3, 3, 4, 4),
-                        nrow = 6, byrow = TRUE)
+                        nrow = 2, byrow = TRUE)
+
+graphics::layout(mat = layout_matrix, heights = c(0.15, 0.85))
 
 # Set up the layout
-graphics::layout(mat = layout_matrix)
+# graphics::layout(mat = layout_matrix)
 
 
 
 # LEGENDS
-plot.new()
 par(mar = c(0, 0, 0,0))
+plot.new()
 
-legend(x = 0.07, y = 11.5 , ncol = 1,
+
+legend(x = 0.2, y = 1 , ncol = 1,
        legend = c("cold on foehn days  (Model 4)",
                   "cold on non-foehn days  (Model 4)"),
-       col = c("steelblue", "steelblue"), bty = "n", lwd=c(2,2), lty = c(3,1), cex = 1.2,
-       y.intersp = 60,
+       col = c("steelblue", "steelblue"), bty = "n", lwd=c(2,2), lty = c(3,1), cex = c(.9,.9),
+       y.intersp = 1.5,
        x.intersp = 1,
        # text.width = c(0.45, 0.55),
-       seg.len = 2.6
+       seg.len = 1.5
 )
 
+par(mar = c(0, 0, 0,0))
 plot.new()
 
-par(mar = c(2, 0, 0,0))
 
-legend(x = -0.1, y = .95 , ncol = 1,
+
+legend(x = -0.04, y = 1 , ncol = 1,
        legend = c("heat on foehn days  (Model 4)",
                   "heat on non-foehn days  (Model 4)"),
-       col = c("brown2", "brown2"), bty = "n", lwd=c(2,2), lty = c(3,1), cex = c(1.2,1.2),
-       y.intersp = 2,
+       col = c("brown2", "brown2"), bty = "n", lwd=c(2,2), lty = c(3,1), cex = c(.9,.9),
+       y.intersp = 1.5,
        x.intersp = 1,
-       seg.len = 2.2
+       seg.len = 1.5
        # text.width = c(0.45, 0.55)
 )
 
@@ -1460,7 +1457,7 @@ vertical_shift <- 0.33
 spacing <- 0.6
 n_cat <- length(table_estimates_cold$categories)
 
-plot(1, type = "n", xlim = c(0.5, 2.5),
+plot(1, type = "n", xlim = c(0.5, 3),
      # ylim = c(0.5, length(table_estimates_cold$categories) * 1.5 + 0.5),
      ylim = c(0.5, n_cat * spacing - 0.8),
      xlab = "relative risk", ylab = "", yaxt = "n", xaxt="n", bty = "n",
@@ -1494,15 +1491,16 @@ for(i in 1:length(table_estimates_cold$pred)) {
 axis(2,
      at = seq(1, n_cat, by = 2) * spacing,
      labels = rev(table_estimates_cold$categories)[seq(1, n_cat, by = 2)],
-     las = 1, cex.axis = 1.2)
+     las = 1, cex.axis = 1)
 
 # add x-axis
-axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1.2)
+axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1)
 
 # add borders at the x and y axis
 rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[3], border = "black", lwd = 1)  # Bottom border
 rect(par("usr")[1], par("usr")[3], par("usr")[1], par("usr")[4], border = "black", lwd = 2)
 
+text(2.5, 10, labels = paste0("(a)"), pos = 2)
 
 
 # HEAT PLOT
@@ -1511,7 +1509,7 @@ par(mar = c(3.5, 0, 0,0.3),
     mgp = c(2.1, 0.7, 0))
 
 
-plot(1, type = "n", xlim = c(0.5, 2.5),
+plot(1, type = "n", xlim = c(0.5, 3),
      # ylim = c(0.5, length(table_estimates$categories) * 1.5 + 0.5),
      ylim = c(0.5, n_cat * spacing - 0.8),
      xlab = "relative risk", ylab = "", yaxt = "n", xaxt="n", bty = "n",
@@ -1546,15 +1544,16 @@ for(i in 1:length(table_estimates$pred)) {
 axis(2,
      at = seq(1, n_cat, by = 2) * spacing,
      labels = FALSE,
-     las = 1, cex.axis = 1.2)
+     las = 1, cex.axis = 1)
 
 # add x-axis
-axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1.2)
+axis(1, at = seq(0.5,2.5,0.5), cex.axis = 1)
 
 # add borders at the x and y axis
 rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[3], border = "black", lwd = 1)  # Bottom border
 rect(par("usr")[1], par("usr")[3], par("usr")[1], par("usr")[4], border = "black", lwd = 2)
 
+text(2.5, 10, labels = paste0("(b)"), pos = 2)
 
 dev.off()
 
