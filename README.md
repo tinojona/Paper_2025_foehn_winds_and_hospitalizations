@@ -26,7 +26,7 @@ This `repository` presents the workflow and the analysis of the paper, which dev
 
 ## Data sensitivity issues 
 
-Due to the sensitivity of the hospitalization data, I cannot publish the full data of the analysis. The data that is not part of this repository but can be applied for using the following procedure. The hospitalization data was provided by the [Swiss Federal Office for Statistics](https://www.bfs.admin.ch/bfs/de/home.html) and the data can be accessed as described on their [webpage](https://www.bfs.admin.ch/bfs/de/home/statistiken/gesundheit/erhebungen/ms.html). The non-sensitive meteorological data was provided by the [Swiss Federal Office for Meteorology and Climatology](https://www.meteoschweiz.admin.ch/#tab=forecast-map) and is part of this repository.
+Due to the sensitivity of the hospitalization data, the data to reproduce the entire analysis cannot be made available. The data that is not part of this repository can be applied for using the following procedure. The hospitalization data was provided by the [Swiss Federal Office for Statistics](https://www.bfs.admin.ch/bfs/de/home.html) and the data can be accessed as described on their [webpage](https://www.bfs.admin.ch/bfs/de/home/statistiken/gesundheit/erhebungen/ms.html). The non-sensitive meteorological data was provided by the [Swiss Federal Office for Meteorology and Climatology](https://www.meteoschweiz.admin.ch/#tab=forecast-map) and is part of this repository.
 
 <br>
 
