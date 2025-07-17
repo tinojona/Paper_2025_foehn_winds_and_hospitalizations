@@ -16,7 +16,7 @@ library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm);li
 colors <- viridis(3, option = "viridis")
 
 # data
-data = read.csv("../data/Medstat_hospitalizations_aggregated/hosp_buffer_8000.csv") |>
+data = read.csv("/Volumes/FS/_ISPM/CCH/Tino/master_thesis/data/Medstat_hospitalizations_aggregated/hosp_buffer_8000.csv") |>
   mutate(date = as.Date(date),
          stratum_dow = as.factor(stratum_dow),
          y64 = a014y + a1564y,
@@ -47,6 +47,7 @@ cb.temp <- crossbasis(data$temp,
                       arglag=list(fun="ns", knots = logknots(21,3)),
                       group = data$station)
 
+# Crossbasis definition with higher flexibility in low temperatures:
 # cb.temp <- crossbasis(data$temp,
 #                       lag=21,
 #                       argvar=list(fun="ns", knots = quantile(data$temp, c(.1,.75,.9), na.rm=TRUE)),
@@ -73,7 +74,7 @@ min1 <- findmin(cb.temp,pred,from=quantile(data$temp, .1),to=quantile(data$temp,
 prednew <- crosspred(cb.temp, mod, cumul=FALSE, cen = min1)
 
 
-png("figures/Model3.png", width = 1000, height =1000, res = 300)
+png("output/figures/X_Model3.png", width = 1500, height =1500, res = 300)
 par(mfrow=c(1,1),
     mar = c(3,3,.5,.5),
     mgp = c(1.8, .5, 0))

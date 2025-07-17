@@ -1,7 +1,7 @@
 ################################################################################
 # FOEHN WIND Crossbasis
 ################################################################################
-# - determine the best crossbasis parameters to model foehn wind
+# - determine the best crossbasis parameters to model foehn winds intensity
 
 # Conclusion
 # - 8 km buffer shows the strongest response to foehn winds
@@ -18,7 +18,7 @@ rm(list=ls())
 library(dlnm);library(splines);library(ggplot2);library(viridis);library(gnm);library(tidyverse)
 
 # data
-data = read.csv("../data/Medstat_hospitalizations_aggregated/hosp_buffer_8000.csv") |>
+data = read.csv("/Volumes/FS/_ISPM/CCH/Tino/master_thesis/data/Medstat_hospitalizations_aggregated/hosp_buffer_8000.csv") |>
   mutate(date = as.Date(date),
          stratum_dow = as.factor(stratum_dow))
 

@@ -115,7 +115,6 @@ data_daily_mean = data |>
 # ticks annual cycle x axis
 monthly_ticks <- data_daily_mean$daymonth[!duplicated(format(data_daily_mean$daymonth, "%Y-%m"))]
 
-
 # for Medstat table
 station_MedStat = read.csv("data_nonsensitive/Medstat_regions_per_buffer_size/MDSTID_MetRegions_8000_per_station.csv", header = TRUE)
 
@@ -132,7 +131,7 @@ stations = as.vector(unique(data$station))
 
 #----
 
-### sFigure 2
+### sFigure 2: Distribution and seasonal cycle of foehn wind, temperature and hospitalizations.
 #----
 
 # (a) daily foehn score distribution excluding 0-foehn days, (b) daily mean foehn wind
@@ -277,12 +276,9 @@ text(monthly_ticks[12], 6, labels = "(f)", pos = 2)
 
 dev.off()
 
-
-
-
 #----
 
-### sFigure 3
+### sFigure 3: Moving average time series of foehn wind, temperature and hospitalizations.
 #----
 
 # (a) 30-day moving average time series of mean daily foehn, (b) 30-day moving average

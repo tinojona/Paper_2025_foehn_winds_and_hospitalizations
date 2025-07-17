@@ -134,17 +134,8 @@ stations = as.vector(unique(data$station))
 #----
 
 
-### Table 1
+### Table 1: Descriptive statistics for hospitalizations, temperature, and foehnw wind
 #----
-
-# Descriptive statistics for the whole data set and for every station. Temperature
-# statistics are based on annual means in °C. Foehn statistics are based on annual
-# sums and the percentage indicates the ratio of the sum of foehn per station
-# compared to the sum of foehn from all stations. The binary foehn percentage shows the
-# percentage of days with foehn with a binary threshold of 72 which corresponds to 6 h of
-# full foehn. Hospitalization characteristics are based on annual sums. The percentage of
-# hospitalizations indicates the contribution of hospitalizations per station to the whole data set.
-# NA corresponds to the missing days. Standard deviations are given in brackets.
 
 # empty data frame to be filled
 gen_stats = data.frame(period = rep(NA,9),
@@ -210,16 +201,14 @@ for (i in 1:length(stations)) {
 }
 
 # save the table
-write.csv(gen_stats, file = "ouput/tables/Table1.csv")
+write.csv(gen_stats, file = "output/tables/Table1.csv")
 
 #----
 
 
-### sTable 1
+### sTable 1: Abbreviation and location of meteorological measurement stations and their
+### assigned Medstat regions.
 #----
-
-# Abbreviation and location of meteorological measurement stations and their
-# assigned MedStat regions.
 
 # save the table
 write.csv(station_MedStat_full, file = "output/tables/sTable1.csv")
@@ -227,11 +216,9 @@ write.csv(station_MedStat_full, file = "output/tables/sTable1.csv")
 #----
 
 
-### sTable 3
+### sTable 3: Contribution in percent of different subpopulations to all-cause hospitalization
+### counts across all stations and for every station.
 #----
-
-# Contribution in percent of different subpopulations to all-cause hospitalizations
-# Area counts across all stations and for every station.
 
 # empty data frame
 subgroups = data.frame(total = rep(NA,9),

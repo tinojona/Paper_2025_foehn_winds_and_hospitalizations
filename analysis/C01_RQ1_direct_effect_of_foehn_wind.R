@@ -1,7 +1,6 @@
 ################################################################################
-### RQ1: the foehn wind hospitalization association
+### RQ1: the foehn winds intensity hospitalization association
 ################################################################################
-
 
 
 ### Data
@@ -61,7 +60,7 @@ cb.foehn <- crossbasis(data$f_id,
 #----
 
 
-### Table 2
+### Table 2: Model 1 and 2, the association of foehn winds intensity and hospitalization.
 #----
 
 # Cumulative relative risk for hospitalizations by cause for the effect of foehn
@@ -136,12 +135,8 @@ write.csv(table_estimates, file = "output/tables/Table2.csv")
 #----
 
 
-
-### sTable 4
+### sTable 4: Sensitivity analysis of different buffer sizes on the effect of foehn winds intensity
 #----
-
-# Results for the sensitivity analysis of different buffer sizes on all cause
-# hospitalizations with 95% confidence intervals.
 
 # empty table
 sensitivity_table = data.frame(
@@ -223,11 +218,8 @@ write.csv(sensitivity_table, file = "output/tables/sTable4.csv")
 #----
 
 
-### sTable 5
+### sTable 5: Sensitivity analysis of different lag periods on the effect of foehn winds intensity.
 #----
-
-# Results for the sensitivity analysis on different lag periods of all cause
-# hospitalizations with 95% confidence intervals.
 
 sensitivity_table = data.frame(
   Model1= rep(NA,4),
@@ -286,10 +278,9 @@ write.csv(sensitivity_table, file = "output/tables/sTable5.csv")
 #----
 
 
-### sTable 6
+### sTable 6: Sensitivity analysis on the foehn wind aggregation method
+### considering only full foehn wind scores
 #----
-
-# Sensitivity analysis on the foehn wind aggregation method: only full foehn wind considered
 
 data_ff = read.csv("/Volumes/FS/_ISPM/CCH/Tino/master_thesis/data/Medstat_hospitalizations_aggregated/hosp_buffer_8000sensitivity_onlyfullfoehnaggregation.csv") |>
   mutate(station_date = paste0(station, date),
