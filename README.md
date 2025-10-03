@@ -1,4 +1,4 @@
-# The risk of hospitalization associated with foehn winds and heat in the mountainous region of Switzerland
+# [The risk of hospitalization associated with foehn winds and heat in the mountainous region of Switzerland](https://journals.lww.com/environepidem/fulltext/2025/10000/the_risk_of_hospitalization_associated_with_foehn.5.aspx)
 
 Authors: Tino Schneidewind [1,2], Sujung Lee [1,2], Ana Maria Vicedo-Cabrera [1,2], Apolline Saucy [1,2]
 
@@ -7,14 +7,14 @@ Authors: Tino Schneidewind [1,2], Sujung Lee [1,2], Ana Maria Vicedo-Cabrera [1,
 2 Oeschger Centre for Climate Change Research, University of Bern, Switzerland
 
 <br>
-<!--
+
 ## Abstract
 Foehn winds are intense warm winds, common in mountain regions, but their health impacts and potential to exacerbate existing heat-related risks remain poorly understood. We investigated the independent and combined association of foehn winds and temperature with cause-specific emergency hospitalizations in Switzerland. We found that foehn winds daily intensity showed small and no consistent association with hospitalizations in temperature-adjusted and non-adjusted models. However, foehn winds amplified heat-related hospitalization risk with a 14% increase in risk at the 99th temperature percentile on foehn days, compared to -2% on non-foehn days. The association was larger for females, older adults, and for hospitalizations due to respiratory and mental health causes. While foehn winds did not directly impact hospitalizations, they may contribute to an amplification of heat-related health risks, especially for females and older adults.
 <p align="center">
   <img src="output/figures/Figure4.png" alt="Figure 1" width="500"/>
 </p>
 *(left) Cumulative relative risk (Model 4) for subpopulations at -8.9°C (1st percentile) with 95% confidence intervals and (right) cumulative relative risk (Model 4) for subpopulations at 24.7°C (99th percentile) with 95% confidence intervals.*
--->
+
 
 <br>
 
